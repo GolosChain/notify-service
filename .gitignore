@@ -1,2 +1,5 @@
 node_modules
 .idea
+# todo make tolstoy to become a one among the underlying packages
+# to share common libs, testing, linter, compiler settings etc. etc.
+tolstoy

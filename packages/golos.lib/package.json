@@ -1,0 +1,17 @@
+{
+  "name": "golos.lib",
+  "author": "Golos.io",
+  "license": "MIT",
+  "version": "0.0.1",
+  "description": "Golos service utility library",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [],
+  "devDependencies": {
+    "app-module-path": "^2.2.0"
+  },
+  "dependencies": {
+    "valid-url": "^1.0.9",
+    "ws": "^4.1.0"
+  }
+}

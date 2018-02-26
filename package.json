@@ -1,0 +1,41 @@
+{
+  "name": "service.golos.io",
+  "version": "0.0.1",
+  "author": "Golos.io",
+  "license": "MIT",
+  "description": "Golos.io back-end services",
+  "engines": {
+    "node": ">=8.9.4"
+  },
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ],
+    "plugins": [
+      "transform-class-properties"
+    ]
+  },
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon packages/golos.proxy/index.js --exec babel-node"
+  },
+  "devDependencies": {
+    "lerna": "^2.9.0",
+    "npm-check-updates": "^2.14.0",
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "^8.2.2",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-preset-env": "^1.6.1",
+    "eslint": "^4.18.1",
+    "eslint-config-nodejs": "^2.0.0",
+    "eslint-plugin-import": "^2.9.0",
+    "nodemon": "^1.15.1"
+  }
+}
