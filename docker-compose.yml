@@ -1,0 +1,44 @@
+version: "3"
+
+services:
+
+  golos.node:
+#  golosd node in a testnet mode
+    image: goloschain/golos_testnet:0.16.4
+    restart: always
+#    -it
+#    stdin_open: true
+#    tty:        true
+    environment:
+      STEEMD_WITNESS_NAME: cyberfounder
+      STEEMD_EXTRA_OPTS: --enable-stale-production
+      STEEMD_MINER_NAME: cyberfounder
+      STEEMD_PRIVATE_KEY: 5JVFFWRLwz6JoP9kguuRFfytToGU6cLgBVTL9t6NB3D3BQLbUBS
+      STEEMD_MINING_THREADS: 4
+    ports:
+      - 8090:8090 # rpc
+      - 2001:2001 # p2p
+    volumes:
+      - node.data:/var/lib/golosd
+    networks:
+      - dev
+
+  golos.mysql:
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes' # dev mode
+      MYSQL_DATABASE: golos_dev
+    ports:
+      - 3306:3306 # rpc
+    volumes:
+      - mysql.data:/var/lib/golosd
+    networks:
+      - dev
+
+volumes:
+  node.data:
+  mysql.data:
+
+networks:
+  dev:
