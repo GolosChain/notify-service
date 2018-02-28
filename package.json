@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "lerna": "^2.9.0",
-    "npm-check-updates": "^2.14.0",
+    "npm-check-updates": "^2.14.1",
     "babel-cli": "^6.26.0",
     "babel-eslint": "^8.2.2",
     "babel-plugin-transform-class-properties": "^6.24.1",
@@ -36,6 +36,6 @@
     "eslint": "^4.18.1",
     "eslint-config-nodejs": "^2.0.0",
     "eslint-plugin-import": "^2.9.0",
-    "nodemon": "^1.15.1"
+    "nodemon": "^1.17.1"
   }
 }
