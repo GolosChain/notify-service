@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "golos.lib": "^0.0.1",
+    "observable-socket": "^5.1.0",
+    "rx": "^4.1.0",
     "valid-url": "^1.0.9",
     "ws": "^4.1.0"
   }

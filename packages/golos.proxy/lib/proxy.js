@@ -5,7 +5,14 @@
 // make this module's directory a root for all further imports (get rid of '../../')
 import Endpoints from 'golos.lib/net/endpoint';
 
+import WS from 'ws';
+import ObservableSocket from 'observable-socket';
+import Rx from 'rx';
+import {PersistentWebsocket} from 'golos.lib/net';
 // const Endpoints = require('golos.lib/net/endpoint');
+
+// console.log(PersistentWebsocket);
+
 
 // queue message producer
 // golosd api cunsumer
@@ -107,9 +114,10 @@ export default class GProxy {
   };
 
   constructor({source, target}) {
-    const { golosD } = Endpoints;
-    this.source = new golosD({uri: source});
+    // const { golosD } = Endpoints;
+    // this.source = new golosD({uri: source});
     // this.target = amqp;
+
   }
 
   bindCallbacks = () => {
@@ -128,9 +136,9 @@ export default class GProxy {
   };
 
   start = () => {
-    this.bindCallbacks();
-    console.log('<<<<<<<<<< connecting source');
-    this.source.connect({callbacks: this.on});
+    // this.bindCallbacks();
+    // console.log('<<<<<<<<<< connecting source');
+    // this.source.connect({callbacks: this.on});
     // console.log('<<<<<<<<<< connecting target');
     // this.target.connect('amqp://guest:guest@localhost:5672', (err, conn) => {
     //   if (err) {
@@ -171,9 +179,131 @@ export default class GProxy {
     //
     //   });
     // });
-  }
 
 
+    // https://stackoverflow.com/questions/47303096/how-to-get-all-messages-using-method-consume-in-lib-amqp-node
+
+    //  todo not working : UPR
+    // const socket = ObservableSocket(new PersistentWebsocket('ws://127.0.0.1:8090'));
+
+
+    // const socket = ObservableSocket(new WS('ws://127.0.0.1:8090'));
+    const socket = ObservableSocket(new WS('wss:ws.golos.io'));
+
+
+    // Send messages up the socket
+    socket.up(
+      JSON.stringify({
+        id: 1,
+        method: 'call',
+        'params': ['database_api', 'set_block_applied_callback', [0]],
+      }),
+    );
+    // (info) struct set_block_applied_callback response
+    const set_block_applied_callback_response = {
+      'id': 1,
+      'result': null,
+    };
+    // (info) struct set_block_applied_callback event data
+    const block_applied_callback_data = {
+      'method': 'notice',
+      'params': [
+        0,
+        [
+          {
+            'previous': '00dae2de2d60992ba7494d3dfa4188de5d7a9b8b',
+            'timestamp': '2018-03-02T13:59:48',
+            'witness': 'ropox',
+            'transaction_merkle_root': '7c417b4b783af5d833a5c958615fca7fc1db1b04',
+            'extensions': [],
+            'witness_signature': '1f6f4da49a4f2444edeec2f68708db51a9d3698877735ad49a7ec8acc8509e97f9719fb65cec2686df3d8ef79eca68506b9093ddc360a89e89d763723156e25cd9',
+          },
+        ],
+      ],
+    };
+    // raw socket stream -> JSON data stream
+    const inputStream = socket.down
+      .map(dataEvent => JSON.parse(dataEvent.data))
+      // todo: this gracefully restarts the stream somehow - take a look at the docs
+      .catch(e => console.log('Error parsing raw data!'));
+    // transform to stream of applied block numbers
+    const blockStream = inputStream
+      .filter(data => (data.method === 'notice' && data.params))
+      .map(blockData => blockData.params[1][0])
+      .map(blockData => ({
+        // calculate and add the current block's number (chain head) for convenience
+        index: parseInt(blockData.previous.slice(0, 8), 16),
+        ...blockData,
+      }));
+    // .take(5)
+    const transactions = blockStream.switchMap(block => {
+      console.log(`[block] ${block.index}`);
+      socket.up(
+        JSON.stringify({
+          id: 2,
+          method: 'call',
+          params: ['database_api', 'get_ops_in_block', [block.index, 'false']],
+        }));
+      // filter out get_ops_in_block responses from the root JSON stream
+      return inputStream
+        .filter(msg => msg.id === 2)
+        // return flattened stream of transactions
+        .flatMap(data => data.result);
+    });
+    // transform transaction stream into an operation stream
+    const ops = transactions
+      .map(trx => trx.op)
+
+
+    // transactions.subscribe(o => console.log(o));
+    ops.subscribe(o => console.log(o));
+
+
+    // transactions.subscribe(o => console.log(o));
+    // ops.subscribe(o => console.log(o));
+    // blockStream.subscribe(o => console.log(o.index))
+
+    // const bla = Rx.Observable.from([[1, 2], [3, 4], [6]])
+    //   .flatMap(o => Rx.Observable.from(o))
+    //   .subscribe(i => console.log(i))
+
+
+    // transactions.subscribe(o => console.log(o));
+    // ops.subscribe(o => console.log(o));
+
+
+    //
+    // const ops = trxStream
+    //   // .flatMap(trxs => Rx.Observable.from(trxs))
+    //   // .map(trx => trx.op[0])
+    //   .subscribe(op => console.log(op));
+    //
+    //
+    // //
+    // // const ops = transactions
+    // //   .flatMap(trxs => Rx.Observable.from(trxs))
+    // //   .map(trx => trx.op[0])
+    // //   .subscribe(op => console.log(op));
+    //
+    // // const bla = ['bla', 'blu'];
+    // // const blu = [...bla, 'clu'];
+    // // console.log(blu)
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+    //
+
+
+  };
 
 
 }

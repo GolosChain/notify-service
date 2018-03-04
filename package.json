@@ -19,7 +19,8 @@
       ]
     ],
     "plugins": [
-      "transform-class-properties"
+      "transform-class-properties",
+      "transform-object-rest-spread"
     ]
   },
   "main": "index.js",
@@ -27,15 +28,16 @@
     "dev": "nodemon packages/golos.proxy/index.js --exec babel-node"
   },
   "devDependencies": {
-    "lerna": "^2.9.0",
-    "npm-check-updates": "^2.14.1",
     "babel-cli": "^6.26.0",
     "babel-eslint": "^8.2.2",
     "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "eslint": "^4.18.1",
     "eslint-config-nodejs": "^2.0.0",
     "eslint-plugin-import": "^2.9.0",
-    "nodemon": "^1.17.1"
+    "lerna": "^2.9.0",
+    "nodemon": "^1.17.1",
+    "npm-check-updates": "^2.14.1"
   }
 }

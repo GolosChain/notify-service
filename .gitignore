@@ -1,5 +1,7 @@
 node_modules
 .idea
+yarn-error.log
 # todo make tolstoy to become a one among the underlying packages
 # to share common libs, testing, linter, compiler settings etc. etc.
 tolstoy
+lerna-debug.log

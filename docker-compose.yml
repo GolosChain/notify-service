@@ -36,9 +36,25 @@ services:
     networks:
       - dev
 
+  golos.queue:
+    image: rabbitmq:3.7.3-management-alpine
+    restart: always
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'yes' # dev mode
+      MYSQL_DATABASE: golos_dev
+    ports:
+      - 3001:15672 # http management
+      - 5672:5672 # rpc
+    volumes:
+      - queue.data:/var/lib/rabbitmq
+    networks:
+      - dev
+
+
 volumes:
   node.data:
   mysql.data:
+  queue.data:
 
 networks:
   dev:
