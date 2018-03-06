@@ -1,24 +1,9 @@
-// MIT License:
-//
-// Copyright (c) 2010-2012, Joe Walnes
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+// This is an nodejs adoption of https://github.com/joewalnes/reconnecting-websocket/
+// works like a charm unlike the most popular friend:
+// https://github.com/pladaria/reconnecting-websocket
+// TODO implement reconnectDecay!
+// TODO make separate debug flag for each event (debugAll is too verbose)
+// TODO make this a class
 
 /**
  * This behaves like a WebSocket in every way, except if it fails to connect,
@@ -28,7 +13,7 @@
  * It is API compatible, so when you have:
  *   ws = new WebSocket('ws://....');
  * you can replace with:
- *   ws = new ReconnectingWebSocket('ws://....');
+ *   ws = new PersistentWebSocket('ws://....');
  *
  * The event stream will typically look like:
  *  onconnecting
@@ -48,9 +33,9 @@
  * - Joe Walnes
  */
 
-var WebSocket = require('ws');
+import WebSocket from 'ws';
 
-function ReconnectingWebSocket(url, protocols) {
+export default function PersistentWebSocket(url, protocols) {
   protocols = protocols || [];
 
   // These can be altered by calling code.
@@ -58,10 +43,10 @@ function ReconnectingWebSocket(url, protocols) {
   this.reconnectInterval = 1000;
   this.timeoutInterval = 2000;
 
-  var self = this;
-  var ws;
-  var forcedClose = false;
-  var timedOut = false;
+  const self = this;
+  let ws;
+  let forcedClose = false;
+  let timedOut = false;
 
   this.url = url;
   this.protocols = protocols;
@@ -87,14 +72,14 @@ function ReconnectingWebSocket(url, protocols) {
     ws = new WebSocket(url, protocols);
 
     self.onconnecting();
-    if (self.debug || ReconnectingWebSocket.debugAll) {
-      console.debug('ReconnectingWebSocket', 'attempt-connect', url);
+    if (self.debug || PersistentWebSocket.debugAll) {
+      console.log('PersistentWebSocket', 'attempt-connect', url);
     }
 
-    var localWs = ws;
-    var timeout = setTimeout(function() {
-      if (self.debug || ReconnectingWebSocket.debugAll) {
-        console.debug('ReconnectingWebSocket', 'connection-timeout', url);
+    const localWs = ws;
+    const timeout = setTimeout(() => {
+      if (self.debug || PersistentWebSocket.debugAll) {
+        console.log('PersistentWebSocket', 'connection-timeout', url);
       }
       timedOut = true;
       localWs.close();
@@ -103,8 +88,8 @@ function ReconnectingWebSocket(url, protocols) {
 
     ws.onopen = function(event) {
       clearTimeout(timeout);
-      if (self.debug || ReconnectingWebSocket.debugAll) {
-        console.debug('ReconnectingWebSocket', 'onopen', url);
+      if (self.debug || PersistentWebSocket.debugAll) {
+        console.log('PersistentWebSocket', 'onopen', url);
       }
       self.readyState = WebSocket.OPEN;
       reconnectAttempt = false;
@@ -121,25 +106,25 @@ function ReconnectingWebSocket(url, protocols) {
         self.readyState = WebSocket.CONNECTING;
         self.onconnecting();
         if (!reconnectAttempt && !timedOut) {
-          if (self.debug || ReconnectingWebSocket.debugAll) {
-            console.debug('ReconnectingWebSocket', 'onclose', url);
+          if (self.debug || PersistentWebSocket.debugAll) {
+            console.log('PersistentWebSocket', 'onclose', url);
           }
           self.onclose(event);
         }
-        setTimeout(function() {
+        setTimeout(() => {
           connect(true);
         }, self.reconnectInterval);
       }
     };
     ws.onmessage = function(event) {
-      if (self.debug || ReconnectingWebSocket.debugAll) {
-        console.debug('ReconnectingWebSocket', 'onmessage', url, event.data);
+      if (self.debug || PersistentWebSocket.debugAll) {
+        console.log('PersistentWebSocket', 'onmessage', url, event.data);
       }
       self.onmessage(event);
     };
     ws.onerror = function(event) {
-      if (self.debug || ReconnectingWebSocket.debugAll) {
-        console.debug('ReconnectingWebSocket', 'onerror', url, event);
+      if (self.debug || PersistentWebSocket.debugAll) {
+        console.log('PersistentWebSocket', 'onerror', url, event);
       }
       self.onerror(event);
     };
@@ -148,8 +133,8 @@ function ReconnectingWebSocket(url, protocols) {
 
   this.send = function(data) {
     if (ws) {
-      if (self.debug || ReconnectingWebSocket.debugAll) {
-        console.debug('ReconnectingWebSocket', 'send', url, data);
+      if (self.debug || PersistentWebSocket.debugAll) {
+        console.log('PersistentWebSocket', 'send', url, data);
       }
       return ws.send(data);
     } else {
@@ -174,10 +159,5 @@ function ReconnectingWebSocket(url, protocols) {
     }
   };
 }
-
-/**
- * Setting this to true is the equivalent of setting all instances of ReconnectingWebSocket.debug to true.
- */
-ReconnectingWebSocket.debugAll = false;
-
-module.exports = ReconnectingWebSocket;
+// Setting this to true is the equivalent of setting all instances of PersistentWebSocket.debug to true.
+PersistentWebSocket.debugAll = false;

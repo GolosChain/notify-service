@@ -1,17 +1,15 @@
-// docker run -d --hostname my-rabbit --name some-rabbit -p 8080:15672 -p 5672:5672 rabbitmq:3.7.3-management-alpine
-// keep only one fresh message in queue : https://stackoverflow.com/questions/10585598/rabbitmq-messaging-initializing-consumer
-// https://github.com/gls-lab/golos-notifications
-
 // make this module's directory a root for all further imports (get rid of '../../')
 import Endpoints from 'golos.lib/net/endpoint';
 
-import WS from 'ws';
 import ObservableSocket from 'observable-socket';
 import Rx from 'rx';
 import {PersistentWebsocket} from 'golos.lib/net';
 // const Endpoints = require('golos.lib/net/endpoint');
 
 // console.log(PersistentWebsocket);
+
+import WS from 'ws';
+import RWS from 'reconnecting-websocket';
 
 
 // queue message producer
@@ -185,12 +183,7 @@ export default class GProxy {
 
     //  todo not working : UPR
     // const socket = ObservableSocket(new PersistentWebsocket('ws://127.0.0.1:8090'));
-
-
-    // const socket = ObservableSocket(new WS('ws://127.0.0.1:8090'));
-    const socket = ObservableSocket(new WS('wss:ws.golos.io'));
-
-
+    const socket = ObservableSocket(new RWS('bss:ws.golos.io', undefined, {constructor: WS}));
     // Send messages up the socket
     socket.up(
       JSON.stringify({
@@ -237,7 +230,6 @@ export default class GProxy {
       }));
     // .take(5)
     const transactions = blockStream.switchMap(block => {
-      console.log(`[block] ${block.index}`);
       socket.up(
         JSON.stringify({
           id: 2,
@@ -250,18 +242,76 @@ export default class GProxy {
         // return flattened stream of transactions
         .flatMap(data => data.result);
     });
+
+    blockStream.subscribe(o => console.log(`[${o.index}] -------------------------------------------`));
+
+
     // transform transaction stream into an operation stream
     const ops = transactions
-      .map(trx => trx.op)
+      .map(trx => trx.op);
+
+    // ops.subscribe(o => console.log('[x]', o));
+
+    // const votes = ops
+    //     .filter(op => op[0] === 'vote')
+    //     .map(op => {
+    //         const {author} = op[1]
+    //         console.log(`>>>>>>>>>`, op[1])
+    //     })
+    // .groupBy(vote => vote.author)
 
 
-    // transactions.subscribe(o => console.log(o));
-    ops.subscribe(o => console.log(o));
+    const votes = ops
+      .filter(op => op[0] === 'vote')
+      .map(op => op[1])
+      .groupBy(x => x.author)
+      .switchMap(group => group.toArray())
+
+    // .toArray()
+    // .switchMap(group => group.toArray())
+    // .switchMap(ops => {
+    //     // return ops.groupBy(vote => vote.author)
+    //     //
+    //     //
+    //     //
+    //     //     return ops
+    //     //         .flatMap(data => data.result)
+    // })
+
+
+    // // .switchMap(op => op.groupBy(payload => payload.author))
+    // .switchMap(group => group)
+    // // .toArray()
+    // votes.subscribe(o => console.log(`[v][receiver] ${o[1].author}`));
+    votes.subscribe(o => console.log('[-]', o));
+
+    // const comments = ops
+    //   .filter(op => op[0] === 'comment');
+    //
+    // comments.subscribe(o => console.log(`[c][receiver] ${o[1].author}`));
+    //
+    // const transfers = ops
+    //   .filter(op => op[0] === 'transfer');
+    //
+    // transfers.subscribe(o => console.log(`[t][receiver] ${o[1].to}`));
+
+
+    // const transfers = ops
+    //   .filter(op => op[0] === 'transfer')
+    //   .subscribe(o => console.log(`[t] ${o[1].voter}`));
+
+
+    // const transfers = ops
+    //     .filter(ops[0] === 'transfer')
+    //
+    // const comments = ops
+    //     .filter(ops[0] === 'comment')
 
 
     // transactions.subscribe(o => console.log(o));
     // ops.subscribe(o => console.log(o));
     // blockStream.subscribe(o => console.log(o.index))
+
 
     // const bla = Rx.Observable.from([[1, 2], [3, 4], [6]])
     //   .flatMap(o => Rx.Observable.from(o))
