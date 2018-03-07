@@ -1,8 +1,8 @@
 import {isUri} from 'valid-url';
 import * as url from 'url';
 
-export default class Endpoint {
-  constructor({uri}) {
+export default class BaseDataSource {
+  constructor(uri) {
     if (isUri(uri)) {
       Object.assign(this, url.parse(uri));
     } else {

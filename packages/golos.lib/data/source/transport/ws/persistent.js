@@ -118,7 +118,7 @@ export default function PersistentWebSocket(url, protocols) {
     };
     ws.onmessage = function(event) {
       if (self.debug || PersistentWebSocket.debugAll) {
-        console.log('PersistentWebSocket', 'onmessage', url, event.data);
+        // console.log('PersistentWebSocket', 'onmessage', url, event.data);
       }
       self.onmessage(event);
     };

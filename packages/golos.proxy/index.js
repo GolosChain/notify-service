@@ -20,12 +20,27 @@
 
 
 import Rx from 'rx';
-import {PersistentWebsocket} from 'golos.lib/net';
-const socket = new PersistentWebsocket('wss://ws.golos.io');
-Rx.Observable.create(observer => {
-  socket.onopen = e => observer.next(e);
+// import {PersistentWebsocket} from 'golos.lib/net';
+import GolosD from 'golos.lib/data/source/golosd';
+
+const dataSource = new GolosD('wss://ws.golos.io');
+const socket = dataSource.transport;
+
+
+
+// todo alternatively extend PersistentWebsocket to have something like openStream
+const stream = (emitter, ename) => Rx.Observable.create(observer => {
+  emitter[ename] = e => observer.next(e);
   // emitter.on('error', err => observer.error(err));
-})
+});
+
+// const socket = new PersistentWebsocket('wss://ws.golos.io');
+
+// Rx.Observable.create(observer => {
+//   socket.onopen = e => observer.next(e);
+//   // emitter.on('error', err => observer.error(err));
+// })
+stream(socket, 'onopen')
   .subscribe(
     next => {
       socket.send(
@@ -37,7 +52,6 @@ Rx.Observable.create(observer => {
       );
     },
   );
-
 
 Rx.Observable.create(observer => {
   socket.onmessage = e => observer.next(e);
