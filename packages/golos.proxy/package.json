@@ -11,8 +11,10 @@
     "app-module-path": "^2.2.0"
   },
   "dependencies": {
+    "debug": "^3.1.0",
     "golos.lib": "^0.0.1",
-    "rx": "^4.1.0",
-    "rx-amqplib": "^0.1.6"
+    "rx-amqplib": "^0.1.6",
+    "rxjs": "^5.5.6",
+    "ws": "^5.0.0"
   }
 }

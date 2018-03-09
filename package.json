@@ -39,5 +39,8 @@
     "lerna": "^2.9.0",
     "nodemon": "^1.17.1",
     "npm-check-updates": "^2.14.1"
+  },
+  "dependencies": {
+    "rxjs": "^5.5.6"
   }
 }

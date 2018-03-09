@@ -124,7 +124,7 @@ export default function PersistentWebSocket(url, protocols) {
     };
     ws.onerror = function(event) {
       if (self.debug || PersistentWebSocket.debugAll) {
-        console.log('PersistentWebSocket', 'onerror', url, event);
+        console.log('PersistentWebSocket', 'onerror', url, event.message);
       }
       self.onerror(event);
     };
