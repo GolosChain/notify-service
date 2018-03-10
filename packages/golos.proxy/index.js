@@ -17,11 +17,14 @@
 // keep only one fresh message in queue : https://stackoverflow.com/questions/10585598/rabbitmq-messaging-initializing-consumer
 // https://github.com/gls-lab/golos-notifications
 
-import {ObservableWebSocket} from 'golos.lib';
-import ws from 'ws';
+
+import { PersistentWebSocket } from 'golos.lib';
+import { ObservableWebSocket } from 'golos.lib';
 import { Observable } from 'rxjs';
 
-const socket = ObservableWebSocket(new ws('wss://ws.golos.io'));
+
+const socket = ObservableWebSocket(new PersistentWebSocket('wss://ws.golos.io'));
+
 socket.up(
   JSON.stringify({
     id: 1,
@@ -29,11 +32,16 @@ socket.up(
     'params': ['database_api', 'set_block_applied_callback', [0]],
   }),
 );
+
+
 // raw socket stream -> JSON data stream
 const inputStream = socket.down
   .map(dataEvent => JSON.parse(dataEvent.data))
   // todo: this gracefully restarts the stream somehow - take a look at the docs
-  .catch(e => console.log('Error parsing raw data!'));
+  .catch(e => {
+    console.log('Error parsing raw data!');
+    return Observable.empty();
+  });
 // transform to stream of applied block numbers
 const blockStream = inputStream
   .filter(data => (data.method === 'notice' && data.params))
@@ -43,7 +51,9 @@ const blockStream = inputStream
     index: parseInt(blockData.previous.slice(0, 8), 16),
     ...blockData
   }));
-// .take(3);
+// // .take(3);
+
+
 // pull out a transaction stream for each block
 const blockTrxs =
   blockStream
@@ -60,7 +70,7 @@ const blockTrxs =
         // transform the transactions ARRAY into transactions STREAM
         .flatMap(x => Observable.from(x.result));
     });
-//
+// //
 const blockOps =
   blockTrxs
     .map(x => {
@@ -84,18 +94,31 @@ const blockOps =
     })
     // filter off ops that have undefined targets
     .filter(x => x.target);
-
-// const opsByTarget =
-//     trxOps
-//         .groupBy(x => x.target)
-//         .switchMap(x => x)
-// .flatMap(x => Rx.Observable.from(x.result))
-// .map(x => x.op)
-
-
+// .filter(x =>
+//   (x.type === 'comment')
+//   ||
+//   (x.type === 'transfer')
+// );
 //
-blockStream.subscribe(o => console.log(`-------------------------------------------------------------------[ ${o.index} ]`));
-// blockTrxs.subscribe(o => console.log(o));
-// transactions.subscribe(o => console.log(o));
+// // const opsByTarget =
+// //     trxOps
+// //         .groupBy(x => x.target)
+// //         .switchMap(x => x)
+// // .flatMap(x => Rx.Observable.from(x.result))
+// // .map(x => x.op)
 //
-blockOps.subscribe(o => console.log(o.target, o.type));
+//
+// //
+blockStream.subscribe(
+  o => console.log(`-------------------------------------------------------------------[ ${o.index} ]`),
+  e => console.log('<<<<<<<<<< Error'),
+  c => console.log('COMPLETE')
+);
+// // blockTrxs.subscribe(o => console.log(o));
+// // transactions.subscribe(o => console.log(o));
+// //
+// blockOps.subscribe(
+//   o => console.log(`[${o.target}] <- ${o.type}`),
+//   e => console.log('<<<<<<<<<< Error'),
+//   c => console.log('COMPLETE')
+// );

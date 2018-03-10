@@ -7,10 +7,9 @@
   "main": "index.js",
   "scripts": {},
   "keywords": [],
-  "devDependencies": {
-  },
   "dependencies": {
+    "detect-is-node": "^1.0.3",
     "valid-url": "^1.0.9",
-    "ws": "^4.1.0"
+    "ws": "^5.0.0"
   }
 }

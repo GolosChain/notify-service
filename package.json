@@ -25,7 +25,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon packages/golos.proxy/index.js --exec babel-node"
+    "dev": "npx lerna bootstrap && nodemon packages/golos.proxy/index.js --exec babel-node"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

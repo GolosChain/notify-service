@@ -39,7 +39,7 @@ export default function observableSocket(_ws) {
       .subscribe(e => {
         log('closed');
 
-        observer.complete(e);
+        // observer.complete(e);
       });
 
     return function cleanup() {
