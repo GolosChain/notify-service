@@ -3,3 +3,6 @@
 export { default as WebSocket } from './data/transport/WebSocket';
 export { default as PersistentWebSocket } from './data/transport/WebSocket/Persistent';
 export {default as ObservableWebSocket} from './data/transport/WebSocket/observable';
+export {default as Golos} from './data/source/Golos';
+// export {default as Tarantool} from './db/tarantool';
+export {default as Queue} from './queue/tarantool/Queue';

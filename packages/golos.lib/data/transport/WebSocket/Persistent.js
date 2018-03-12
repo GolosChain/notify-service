@@ -1,33 +1,22 @@
 import {default as WebSocket} from './';
 import {EventEmitter} from 'events';
-// export declare type EventTargetLike = EventTarget | NodeStyleEventEmitter ...
-
-// interface EventTarget {
-//   addEventListener(type: string, listener?: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
-//   dispatchEvent(evt: Event): boolean;
-//   removeEventListener(type: string, listener?: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
-// }
-// export type NodeStyleEventEmitter = {
-//   addListener: (eventName: string, handler: Function) => void;
-// removeListener: (eventName: string, handler: Function) => void;
-// };
 
 const settings = {
-  /** Whether this instance should log debug messages. */
+  // Whether this instance should log debug messages.
   debug: false,
-  /** Whether or not the websocket should attempt to connect immediately upon instantiation. */
+  // Whether or not the websocket should attempt to connect immediately upon instantiation.
   automaticOpen: true,
-  /** The number of milliseconds to delay before attempting to reconnect. */
+  // The number of milliseconds to delay before attempting to reconnect.
   reconnectInterval: 1000,
-  /** The maximum number of milliseconds to delay a reconnection attempt. */
+  // The maximum number of milliseconds to delay a reconnection attempt.
   maxReconnectInterval: 3000,
-  /** The rate of increase of the reconnect delay. Allows reconnect attempts to back off when problems persist. */
+  // The rate of increase of the reconnect delay. Allows reconnect attempts to back off when problems persist.
   reconnectDecay: 1,
-  /** The maximum time in milliseconds to wait for a connection to succeed before closing and retrying. */
+  // The maximum time in milliseconds to wait for a connection to succeed before closing and retrying.
   timeoutInterval: 2000,
-  /** The maximum number of reconnection attempts to make. Unlimited if null. */
+  // The maximum number of reconnection attempts to make. Unlimited if null.
   maxReconnectAttempts: null,
-  /** The binary type, possible values 'blob' or 'arraybuffer', default 'blob'. */
+  // The binary type, possible values 'blob' or 'arraybuffer', default 'blob'.
   binaryType: 'blob'
 };
 
@@ -47,29 +36,21 @@ export default class PersistentWebSocket extends EventEmitter {
         this[key] = settings[key];
       }
     }
-    // These should be treated as read-only properties
-    /** The URL as resolved by the constructor. This is always an absolute URL. Read only. */
+    // The URL as resolved by the constructor. This is always an absolute URL.
     this.url = url;
-    /** The number of attempted reconnects since starting, or the last successful connection. Read only. */
+    // The number of attempted reconnects since starting, or the last successful connection. Read only.
     this.reconnectAttempts = 0;
-    /**
-     * The current state of the connection.
-     * Can be one of: WebSocket.CONNECTING, WebSocket.OPEN, WebSocket.CLOSING, WebSocket.CLOSED
-     * Read only.
-     */
+    // One of: WebSocket.CONNECTING, WebSocket.OPEN, WebSocket.CLOSING, WebSocket.CLOSED
     this.readyState = WebSocket.CONNECTING;
-    /**
-     * A string indicating the name of the sub-protocol the server selected; this will be one of
-     * the strings specified in the protocols parameter when creating the WebSocket object.
-     * Read only.
-     */
+    // sub-protocol the server selected
     this.protocol = null;
-
-
-    this.ws = null;
+    // Websocket instance
+    this.ws = undefined;
+    // ?
     this.forcedClose = false;
+    // ?
     this.timedOut = false;
-
+    // ?
     this.timeout = setTimeout(
       () => {
         console.log('ReconnectingWebSocket', 'connection-timeout', this.url);
@@ -79,13 +60,11 @@ export default class PersistentWebSocket extends EventEmitter {
       },
       this.timeoutInterval
     );
-
-    // Whether or not to create a websocket upon instantiation
+    // Whether or not to connect upon instantiation
     if (this.automaticOpen) {
       this.open(false);
     }
   }
-
 
   onerror(e) {
 
@@ -99,7 +78,6 @@ export default class PersistentWebSocket extends EventEmitter {
         return;
       }
     } else {
-      // eventTarget.dispatchEvent(generateEvent('connecting'));
       this.emit('connecting');
       this.reconnectAttempts = 0;
     }
@@ -114,11 +92,11 @@ export default class PersistentWebSocket extends EventEmitter {
       this.protocol = this.ws.protocol;
       this.readyState = WebSocket.OPEN;
       this.reconnectAttempts = 0;
-      // const e = generateEvent('open');
-      // e.isReconnect = reconnectAttempt;
-      // reconnectAttempt = false;
-      // eventTarget.dispatchEvent(e);
-      this.emit('open', reconnectAttempt);
+      this.emit('open', {
+        protocol: this.protocol,
+        reconnectAttempts: this.reconnectAttempts,
+        reconnectAttempt
+      });
       reconnectAttempt = false;
     };
 
