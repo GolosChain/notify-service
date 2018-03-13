@@ -16,7 +16,6 @@ const connectionStatus = {
   reconnecting: 2
 };
 
-
 export default class Queue extends EventEmitter {
   constructor({
     host = 'localhost',
@@ -55,7 +54,7 @@ export default class Queue extends EventEmitter {
     });
   }
 
-  async run(luaCode) {
+  async exec(luaCode) {
     const {tnt} = this;
     let result = null;
     try {
@@ -70,6 +69,7 @@ export default class Queue extends EventEmitter {
 
   }
 
+
   async assertTube(name, type = 'fifo') {
     // queue.create_tube(queue name, queue type [, {options} ])
     // queue.create_tube('tube_name', 'fifottl', {temporary = true})
@@ -78,11 +78,78 @@ export default class Queue extends EventEmitter {
     // compose the command to run on tarantool
     const command = `create_tube('${name}', '${type}', {if_not_exists = true})`;
     // run it and get response
-    const res = await this.run(`${namespace}.${command}`);
+    const res = await this.exec(`${namespace}.${command}`);
     // res = JSON.parse(res)
     return res instanceof Array;
   }
 
+  async statistics(name) {
+    const {namespace} = this;
+    const command = name ? `statistics('${name}')` : `statistics()`;
+    const res = await this.exec(`return ${namespace}.${command}`);
+    return res;
+  }
+
+  async put(tube_name, task_data) {
+    // queue.tube.tube_name:put(task_data [, {options} ])
+    // The tube_name must be the name which was specified by queue.create_tube.
+    // The task_data contents are the user-defined description of the task, usually a long string.
+    // Returns: the value of the new tuple in the queue's associated space, also called the "created task".
+    // example: queue.tube.list_of_sites:put('Your task is to do something', {pri=2})
+    const {namespace} = this;
+    // compose the command to run on tarantool
+    const command = `tube.${tube_name}:put('${task_data}')`;
+    // run it and get response
+    const res = await this.exec(`return ${namespace}.${command}`);
+    // // res = JSON.parse(res)
+    return res[0];
+  }
+
+  async take(tube_name, timeout) {
+    // Lua:     queue.tube.<tube_name>:take([timeout])
+    // Example: t_value = queue.tube.list_of_sites:take(15)
+    // Action:  searches for a task in the queue or sub-queue (that is, a tuple in the queue's associated space)
+    //          which has task_state = 'r' (ready), and task_id = a value lower than any other tuple which also
+    //          has task_state = 'r'.
+    // Effect:  the value of task_state changes to 't' (taken). The take request tells the system that the task is being
+    //          worked on. It should be followed by an ack request when the work is finished. Additional effect:
+    //          a tuple is added to the _queue_taken space.
+    // Returns: the value of the taken tuple, or nil if none was found. The value of the first field in the tuple
+    //          (task_id) is important for further requests. The value of the second field in the tuple (task_data) is
+    //          important as it presumably contains user-defined instructions for what to do with the task.
+    const {namespace} = this;
+    // compose the command to run on tarantool
+    const command = `tube.${tube_name}:${timeout ? `take(${timeout})` : `take()`}`;
+    // console.log(`return ${namespace}.${command}`);
+    // run it and get response
+    const res = await this.exec(`return ${namespace}.${command}`);
+    // // res = JSON.parse(res)
+    return res[0];
+  }
+
+  async ack(tube_name, task_id) {
+    // Lua:     queue.tube.<tube_name>:ack(task_id)
+    // Example: queue.tube.list_of_sites:ack(15)
+    // Action:  The worker which has used 'take' to take the task should use 'ack' to signal that the task has
+    //          been completed. The current task_state of the tuple should be 't' (taken), and the worker issuing
+    //          the ack request must have the same ID as the worker which issued the take request.
+    // Effect:  the value of task_state changes to '-' (acknowledged). Shortly after this, it may be removed from
+    //          the queue automatically.
+    //          If 'take' occurs but is not soon followed by 'ack' -- that is, if ttr (time to run) expires, or if the
+    //          worker disconnects -- the effect is: task_state is changed from 't' (taken) back to 'r' (ready).
+    //          This effect is the same as what would happen with a release request.
+    // Returns: the value of the taken tuple, or nil if none was found. The value of the first field in the tuple
+    //          (task_id) is important for further requests. The value of the second field in the tuple (task_data) is
+    //          important as it presumably contains user-defined instructions for what to do with the task.
+    const {namespace} = this;
+    // compose the command to run on tarantool
+    const command = `tube.${tube_name}:ack(${task_id})`;
+    // console.log(`return ${namespace}.${command}`);
+    // run it and get response
+    const res = await this.exec(`return ${namespace}.${command}`);
+    // // res = JSON.parse(res)
+    return res[0];
+  }
 
 
   close() {

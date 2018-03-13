@@ -2,12 +2,9 @@ import BaseDataSource from './base';
 import PersistentWebSocket from '../transport/WebSocket/Persistent';
 import { Observable } from 'rxjs';
 
-
 // final
 export default class Golos {
-
   socket = new PersistentWebSocket('wss://ws.golos.io');
-
   streams = {
     open: Observable.fromEvent(this.socket, 'open'),
     message: Observable.fromEvent(this.socket, 'message'),

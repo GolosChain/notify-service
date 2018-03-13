@@ -4,8 +4,22 @@ import {Queue} from 'golos.lib';
 
 const q = new Queue({port: 3301});
 q.on('connect', async() => {
-  const ok = await q.assertTube('q', 'fifottl');
-  console.log(`queue exists: ${ok}`);
+  const ok = await q.assertTube('q2', 'fifo');
+  const stat = await q.statistics();
+  const put = await q.put('q2', 'blaaaaaaaaaaaa');
+  console.log(`put:`, put);
+  const taken = await q.take('q2', 10);
+  const takenId = taken[0];
+  console.log(`taken:`, taken);
+  console.log(`taken id : ${takenId}`)
+  const acked = await q.ack('q2', takenId);
+  console.log(`acked:`, acked);
+
+
+
+
+
+
 });
 
 

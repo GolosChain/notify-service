@@ -11,7 +11,6 @@ import {PersistentWebsocket} from 'golos.lib/net';
 import WS from 'ws';
 import RWS from 'reconnecting-websocket';
 
-
 // queue message producer
 // golosd api cunsumer
 export default class GProxy {
