@@ -1,79 +1,49 @@
 /* eslint-disable quotes */
-
+import {Golos} from 'golos.lib';
 import {Queue} from 'golos.lib';
 
-const q = new Queue({port: 3301});
-q.on('connect', async() => {
-  const ok = await q.assertTube('q2', 'fifo');
-  const stat = await q.statistics();
-  const put = await q.put('q2', 'blaaaaaaaaaaaa');
-  console.log(`put:`, put);
-  const taken = await q.take('q2', 10);
-  const takenId = taken[0];
-  console.log(`taken:`, taken);
-  console.log(`taken id : ${takenId}`)
-  const acked = await q.ack('q2', takenId);
-  console.log(`acked:`, acked);
-
-
-
-
-
-
-});
-
-
-// import {Golos} from 'golos.lib';
-// import {Tarantool} from 'golos.lib';
-//
-// const put = async idx => {
-//   // const res = await Tarantool.instance('tarantool').eval(`
-//   //   queue.create_tube('tst', 'fifo', {temporary = true, if_not_exists = true})
-//   //   `);
-//   const res1 = await Tarantool.instance('tarantool').eval(`
-//     queue.tube.tst:put(${idx})
-//     `);
-// };
-//
-// const get = async() => {
-//   // const res = await Tarantool.instance('tarantool').eval(`
-//   //   queue.create_tube('tst', 'fifo', {temporary = true, if_not_exists = true})
-//   //   `);
-//   // Tarantool.instance('tarantool').eval(`
-//   //   return queue.tube.tst:take()
-//   //   `).then(x => console.log(x));
-//
-//   const res = await Tarantool.instance('tarantool').eval(`
-//     return queue.tube.tst:take()
-//     `);
-//
-//   console.log(res[0]);
-//
-//   const res1 = await Tarantool.instance('tarantool').eval(`
-//     return queue.tube.tst:ack(${res[0][0]})
-//     `);
-//
-//   console.log(res1);
-//
-//
-//
-//
-//
-//
-// };
-//
-//
-// get();
-
-
-// const golosd = new Golos();
-//
-// const {streams: {block}} = golosd;
-// //
-// block.subscribe(x => {
-//   console.log(`-------------------------------------------------------------------[ ${x.index} ]`)
-//   put(x.index);
+// const q = new Queue({port: 3301});
+// q.on('connect', async() => {
+//   const ok = await q.assertTube('q2', 'fifo');
+//   const stat = await q.statistics();
+//   const put = await q.put('q2', 'blaaaaaaaaaaaa');
+//   console.log(`put:`, put);
+//   const taken = await q.take('q2', 10);
+//   const takenId = taken[0];
+//   console.log(`taken:`, taken);
+//   console.log(`taken id : ${takenId}`)
+//   const acked = await q.ack('q2', takenId);
+//   console.log(`acked:`, acked);
 // });
+
+const start = async() => {
+  const golosd = new Golos();
+  const queue = new Queue({port: 3301});
+  // top level queue (utube) - namespace for the blockchain subqueues
+  const tChainName = 'main';
+  const tHeadName = 'head';
+  console.log(`<<< asserting tube: ${tChainName}`);
+  const tChain = await queue.assertTube(tChainName, 'fifo');
+  console.log(`<<< tube: ${tChainName} is ${tChain}`);
+  const {streams: {block}} = golosd;
+  //
+  block.subscribe(async x => {
+    console.log(`-------------------------------------------------------------------[ ${x.index} ]`);
+    console.log(`[ put block number into queue : ${tChainName} ]`);
+    const put = await queue.put(tChainName, x.index);
+    console.log(`put:`, put);
+    const taken = await queue.take(tChainName);
+    const takenId = taken[0];
+    console.log(`taken:`, taken);
+    console.log(`taken id : ${takenId}`)
+    const acked = await queue.ack(tChainName, takenId);
+    console.log(`acked:`, acked);
+  });
+
+
+};
+
+start();
 
 
 // import { PersistentWebSocket } from 'golos.lib';

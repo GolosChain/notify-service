@@ -69,7 +69,6 @@ export default class Queue extends EventEmitter {
 
   }
 
-
   async assertTube(name, type = 'fifo') {
     // queue.create_tube(queue name, queue type [, {options} ])
     // queue.create_tube('tube_name', 'fifottl', {temporary = true})
@@ -150,7 +149,6 @@ export default class Queue extends EventEmitter {
     // // res = JSON.parse(res)
     return res[0];
   }
-
 
   close() {
     this.tnt.disconnect();
