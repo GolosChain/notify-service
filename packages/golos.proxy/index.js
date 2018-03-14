@@ -17,28 +17,54 @@ import {Queue} from 'golos.lib';
 // });
 
 const start = async() => {
-  const golosd = new Golos();
-  const queue = new Queue({port: 3301});
-  // top level queue (utube) - namespace for the blockchain subqueues
-  const tChainName = 'main';
-  const tHeadName = 'head';
-  console.log(`<<< asserting tube: ${tChainName}`);
-  const tChain = await queue.assertTube(tChainName, 'fifo');
-  console.log(`<<< tube: ${tChainName} is ${tChain}`);
-  const {streams: {block}} = golosd;
-  //
-  block.subscribe(async x => {
-    console.log(`-------------------------------------------------------------------[ ${x.index} ]`);
-    console.log(`[ put block number into queue : ${tChainName} ]`);
-    const put = await queue.put(tChainName, x.index);
-    console.log(`put:`, put);
-    const taken = await queue.take(tChainName);
-    const takenId = taken[0];
-    console.log(`taken:`, taken);
-    console.log(`taken id : ${takenId}`)
-    const acked = await queue.ack(tChainName, takenId);
-    console.log(`acked:`, acked);
-  });
+  // const golosd = new Golos();
+  // const queue = new Queue({port: 3301});
+  // // top level queue (utube) - namespace for the blockchain subqueues
+  // const tChainName = 'main';
+  // const tHeadName = 'head';
+  // console.log(`<<< asserting tube: ${tChainName}`);
+  // const tChain = await queue.assertTube(tChainName, 'fifo');
+  // console.log(`<<< tube: ${tChainName} is ${tChain}`);
+  // const {streams: {block}} = golosd;
+  // //
+  // block.subscribe(async x => {
+  //   console.log(`-------------------------------------------------------------------[ ${x.index} ]`);
+  //   console.log(`[ put block number into queue : ${tChainName} ]`);
+  //   const put = await queue.put(tChainName, x.index);
+  //   console.log(`put:`, put);
+  //   const taken = await queue.take(tChainName);
+  //   const takenId = taken[0];
+  //   console.log(`taken:`, taken);
+  //   console.log(`taken id : ${takenId}`)
+  //   const acked = await queue.ack(tChainName, takenId);
+  //   console.log(`acked:`, acked);
+  // });
+
+
+  function toluaOptions(optionsObject) {
+    let result = '{}';
+    try {
+
+      for (const op in optionsObject) {
+        console.log(typeof optionsObject[op])
+      }
+
+      // const oString = JSON.stringify(optionsObject);
+      // console.log(oString);
+      // result = oString.replace(/:/g, '= ').replace(/"/g, ' ');
+      // console.log(result);
+      // return result;
+    } catch (e) {
+      //  log something about wrong object?
+    } finally {
+      return result;
+    }
+  }
+
+  toluaOptions({ttl: 60.1, delay: 80, utube: 'bla'});
+
+
+  // console.log(toluaOptions({ttl: 60.1, delay: 80}));
 
 
 };

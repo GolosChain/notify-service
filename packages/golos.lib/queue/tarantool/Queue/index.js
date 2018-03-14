@@ -54,6 +54,19 @@ export default class Queue extends EventEmitter {
     });
   }
 
+  toluaOptions(optionsObject) {
+    let result = '{}';
+    try {
+      const oString = JSON.stringify(optionsObject);
+      result = oString.replace(':', '=');
+      return result;
+    } catch (e) {
+    //  log something about wrong object?
+    } finally {
+      return result;
+    }
+  }
+
   async exec(luaCode) {
     const {tnt} = this;
     let result = null;
@@ -89,7 +102,7 @@ export default class Queue extends EventEmitter {
     return res;
   }
 
-  async put(tube_name, task_data) {
+  async put({tube_name, task_data, options = {}}) {
     // queue.tube.tube_name:put(task_data [, {options} ])
     // The tube_name must be the name which was specified by queue.create_tube.
     // The task_data contents are the user-defined description of the task, usually a long string.
