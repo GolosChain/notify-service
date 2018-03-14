@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+  golos.queue.tarantool:
+    # name: golos.queue.tarantool
+    image: tarantool/tarantool:latest
+    command: tarantoolctl start app
+    # command: console
+
+    restart: always
+    stdin_open: true
+    tty: true
+    # environment:
+      #  MYSQL_ALLOW_EMPTY_PASSWORD: 'yes' # dev mode
+      #  MYSQL_DATABASE: golos_dev
+    ports:
+      - 3301:3301
+    volumes:
+      - /c/work/project/stage/golos/golos.io/packages/golos.queue/tarantool/apps:/usr/local/etc/tarantool/instances.enabled
+      - /c/work/project/stage/golos/golos.io/packages/golos.queue/tarantool/data:/var/lib/tarantool
+      - /c/work/project/stage/golos/golos.io/packages/golos.queue/tarantool/log:/var/log/tarantool
+    networks:
+      - dev
+# volumes:
+#   node.data:
+#   mysql.data:
+#   #  queue.data:
+
+networks:
+  dev:
