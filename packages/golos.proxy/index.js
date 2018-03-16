@@ -2,6 +2,27 @@
 import {Golos} from 'golos.lib';
 import {Queue} from 'golos.lib';
 
+// Data flow:
+// <-- stream of events from the sniffer
+// <-- blocks ---x-------x----x
+// <-- transactions ---x-------x----x
+// <-- ops ---x-------x----x
+// <------- group ops by user id ---x-------x----x
+// Use tarantool queue to keep the message sequences
+// Name the corresponding queue after user id?
+// Unlike the Rabbit, Tarantool's space (queue) must be alphanumeric-named.
+// Golos user id can contain dots (check - maybe some other specials?) however.
+// So, encode the id to be unique and decodable as such:
+// Transform each character of the whole each unique golos ID into the string sequence
+// of each ID's character's Unicode point.
+// String(Number(point))--String(Number(point))--...
+// Each generated sequence appears to be a unique one and tarantool friendly.
+// This allows simply encode string and decode it back unlike the hashing
+// which works in a single direction only.
+// Name the tarantool queue after generated sequence, this gonna be the user's queue
+// Which can be a UTUBE to keep the order of each corresponding notification type (if needed).
+
+
 // const q = new Queue({port: 3301});
 // q.on('connect', async() => {
 //   const ok = await q.assertTube('q2', 'fifo');
@@ -17,7 +38,33 @@ import {Queue} from 'golos.lib';
 // });
 
 const start = async() => {
-  // const golosd = new Golos();
+  const golosd = new Golos();
+  // const opens = golosd.streams.open;
+  // console.log(opens)
+  // opens.subscribe(
+  //   async x => {
+  //     console.log(`[xxxxxxx] socket open`);
+  //     // console.log(`[ put block number into queue : ${tChainName} ]`);
+  //   });
+  // const {streams: {
+  //   block
+  // }} = golosd;
+  //
+  // block.subscribe(
+  //   async x => {
+  //     console.log(`-------------------------------------------------------------------[ ${x.index} ]`);
+  //   // console.log(`[ put block number into queue : ${tChainName} ]`);
+  //   // const put = await queue.put(tChainName, x.index);
+  //   // console.log(`put:`, put);
+  //   // const taken = await queue.take(tChainName);
+  //   // const takenId = taken[0];
+  //   // console.log(`taken:`, taken);
+  //   // console.log(`taken id : ${takenId}`)
+  //   // const acked = await queue.ack(tChainName, takenId);
+  //   // console.log(`acked:`, acked);
+  //   });
+
+
   // const queue = new Queue({port: 3301});
   // // top level queue (utube) - namespace for the blockchain subqueues
   // const tChainName = 'main';
@@ -25,43 +72,30 @@ const start = async() => {
   // console.log(`<<< asserting tube: ${tChainName}`);
   // const tChain = await queue.assertTube(tChainName, 'fifo');
   // console.log(`<<< tube: ${tChainName} is ${tChain}`);
-  // const {streams: {block}} = golosd;
   // //
-  // block.subscribe(async x => {
-  //   console.log(`-------------------------------------------------------------------[ ${x.index} ]`);
-  //   console.log(`[ put block number into queue : ${tChainName} ]`);
-  //   const put = await queue.put(tChainName, x.index);
-  //   console.log(`put:`, put);
-  //   const taken = await queue.take(tChainName);
-  //   const takenId = taken[0];
-  //   console.log(`taken:`, taken);
-  //   console.log(`taken id : ${takenId}`)
-  //   const acked = await queue.ack(tChainName, takenId);
-  //   console.log(`acked:`, acked);
-  // });
 
 
-  function toluaOptions(optionsObject) {
-    let result = '{}';
-    try {
-
-      for (const op in optionsObject) {
-        console.log(typeof optionsObject[op])
-      }
-
-      // const oString = JSON.stringify(optionsObject);
-      // console.log(oString);
-      // result = oString.replace(/:/g, '= ').replace(/"/g, ' ');
-      // console.log(result);
-      // return result;
-    } catch (e) {
-      //  log something about wrong object?
-    } finally {
-      return result;
-    }
-  }
-
-  toluaOptions({ttl: 60.1, delay: 80, utube: 'bla'});
+  // function toluaOptions(optionsObject) {
+  //   const result = '{}';
+  //   try {
+  //
+  //     for (const op in optionsObject) {
+  //       console.log(typeof optionsObject[op]);
+  //     }
+  //
+  //     // const oString = JSON.stringify(optionsObject);
+  //     // console.log(oString);
+  //     // result = oString.replace(/:/g, '= ').replace(/"/g, ' ');
+  //     // console.log(result);
+  //     // return result;
+  //   } catch (e) {
+  //     //  log something about wrong object?
+  //   } finally {
+  //     return result;
+  //   }
+  // }
+  //
+  // toluaOptions({ttl: 60.1, delay: 80, utube: 'bla'});
 
 
   // console.log(toluaOptions({ttl: 60.1, delay: 80}));
