@@ -11,7 +11,7 @@ import {Queue} from 'golos.lib';
 // Use tarantool queue to keep the message sequences
 // Name the corresponding queue after user id?
 // Unlike the Rabbit, Tarantool's space (queue) must be alphanumeric-named.
-// Golos user id can contain dots (check - maybe some other specials?) however.
+// Golos user id can contain dots, dashes (check - maybe some other specials?) however.
 // So, encode the id to be unique and decodable as such:
 // Transform each character of the whole each unique golos ID into the string sequence
 // of each ID's character's Unicode point.
@@ -21,6 +21,15 @@ import {Queue} from 'golos.lib';
 // which works in a single direction only.
 // Name the tarantool queue after generated sequence, this gonna be the user's queue
 // Which can be a UTUBE to keep the order of each corresponding notification type (if needed).
+
+
+//   Nodejs  string encoding:
+//   https://kev.inburke.com/kevin/node-js-string-encoding/
+//
+//     So, we should use 'codePointAt' :
+// https://stackoverflow.com/questions/40841149/unicode-charcodeat-equivalent-in-php
+//
+//   https://www.codesd.com/item/how-to-take-an-array-of-strings-and-get-the-ascii-value-of-each-character-in-each-string-in-java.html
 
 
 // const q = new Queue({port: 3301});
@@ -37,9 +46,15 @@ import {Queue} from 'golos.lib';
 //   console.log(`acked:`, acked);
 // });
 
+
+
+
+
 const start = async() => {
   const golosd = new Golos();
-  // const opens = golosd.streams.open;
+  // ops.subscribe(op => console.log(op));
+
+
   // console.log(opens)
   // opens.subscribe(
   //   async x => {

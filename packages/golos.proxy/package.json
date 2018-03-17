@@ -13,6 +13,7 @@
   "dependencies": {
     "debug": "^3.1.0",
     "golos.lib": "^0.0.1",
+    "punycode": "^2.1.0",
     "rx-amqplib": "^0.1.6",
     "rxjs": "^5.5.6"
   }
