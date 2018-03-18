@@ -2,6 +2,8 @@ import { Observable } from 'rxjs';
 import {EventEmitter} from 'events';
 import PersistentWebSocket from '../transport/WebSocket/Persistent';
 import Operation from '../chain/operation';
+import {map as typeMap} from '../chain/operation/type';
+
 
 export default class Golos extends EventEmitter {
   socket; // rpc
@@ -108,14 +110,19 @@ export default class Golos extends EventEmitter {
   get operations() {
     return this.transactions
       .map(transactions =>
-        transactions.map(
-          trx => {
-            const {op} = trx;
-            const type = op[0];
-            const data = op[1];
-            return {type, data};
-          }
-        )
+        transactions
+          .map(
+            trx => {
+              const {op} = trx;
+              const type = op[0];
+              const data = op[1];
+              return {type, data};
+            }
+          )
+          // process only implemented operations
+          .filter(operation => Operation.implemented(operation))
+          // transform each operation into the special class instance
+          .map(operation => Operation.instance(operation))
       )
       .do(operations => {
         // got a requested array of transactions for block this.block
@@ -148,12 +155,5 @@ export default class Golos extends EventEmitter {
     this.pulse.subscribe();
     this.operations.subscribe();
     this.transactions.subscribe();
-    this.blocks.subscribe(
-      block => {
-        console.log(`------------------------------------------------------- [ ${block.index} ]`);
-        console.log(`[ops count : ] ${block.operations.length}`);
-        block.operations.map(op => console.log(op.type));
-      }
-    );
   }
 }

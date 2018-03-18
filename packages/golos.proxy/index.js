@@ -47,24 +47,24 @@ import {Queue} from 'golos.lib';
 // });
 
 
-
-
-
 const start = async() => {
   const golosd = new Golos();
-  // ops.subscribe(op => console.log(op));
+  const {blocks} = golosd;
+  blocks
+    .subscribe(
+      async block => {
+        console.log(`------------------------------------------------------- [ ${block.index} ]`);
+        console.log(`[ops count : ] ${block.operations.length}`);
+        block.operations.map(op => {
+          console.log(`<<<<[${op.type}]`);
+          console.log(`[author][${op.author}]`);
+          console.log(`[parent_author][${op.parent_author}]`);
+          console.log(`[to][${op.to}]`);
+          console.log(`<<<<[target] -> [${op.target}]`);
+        });
+      }
+    );
 
-
-  // console.log(opens)
-  // opens.subscribe(
-  //   async x => {
-  //     console.log(`[xxxxxxx] socket open`);
-  //     // console.log(`[ put block number into queue : ${tChainName} ]`);
-  //   });
-  // const {streams: {
-  //   block
-  // }} = golosd;
-  //
   // block.subscribe(
   //   async x => {
   //     console.log(`-------------------------------------------------------------------[ ${x.index} ]`);
@@ -120,60 +120,6 @@ const start = async() => {
 
 start();
 
-
-// import { PersistentWebSocket } from 'golos.lib';
-// import { ObservableWebSocket } from 'golos.lib';
-// import { Observable } from 'rxjs';
-//
-//
-// const socket = ObservableWebSocket(new PersistentWebSocket('wss://ws.golos.io'));
-//
-// socket.up(
-//   JSON.stringify({
-//     id: 1,
-//     method: 'call',
-//     'params': ['database_api', 'set_block_applied_callback', [0]],
-//   }),
-// );
-//
-//
-// // raw socket stream -> JSON data stream
-// const inputStream = socket.down
-//   .map(dataEvent => JSON.parse(dataEvent.data))
-//   // todo: this gracefully restarts the stream somehow - take a look at the docs
-//   .catch(e => {
-//     console.log('Error parsing raw data!');
-//     return Observable.empty();
-//   });
-// // transform to stream of applied block numbers
-// const blockStream = inputStream
-//   .filter(data => (data.method === 'notice' && data.params))
-//   .map(blockData => blockData.params[1][0])
-//   .map(blockData => ({
-//     // calculate and add the current block's number (chain head) for convenience
-//     index: parseInt(blockData.previous.slice(0, 8), 16),
-//     ...blockData
-//   }));
-// // // .take(3);
-//
-//
-// // pull out a transaction stream for each block
-// const blockTrxs =
-//   blockStream
-//     .switchMap(block => {
-//       socket.up(
-//         JSON.stringify({
-//           id: 2,
-//           method: 'call',
-//           params: ['database_api', 'get_ops_in_block', [block.index, 'false']],
-//         }));
-//       // filter out get_ops_in_block responses from the root JSON stream
-//       return inputStream
-//         .filter(msg => msg.id === 2)
-//         // transform the transactions ARRAY into transactions STREAM
-//         .flatMap(x => Observable.from(x.result));
-//     });
-// // //
 // const blockOps =
 //   blockTrxs
 //     .map(x => {
@@ -202,9 +148,3 @@ start();
 // //   ||
 // //   (x.type === 'transfer')
 // // );
-//
-// blockStream.subscribe(
-//   o => console.log(`-------------------------------------------------------------------[ ${o.index} ]`),
-//   e => console.log('<<<<<<<<<< Error'),
-//   c => console.log('COMPLETE')
-// );
