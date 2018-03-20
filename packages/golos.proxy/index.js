@@ -64,23 +64,23 @@ q.on('connect', async() => {
 
 const start = async() => {
   const golosd = new Golos();
-  const {blocks} = golosd;
-  blocks
-    .subscribe(
-      async block => {
-        for (const op of block.operations) {
-          const {target} = op;
-          const qn = qName(target);
-          await q.assertTube(qn, 'fifo');
-          const put = await q.put({
-            tube_name: qn,
-            task_data: op.type
-          });
-        }
-        console.log(`[processed] ${block.index}`);
-
-      }
-    );
+  // const {blocks} = golosd;
+  // blocks
+  //   .subscribe(
+  //     async block => {
+  //       for (const op of block.operations) {
+  //         const {target} = op;
+  //         const qn = qName(target);
+  //         await q.assertTube(qn, 'fifo');
+  //         const put = await q.put({
+  //           tube_name: qn,
+  //           task_data: op.type
+  //         });
+  //       }
+  //       console.log(`[processed] ${block.index}`);
+  //
+  //     }
+  //   );
 };
 
 start();

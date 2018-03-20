@@ -131,7 +131,8 @@ export default class Queue extends EventEmitter {
     //          important as it presumably contains user-defined instructions for what to do with the task.
     const {namespace} = this;
     // compose the command to run on tarantool
-    const command = `tube.${tube_name}:${timeout ? `take(${timeout})` : `take()`}`;
+    // take() stucks forever! - use take(0)
+    const command = `tube.${tube_name}:${timeout ? `take(${timeout})` : `take(0)`}`;
     // console.log(`return ${namespace}.${command}`);
     // run it and get response
     const res = await this.exec(`return ${namespace}.${command}`);

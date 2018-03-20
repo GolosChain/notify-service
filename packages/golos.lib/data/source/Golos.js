@@ -1,6 +1,7 @@
 import {EventEmitter} from 'events';
 import {Observable} from 'rxjs';
 import PersistentWebSocket from '../transport/WebSocket/Persistent';
+import Queue from '../../queue/tarantool/Queue';
 import Operation from '../chain/operation';
 
 export default class Golos extends EventEmitter {
@@ -34,7 +35,7 @@ export default class Golos extends EventEmitter {
         socketEvent => {
           // ...set a block application callback immediately
           this.setBlockAppliedCallback();
-          console.log('[x] set_block_applied_callback requested');
+          console.log('[x][open] set_block_applied_callback');
         }
       );
   }
