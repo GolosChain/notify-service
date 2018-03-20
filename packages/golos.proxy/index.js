@@ -2,6 +2,7 @@
 import {Golos} from 'golos.lib';
 import {Queue} from 'golos.lib';
 import punycode from 'punycode';
+import {colorConsole} from 'tracer';
 
 // Data flow:
 // <-- stream of events from the sniffer
@@ -32,6 +33,7 @@ import punycode from 'punycode';
 //
 //   https://www.codesd.com/item/how-to-take-an-array-of-strings-and-get-the-ascii-value-of-each-character-in-each-string-in-java.html
 
+const logger = colorConsole()
 
 const qName = userId => punycode.ucs2
   .decode(userId)
@@ -56,7 +58,7 @@ q.on('connect', async() => {
   // console.log(`taken id : ${takenId}`);
   // const acked = await q.ack('q2', takenId);
   // console.log(`acked:`, acked);
-  console.log(`[Queue] connected`);
+  logger.trace('Queue connected');
 });
 
 
@@ -66,20 +68,16 @@ const start = async() => {
   blocks
     .subscribe(
       async block => {
-        console.log(`[processing] ${block.index}`);
         for (const op of block.operations) {
           const {target} = op;
           const qn = qName(target);
-          console.log(qn);
           await q.assertTube(qn, 'fifo');
           const put = await q.put({
             tube_name: qn,
             task_data: op.type
           });
-          console.log(put);
         }
-        console.log(`ok`);
-
+        console.log(`[processed] ${block.index}`);
 
       }
     );

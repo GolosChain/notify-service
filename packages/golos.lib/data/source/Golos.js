@@ -1,13 +1,31 @@
-import { Observable } from 'rxjs';
 import {EventEmitter} from 'events';
+import {Observable} from 'rxjs';
 import PersistentWebSocket from '../transport/WebSocket/Persistent';
 import Operation from '../chain/operation';
-import {map as typeMap} from '../chain/operation/type';
-
 
 export default class Golos extends EventEmitter {
   socket; // rpc
   block; // current processing block
+  requestTransactions(block) {
+    this.socket.send(
+      // golos api
+      JSON.stringify({
+        id: 2,
+        method: 'call',
+        params: ['database_api', 'get_ops_in_block', [block, 'false']],
+      })
+    );
+  }
+  setBlockAppliedCallback() {
+    this.socket.send(
+      // golos api
+      JSON.stringify({
+        id: 1,
+        method: 'call',
+        'params': ['database_api', 'set_block_applied_callback', [0]],
+      })
+    );
+  }
   // the sequence of socket openings
   get opens() {
     return Observable
@@ -15,15 +33,8 @@ export default class Golos extends EventEmitter {
       .do(
         socketEvent => {
           // ...set a block application callback immediately
-          console.log('>>>>>> set_block_applied_callback');
-          this.socket.send(
-            // golos api
-            JSON.stringify({
-              id: 1,
-              method: 'call',
-              'params': ['database_api', 'set_block_applied_callback', [0]],
-            })
-          );
+          this.setBlockAppliedCallback();
+          console.log('[x] set_block_applied_callback requested');
         }
       );
   }
@@ -39,7 +50,7 @@ export default class Golos extends EventEmitter {
         return Observable.empty();
       });
   }
-  // the sequence of the applied block structs (result of set_block_applied_callback)
+  // the sequence of the applied block structs (result of setBlockAppliedCallback)
   get pulse() {
     return this.messages
       .filter(data => (data.method === 'notice' && data.params))
@@ -56,14 +67,7 @@ export default class Golos extends EventEmitter {
           // save the initial state
             this.block = block;
             // request transactions
-            this.socket.send(
-            // golos api
-              JSON.stringify({
-                id: 2,
-                method: 'call',
-                params: ['database_api', 'get_ops_in_block', [block.index, 'false']],
-              })
-            );
+            this.requestTransactions(block.index);
             //  track transactions for this block in transactions stream
           }
         });

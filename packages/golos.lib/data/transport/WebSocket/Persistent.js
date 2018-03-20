@@ -1,5 +1,6 @@
 import {default as WebSocket} from './';
 import {EventEmitter} from 'events';
+import {colorConsole} from 'tracer';
 
 const settings = {
   // Whether this instance should log debug messages.
@@ -28,6 +29,7 @@ export default class PersistentWebSocket extends EventEmitter {
       throw new Error('ws module is not installed!');
     }
     super();
+    this.logger = colorConsole();
     // Overwrite and define settings with options if they exist.
     for (const key in settings) {
       if (typeof options[key] !== 'undefined') {
@@ -64,10 +66,11 @@ export default class PersistentWebSocket extends EventEmitter {
     if (this.automaticOpen) {
       this.open(false);
     }
+    this.logger.info('leaving constructor');
   }
 
   onerror(e) {
-
+    this.logger.error(e.message);
   }
 
   open(reconnectAttempt) {
@@ -82,16 +85,16 @@ export default class PersistentWebSocket extends EventEmitter {
       this.reconnectAttempts = 0;
     }
 
-    console.log('ReconnectingWebSocket', 'attempt-connect', this.url);
-
-    // const localWs = ws;
-
+    this.logger.info('set this.ws.onopen');
     this.ws.onopen = event => {
-      console.log('ReconnectingWebSocket', 'onopen', this.url);
+      this.logger.trace('- this.ws.onopen');
       clearTimeout(this.timeout);
       this.protocol = this.ws.protocol;
       this.readyState = WebSocket.OPEN;
       this.reconnectAttempts = 0;
+      this.logger.trace(`this.protocol : ${this.protocol}`);
+      this.logger.trace(`this.readyState : ${this.readyState}`);
+      this.logger.trace(`this.reconnectAttempts : ${this.reconnectAttempts}`);
       this.emit('open', {
         protocol: this.protocol,
         reconnectAttempts: this.reconnectAttempts,
@@ -99,7 +102,7 @@ export default class PersistentWebSocket extends EventEmitter {
       });
       reconnectAttempt = false;
     };
-
+    this.logger.info('set this.ws.onclose');
     this.ws.onclose = event => {
       clearTimeout(this.timeout);
       this.ws = null;
@@ -132,15 +135,13 @@ export default class PersistentWebSocket extends EventEmitter {
                    timeout > this.maxReconnectInterval ? this.maxReconnectInterval : timeout);
       }
     };
-
+    this.logger.info('set this.ws.onerror');
     this.ws.onerror = event => {
-      console.log('ReconnectingWebSocket', 'onerror', this.url);
       // eventTarget.dispatchEvent(generateEvent('error'));
       // this.emit('error', event);
       this.onerror(event);
     };
-
-
+    this.logger.info('set this.ws.onmessage');
     this.ws.onmessage = event => {
       // console.debug('ReconnectingWebSocket', 'onmessage', self.url, event.data);
       // const e = generateEvent('message');
@@ -151,11 +152,6 @@ export default class PersistentWebSocket extends EventEmitter {
 
   }
 
-  /**
-   * Transmits data to the server over the WebSocket connection.
-   *
-   * @param data a text string, ArrayBuffer or Blob to send to the server.
-   */
   send(data) {
     if (this.ws) {
       // if (self.debug || ReconnectingWebSocket.debugAll) {

@@ -17,8 +17,8 @@ services:
       - 3301:3301
     volumes:
       - /c/work/project/stage/golos/golos.io/packages/golos.queue/tarantool/apps:/usr/local/etc/tarantool/instances.enabled
-      - /c/work/project/stage/golos/golos.io/packages/golos.queue/tarantool/data:/var/lib/tarantool
-      - /c/work/project/stage/golos/golos.io/packages/golos.queue/tarantool/log:/var/log/tarantool
+      - /e/_data/golos/tarantool/data:/var/lib/tarantool
+      - /e/_data/golos/tarantool/log:/var/log/tarantool
     networks:
       - dev
 # volumes:

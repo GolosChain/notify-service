@@ -2,8 +2,6 @@
   "verbose": true,
   "ignore": [
     "node_modules",
-    ".idea",
-    "**/data/**",
-    "**/log/**"
+    ".idea"
   ]
 }
