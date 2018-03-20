@@ -58,7 +58,7 @@ export default class Golos extends EventEmitter {
       .map(blockData => blockData.params[1][0])
       .map(blockData => ({
         // calculate and add the current block's number (chain head) for convenience
-        index: parseInt(blockData.previous.slice(0, 8), 16),
+        index: parseInt(blockData.previous.slice(0, 8), 16) + 1,
         ...blockData
       }))
       .do(
@@ -67,53 +67,18 @@ export default class Golos extends EventEmitter {
           // the next block is ready to be composed
           // save the initial state
             this.block = block;
+            console.log(block.index)
             // request transactions
             this.requestTransactions(block.index);
             //  track transactions for this block in transactions stream
           }
         });
-    // .do(blockData => console.log(blockData));
-  }
-  // produce transactions array for current processing block
-  get transactions() {
-    return this.messages
-      .filter(message => message.id === 2)
-      // .map(message => Observable.from(message.result));
-      .map(message => message.result);
-
-    // .do(transactions => {
-    //   // got a requested array of transactions for block this.block
-    //   // compose block struct
-    //   const block = {
-    //     transactions,
-    //     ...this.block
-    //   };
-    //   // block structure is composed - emit
-    //   this.emit('block', block);
-    //   // allow the next block processing
-    //   this.block = null;
-    //   //
-    //
-    //   // // ...process operations for the transaction
-    //   // const {op, timestamp} = transaction;
-    //   // // transform each operation from tuple to object
-    //   // const operation = {
-    //   //   // provide a timestamp in operation object
-    //   //   timestamp,
-    //   //   type: op[0],
-    //   //   data: op[1]
-    //   // };
-    //   // // emit the 'operation' event on us to make the external
-    //   // // processing of this fact possible,
-    //   // // pass operation data over there
-    //   // this.emit('operation', operation);
-    //
-    //
-    // });
   }
   // produce operations array for current processing block
   get operations() {
-    return this.transactions
+    return this.messages
+      .filter(message => message.id === 2)
+      .map(message => message.result)
       .map(transactions =>
         transactions
           .map(
@@ -159,6 +124,5 @@ export default class Golos extends EventEmitter {
     this.opens.subscribe();
     this.pulse.subscribe();
     this.operations.subscribe();
-    this.transactions.subscribe();
   }
 }
