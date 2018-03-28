@@ -33,33 +33,33 @@ import {colorConsole} from 'tracer';
 //
 //   https://www.codesd.com/item/how-to-take-an-array-of-strings-and-get-the-ascii-value-of-each-character-in-each-string-in-java.html
 
-const logger = colorConsole()
+// const logger = colorConsole()
+//
+// const qName = userId => punycode.ucs2
+//   .decode(userId)
+//   .map(c => `_${c.toString(16)}`)
+//   .join('');
+//
+//
+// const q = new Queue({port: 3301});
 
-const qName = userId => punycode.ucs2
-  .decode(userId)
-  .map(c => `_${c.toString(16)}`)
-  .join('');
-
-
-const q = new Queue({port: 3301});
-
-q.on('connect', async() => {
-  // const ok = await q.assertTube('q2', 'fifo');
-  // const stat = await q.statistics();
-  // console.log(stat);
-  // const put = await q.put({
-  //   tube_name: 'q2',
-  //   task_data: 'blaaaaaaaaaaaa'
-  // });
-  // console.log(`put:`, put);
-  // const taken = await q.take('q2', 10);
-  // const takenId = taken[0];
-  // console.log(`taken:`, taken);
-  // console.log(`taken id : ${takenId}`);
-  // const acked = await q.ack('q2', takenId);
-  // console.log(`acked:`, acked);
-  logger.trace('Queue connected');
-});
+// q.on('connect', async() => {
+//   // const ok = await q.assertTube('q2', 'fifo');
+//   // const stat = await q.statistics();
+//   // console.log(stat);
+//   // const put = await q.put({
+//   //   tube_name: 'q2',
+//   //   task_data: 'blaaaaaaaaaaaa'
+//   // });
+//   // console.log(`put:`, put);
+//   // const taken = await q.take('q2', 10);
+//   // const takenId = taken[0];
+//   // console.log(`taken:`, taken);
+//   // console.log(`taken id : ${takenId}`);
+//   // const acked = await q.ack('q2', takenId);
+//   // console.log(`acked:`, acked);
+//   logger.trace('Queue connected');
+// });
 
 
 const start = async() => {

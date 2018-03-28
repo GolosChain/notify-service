@@ -9,6 +9,7 @@
   "keywords": [],
   "dependencies": {
     "detect-is-node": "^1.0.3",
+    "redis": "^2.8.0",
     "tarantool-driver": "tarantool/node-tarantool-driver#master",
     "valid-url": "^1.0.9",
     "ws": "^5.0.0"
