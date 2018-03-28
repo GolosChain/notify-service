@@ -19,7 +19,16 @@ export default function({url, emitter} = {}) {
   let height = 0;
   let next = 0;
   // const nodeparam = process.argv.slice(2);
-  const getNOW = false;//nodeparam[0] === 'now';
+  let getNOW = false;//nodeparam[0] === 'now';
+  client.get(redKey, (err, num) => {
+    if (!Number(num)) {
+      getNOW = true;
+    }
+  });
+
+  console.log('@@@@@@@@@@@@@@@@@@@@', getNOW);
+
+
   // let targetheight = (!isNaN(nodeparam[0])) ? nodeparam[0] : false;
   const fheight = 0;
   let timestamp = 0;
@@ -64,7 +73,7 @@ export default function({url, emitter} = {}) {
     emitter.emit('block', {
       index: ProcessedBlockNum,
       ops
-    })
+    });
 
 
     return pub.publish(CHANNEL, JSONops);
@@ -115,7 +124,7 @@ export default function({url, emitter} = {}) {
 
   ws.on('open', () => {
     console.log('[x] block application callback requested');
-    console.log('[xxxx] start listening ...');
+    console.log('[x] start listening ...');
     //
     ws.send(JSON
       .stringify({

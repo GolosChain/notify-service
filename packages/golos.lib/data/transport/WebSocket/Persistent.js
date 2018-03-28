@@ -70,7 +70,7 @@ export default class PersistentWebSocket extends EventEmitter {
   }
 
   onerror(e) {
-    this.logger.error(e.message);
+    // this.logger.error(e.message);
   }
 
   open(reconnectAttempt) {
@@ -117,16 +117,19 @@ export default class PersistentWebSocket extends EventEmitter {
         // e.wasClean = event.wasClean;
         // eventTarget.dispatchEvent(e);
         if (!reconnectAttempt && !this.timedOut) {
-          console.log('ReconnectingWebSocket', 'onclose', this.url);
+          // console.log('ReconnectingWebSocket', 'onclose', this.url);
           // eventTarget.dispatchEvent(generateEvent('close'));
           this.emit('close');
         }
 
         const timeout = this.reconnectInterval * Math.pow(this.reconnectDecay, this.reconnectAttempts);
 
-        console.log(this.reconnectAttempts);
+        // console.log(this.reconnectAttempts);
 
-        console.log(`[timeout] ${timeout > this.maxReconnectInterval ? this.maxReconnectInterval : timeout}`);
+        // console.log(`[timeout] ${timeout > this.maxReconnectInterval ? this.maxReconnectInterval : timeout}`);
+
+        console.log('\\');
+
 
         setTimeout(() => {
           this.reconnectAttempts++;
