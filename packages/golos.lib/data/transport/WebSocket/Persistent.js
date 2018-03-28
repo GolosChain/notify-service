@@ -66,7 +66,7 @@ export default class PersistentWebSocket extends EventEmitter {
     if (this.automaticOpen) {
       this.open(false);
     }
-    this.logger.info('leaving constructor');
+    // this.logger.info('leaving constructor');
   }
 
   onerror(e) {
@@ -85,16 +85,16 @@ export default class PersistentWebSocket extends EventEmitter {
       this.reconnectAttempts = 0;
     }
 
-    this.logger.info('set this.ws.onopen');
+    // this.logger.info('set this.ws.onopen');
     this.ws.onopen = event => {
-      this.logger.trace('- this.ws.onopen');
+      // this.logger.trace('- this.ws.onopen');
       clearTimeout(this.timeout);
       this.protocol = this.ws.protocol;
       this.readyState = WebSocket.OPEN;
       this.reconnectAttempts = 0;
-      this.logger.trace(`this.protocol : ${this.protocol}`);
-      this.logger.trace(`this.readyState : ${this.readyState}`);
-      this.logger.trace(`this.reconnectAttempts : ${this.reconnectAttempts}`);
+      // this.logger.trace(`this.protocol : ${this.protocol}`);
+      // this.logger.trace(`this.readyState : ${this.readyState}`);
+      // this.logger.trace(`this.reconnectAttempts : ${this.reconnectAttempts}`);
       this.emit('open', {
         protocol: this.protocol,
         reconnectAttempts: this.reconnectAttempts,
@@ -102,7 +102,7 @@ export default class PersistentWebSocket extends EventEmitter {
       });
       reconnectAttempt = false;
     };
-    this.logger.info('set this.ws.onclose');
+    // this.logger.info('set this.ws.onclose');
     this.ws.onclose = event => {
       clearTimeout(this.timeout);
       this.ws = null;
@@ -135,13 +135,13 @@ export default class PersistentWebSocket extends EventEmitter {
                    timeout > this.maxReconnectInterval ? this.maxReconnectInterval : timeout);
       }
     };
-    this.logger.info('set this.ws.onerror');
+    // this.logger.info('set this.ws.onerror');
     this.ws.onerror = event => {
       // eventTarget.dispatchEvent(generateEvent('error'));
       // this.emit('error', event);
       this.onerror(event);
     };
-    this.logger.info('set this.ws.onmessage');
+    // this.logger.info('set this.ws.onmessage');
     this.ws.onmessage = event => {
       // console.debug('ReconnectingWebSocket', 'onmessage', self.url, event.data);
       // const e = generateEvent('message');
