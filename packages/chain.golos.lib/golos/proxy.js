@@ -16,8 +16,10 @@ const {Tarantool: Queue} = Queues;
 export default class Golos extends EventEmitter {
   //
   put = async value => {
+    // we must successfully put into 2 queues
+    // block <--> ops
     const inserted = parseInt((await this.queue.put({
-      tube_name: `chain`,
+      tube_name: `block`,
       task_data: value
     }))[2]);
     return inserted;
@@ -25,13 +27,13 @@ export default class Golos extends EventEmitter {
   //
   get = async() => {
     // get the queue's tail
-    const q_height = parseInt((await this.queue.statistics('chain'))
+    const q_height = parseInt((await this.queue.statistics('block'))
       .tasks
       .total
     );
     // the index of the most recent record
     const q_top_index = q_height - 1;
-    const h = parseInt((await this.queue.peek('chain', q_top_index))[2]);
+    const h = parseInt((await this.queue.peek('block', q_top_index))[2]);
     return h;
   }
   //
@@ -142,12 +144,17 @@ export default class Golos extends EventEmitter {
   onQueueConnect = async where => {
     const {host, port} = where;
     console.log(`[x] queue connected on [${host}:${port}]`);
-    console.log(`[x] asserting tube named 'chain'`);
-    const exists = await this.queue.assertTube('chain');
+    console.log(`[x] asserting tube named 'block'`);
+    let exists = await this.queue.assertTube('block');
+    console.log(`[x] ${exists}`);
+    console.log(`[x] asserting tube named 'ops'`);
+    exists = await this.queue.assertTube('ops');
+    // [block]--[[ops]]
+    // [546..]--[[...]]
     console.log(`[x] ${exists}`);
     // start listening to chain pulse
     console.log(`[x] initializing golosD connection ...`);
-    this.socket = new PersistentWebSocket(``);
+    this.socket = new PersistentWebSocket(`ws://78.46.193.218:8091`);
     this.socket.on('open', this.onSocketOpen);
     this.socket.on('message', this.onSocketMessage);
   }
