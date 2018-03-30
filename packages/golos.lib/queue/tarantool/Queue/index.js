@@ -73,7 +73,8 @@ export default class Queue extends EventEmitter {
     try {
       result = await tnt.eval(luaCode);
     } catch (e) {
-      console.log('Error running Lua code on Tarantool', e);
+      throw e;
+      // console.log('Error running Lua code on Tarantool', e);
     }
     return result;
   }
@@ -95,13 +96,6 @@ export default class Queue extends EventEmitter {
     return res instanceof Array;
   }
 
-  async statistics(name) {
-    const {namespace} = this;
-    const command = name ? `statistics('${name}')` : `statistics()`;
-    const res = await this.exec(`return ${namespace}.${command}`);
-    return res;
-  }
-
   async put({tube_name, task_data, options = {}}) {
     // queue.tube.tube_name:put(task_data [, {options} ])
     // The tube_name must be the name which was specified by queue.create_tube.
@@ -112,12 +106,17 @@ export default class Queue extends EventEmitter {
     // compose the command to run on tarantool
     const command = `tube.${tube_name}:put('${task_data}')`;
     // run it and get response
-    const res = await this.exec(`return ${namespace}.${command}`);
-    // // res = JSON.parse(res)
-    return res[0];
+    let response = [];
+    try {
+      response = await this.exec(`return ${namespace}.${command}`);
+    } catch (e) {
+      throw e;
+    } finally {
+      return response[0] || response;
+    }
   }
 
-  async take(tube_name, timeout) {
+  async take(tube_name, timeout = 0) {
     // Lua:     queue.tube.<tube_name>:take([timeout])
     // Example: t_value = queue.tube.list_of_sites:take(15)
     // Action:  searches for a task in the queue or sub-queue (that is, a tuple in the queue's associated space)
@@ -132,13 +131,69 @@ export default class Queue extends EventEmitter {
     const {namespace} = this;
     // compose the command to run on tarantool
     // take() stucks forever! - use take(0)
-    const command = `tube.${tube_name}:${timeout ? `take(${timeout})` : `take(0)`}`;
+    // const command = `tube.${tube_name}:${timeout ? `take(${timeout})` : `take(0)`}`;
+    const command = `tube.${tube_name}:take(${timeout})`;
+
     // console.log(`return ${namespace}.${command}`);
     // run it and get response
     const res = await this.exec(`return ${namespace}.${command}`);
+    console.log(`!!!!!!!!!!!!`);
+    console.log(`${namespace}.${command}`);
+
+
+    console.log(`!!!!!!!!!!!!`);
+    console.log(res);
+
+
     // // res = JSON.parse(res)
     return res[0];
   }
+
+  async statistics(name) {
+    const {namespace} = this;
+    const command = name ? `statistics('${name}')` : `statistics()`;
+    let response = [];
+    try {
+      response = await this.exec(`return ${namespace}.${command}`);
+    } catch (e) {
+      throw e; // rethrow (*)
+    } finally {
+      return response[0] || response;
+    }
+  }
+
+  async peek(tube_name, id = 0) {
+    // Lua:     queue.tube.tube_name:peek(task_id)
+    // Example: queue.tube.list_of_sites:peek(15)
+    // Action:  Look at a task without changing its state.
+    // Effect:  this is the same as getting a tuple from the space associated
+    //          with the queue: box.space.tube_name:select(task_id).
+    // Returns:
+    const {namespace} = this;
+    // compose the command to run on tarantool
+    // let the default index be 0 - the queue head
+    const command = `tube.${tube_name}:peek(${id})`;
+    // console.log(`return ${namespace}.${command}`);
+    // run it and get response
+    let response = [];
+    try {
+      response = await this.exec(`return ${namespace}.${command}`);
+
+
+    } catch (e) {
+      // this is the absense of the value being peeked - not an error for us
+      if (!e.message.contains(`Task ${id} not found`)) {
+        console.log(`$$$$$$$$$$$$$$$$$$$$$$$$$$$`);
+        throw e; // rethrow (*)
+      }
+    } finally {
+      // return iterable anyway
+      // console.log(`@@@@@@@@@@@@@@@@@@@@@@@@@@@@`);
+      // console.log(response[0]);
+      return response[0] || response;
+    }
+  }
+
 
   async ack(tube_name, task_id) {
     // Lua:     queue.tube.<tube_name>:ack(task_id)
@@ -163,6 +218,28 @@ export default class Queue extends EventEmitter {
     // // res = JSON.parse(res)
     return res[0];
   }
+
+  async release(tube_name, task_id) {
+    // Lua:     queue.tube.tube_name:release(task_id, opts)
+    // Example: queue.tube.list_of_sites:release(15, {delay=10})
+    // Note:    in the above example, the delay option means "the task cannot be executed again for 10 seconds".
+    // Action:  Put the task back in the queue. A worker which has used 'take' to take a task, but cannot complete it,
+    //          may make a release request instead of an ack request. Effectively, 'ack' implies successful completion
+    //          of a taken task, and 'release' implies unsuccessful completion of a taken task.
+    // Effect:  the value of task_state changes to 'r' (ready). After this, another worker may take it.
+    //          This is an example of a situation where, due to user intervention, a task may not be successfully
+    //          completed in strict FIFO order.
+    // Returns:
+    const {namespace} = this;
+    // compose the command to run on tarantool
+    const command = `tube.${tube_name}:release(${task_id})`;
+    // console.log(`return ${namespace}.${command}`);
+    // run it and get response
+    const res = await this.exec(`return ${namespace}.${command}`);
+    // // res = JSON.parse(res)
+    return res[0];
+  }
+
 
   close() {
     this.tnt.disconnect();

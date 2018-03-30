@@ -57,7 +57,7 @@ export default function({url, emitter} = {}) {
   const Send = (operations, ProcessedBlockNum, ProcessedOpTime) => {
     const ops = [];
     for (const op of operations) {
-      ops.push(op.op);
+      ops.push(op);
     }
     const JSONops = JSON.stringify(ops);
     const opslength = ops.length;
@@ -72,7 +72,7 @@ export default function({url, emitter} = {}) {
     // let the subscribers know that block boilerplate is ready
     emitter.emit('block', {
       index: ProcessedBlockNum,
-      ops
+      transactions: ops
     });
 
 
