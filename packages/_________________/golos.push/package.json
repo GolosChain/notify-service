@@ -1,0 +1,44 @@
+{
+  "name": "golos.push",
+  "description": "Golos.io push notification service",
+  "version": "0.0.1",
+  "author": "Golos.io",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GolosChain/golos-notifications.git"
+  },
+  "contributors": [
+    {
+      "name": "Alex Gu",
+      "email": "sualexx@aol.com"
+    }
+  ],
+  "keywords": [
+    "golos.io",
+    "websocket",
+    "server",
+    "realtime",
+    "cluster",
+    "scalable",
+    "push",
+    "notification"
+  ],
+  "readmeFilename": "README.md",
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "sc-framework-health-check": "^2.0.0",
+    "scc-broker-client": "^2.2.0",
+    "socketcluster": "^10.1.2"
+  },
+  "devDependencies": {
+    "sc-hot-reboot": "^1.0.0"
+  }
+}
