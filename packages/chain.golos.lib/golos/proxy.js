@@ -15,9 +15,13 @@ const {Tarantool: Queue} = Queues;
 //
 export default class Golos extends EventEmitter {
   //
-  put = async value => {
+  put = async(value, block) => {
     // we must successfully put into 2 queues
     // block <--> ops
+    //
+    const blockStr = JSON.stringify(block);
+    console.log(blockStr);
+
     const inserted = parseInt((await this.queue.put({
       tube_name: `block`,
       task_data: value
@@ -37,6 +41,16 @@ export default class Golos extends EventEmitter {
     return h;
   }
   //
+  requestOps = block => {
+    this.socket.send(
+      JSON.stringify({
+        id: 2,
+        jsonrpc: '2.0',
+        method: 'call',
+        params: ['database_api', 'get_ops_in_block', [block, 'false']],
+      }));
+  }
+  //
   process = async({hRemote, hLocal, block}) => {
     // console.log(block);
     this.hRemote = hRemote;
@@ -52,7 +66,12 @@ export default class Golos extends EventEmitter {
         // close the gap
         while (true) {
           console.log(`|~~~~~~~ `, current);
-          current = await this.put(current) + 1;
+          const block = {
+            // no more rpc requests
+            // let consumers do that
+            action: `requestOps`
+          };
+          current = await this.put(current, block) + 1;
           // if ((this.hRemote - current) === 1) {
           if (this.hRemote < current) {
             this.gap = false;
@@ -64,7 +83,7 @@ export default class Golos extends EventEmitter {
     }
     // push local only if remote's the next
     // or queue's empty (first run)
-    const hNew = await this.put(hRemote);
+    const hNew = await this.put(hRemote, block);
     console.log(`|----------------------- `, hNew);
   }
   //
@@ -154,7 +173,7 @@ export default class Golos extends EventEmitter {
     console.log(`[x] ${exists}`);
     // start listening to chain pulse
     console.log(`[x] initializing golosD connection ...`);
-    this.socket = new PersistentWebSocket(`ws://78.46.193.218:8091`);
+    this.socket = new PersistentWebSocket(``);
     this.socket.on('open', this.onSocketOpen);
     this.socket.on('message', this.onSocketMessage);
   }
