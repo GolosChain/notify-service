@@ -35,7 +35,8 @@ export default class Golos extends EventEmitter {
     return h;
   }
   //
-  process = async({hRemote, hLocal}) => {
+  process = async({hRemote, hLocal, block}) => {
+    // console.log(block);
     this.hRemote = hRemote;
     // each chain tick
     // compare remote and local heads
@@ -64,6 +65,27 @@ export default class Golos extends EventEmitter {
     const hNew = await this.put(hRemote);
     console.log(`|----------------------- `, hNew);
   }
+  //
+  getInitialBlockInfo = data => {
+    const {transactions} = data;
+    const operations = transactions
+      .map(trx => trx.operations)
+      .map(ops => ops[0])
+      .map(opTuple => {
+        const [type, payload] = opTuple;
+        return {
+          type, payload
+        };
+      });
+    // before mapping:
+    // [ [ [ 'vote', [Object] ] ],
+    // [ [ 'vote', [Object] ] ],
+    // [ [ 'vote', [Object] ] ] ]
+    //
+    // only 1 operation per transaction for now
+    // todo can be more?
+    return {operations};
+  }
   // each socket message
   onSocketMessage = async event => {
     try {
@@ -73,11 +95,28 @@ export default class Golos extends EventEmitter {
       const aBlock = (id === 1);
       if (aBlock) {
         const {previous} = result;
+        const preblock = this.getInitialBlockInfo(result);
+        // console.log(preblock.operations);
         // keep current applied block
         const hRemote = parseInt(previous.slice(0, 8), 16) + 1;
         const hLocal = await this.get();
-        //  process current situation
-        this.process({hRemote, hLocal});
+        const block = {
+          index: hRemote,
+          ...preblock
+        };
+        // now block looks as such:
+        // { index: 15153265,
+        //   operations:
+        //   [ { type: 'pow2', payload: [Object] },
+        //     { type: 'vote', payload: [Object] },
+        //     { type: 'vote', payload: [Object] } ] }
+        //
+        //  process it
+        this.process({
+          hRemote,
+          hLocal,
+          block
+        });
       }
     } catch (e) {
     //  do nothing - go to the next message
