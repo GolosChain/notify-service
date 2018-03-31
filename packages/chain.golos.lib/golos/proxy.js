@@ -20,8 +20,8 @@ export default class Golos extends EventEmitter {
     // block <--> ops
     //
     const blockStr = JSON.stringify(block);
-    console.log(blockStr);
-
+    console.log(block);
+    //
     const inserted = parseInt((await this.queue.put({
       tube_name: `block`,
       task_data: value

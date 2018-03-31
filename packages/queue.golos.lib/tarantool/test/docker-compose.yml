@@ -19,7 +19,7 @@ services:
 #      - /c/work/project/stage/golos/golos.io/packages/golos.queue/tarantool/apps:/usr/local/etc/tarantool/instances.enabled
 #      - /e/_data/golos/tarantool/data:/var/lib/tarantool
 #      - /e/_data/golos/tarantool/log:/var/log/tarantool
-      - c:\work\project\stage\golos\golos.io\packages\golos.queue\tarantool\apps:/usr/local/etc/tarantool/instances.enabled
+      - c:\work\project\stage\golos\golos.io\packages\queue.golos.lib\tarantool\test\apps:/usr/local/etc/tarantool/instances.enabled
       - e:\_data\golos\tarantool\data:/var/lib/tarantool
       - e:\_data\golos\tarantool\log:/var/log/tarantool
     networks:
