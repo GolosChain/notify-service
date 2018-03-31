@@ -72,7 +72,7 @@ function take(fullSequence)
         task = box.space.utube:update(task[1], { { '=', 2, state.TAKEN } })
         print('|', task)
           -- self.on_task_change(task, 'take')
-          -- return task taken by the above rule to cunsomer
+          -- return task taken by the above rule to consumer
           if fullSequence ~= true then
             return task
           end

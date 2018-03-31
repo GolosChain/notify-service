@@ -10,18 +10,16 @@ export default class Operation {
   }
   // detect if operation's implemented and can be processed
   static implemented(op) {
-    const {type, data} = op;
+    const {type, payload} = op;
     let result = false;
     // let the comment and new post be different operations
     if (type === 'comment') {
-      const {parent_author} = data;
+      const {parent_author} = payload;
       // ignore post creation for now
       result = !(parent_author.length === 0);
     } else {
       result = (type in typeMap);
     }
-
     return result;
-
   }
 }

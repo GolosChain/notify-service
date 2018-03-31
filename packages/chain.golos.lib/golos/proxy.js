@@ -16,28 +16,63 @@ const {Tarantool: Queue} = Queues;
 export default class Golos extends EventEmitter {
   //
   put = async(value, block) => {
-    // we must successfully put into 2 queues
-    // block <--> ops
-    //
-    const blockStr = JSON.stringify(block);
-    console.log(block);
-    //
+    // todo duplication of value and block which has index - refactor
+    const putBlockData = async block => {
+      // insert('test', [999, 999, 'fear'])
+      // console.log(block);
+      const blockNum = parseInt(block.index);
+      const dataStr = JSON.stringify(block);
+      // console.log(`-----------------------`);
+      // console.log(blockNum);
+      const {driver: store} = this.queue;
+      const res = await store.insert('block_data', [
+        blockNum,
+        dataStr
+      ]);
+      // console.log(`%%%%%%%%%%%%%%%%%%%%% `, res);
+    };
+    // we should have saved block operations when it comes from block_applied_callback
+    // (from chain version 17 only)
+    // to reduce the number of further api requests
+    // if we have no operations data (gap closing mode)
+    // pass the request to fetch operations for block
+    // in $action field of the composed block object
+    // further cunsomers have an ability to complete the block using the field
+    // or may be $complete field - thinking ...
+    // console.log(block);
+    // first push into queue (important)
     const inserted = parseInt((await this.queue.put({
-      tube_name: `block`,
+      tube_name: `chain`,
       task_data: value
     }))[2]);
+
+    if (block) {
+      const {operations} = block;
+      for (const op of operations) {
+        console.log(op.type);
+      }
+    }
+
+    // then! cache block data
+    try {
+      if (block) {
+        await putBlockData(block);
+      }
+    } catch (e) {
+      console.log(`[xxxxxxxxxxxxx] error caching data for ${block.index}`, e);
+    }
     return inserted;
   }
   //
   get = async() => {
     // get the queue's tail
-    const q_height = parseInt((await this.queue.statistics('block'))
+    const q_height = parseInt((await this.queue.statistics('chain'))
       .tasks
       .total
     );
     // the index of the most recent record
     const q_top_index = q_height - 1;
-    const h = parseInt((await this.queue.peek('block', q_top_index))[2]);
+    const h = parseInt((await this.queue.peek('chain', q_top_index))[2]);
     return h;
   }
   //
@@ -67,11 +102,14 @@ export default class Golos extends EventEmitter {
         while (true) {
           console.log(`|~~~~~~~ `, current);
           const block = {
+            index: current,
             // no more rpc requests
             // let consumers do that
             action: `requestOps`
           };
-          current = await this.put(current, block) + 1;
+          // now pass undefined as block for this case
+          // to save nothing into corresponding space
+          current = await this.put(current/*, block*/) + 1;
           // if ((this.hRemote - current) === 1) {
           if (this.hRemote < current) {
             this.gap = false;
@@ -87,15 +125,18 @@ export default class Golos extends EventEmitter {
     console.log(`|----------------------- `, hNew);
   }
   //
-  getInitialBlockInfo = data => {
+  getInitialBlockInfo = (data, blocknum) => {
     const {transactions} = data;
     const operations = transactions
       .map(trx => trx.operations)
       .map(ops => ops[0])
       .map(opTuple => {
         const [type, payload] = opTuple;
+        // the final shape of each op
         return {
-          type, payload
+          block: blocknum,
+          type,
+          payload
         };
       });
     // before mapping:
@@ -116,11 +157,11 @@ export default class Golos extends EventEmitter {
       const aBlock = (id === 1);
       if (aBlock) {
         const {previous} = result;
-        const preblock = this.getInitialBlockInfo(result);
-        // console.log(preblock.operations);
         // keep current applied block
+        // todo hRemote hLocal should be refactored!
         const hRemote = parseInt(previous.slice(0, 8), 16) + 1;
         const hLocal = await this.get();
+        const preblock = this.getInitialBlockInfo(result, hRemote);
         const block = {
           index: hRemote,
           ...preblock
@@ -163,14 +204,14 @@ export default class Golos extends EventEmitter {
   onQueueConnect = async where => {
     const {host, port} = where;
     console.log(`[x] queue connected on [${host}:${port}]`);
-    console.log(`[x] asserting tube named 'block'`);
-    let exists = await this.queue.assertTube('block');
+    console.log(`[x] asserting tube named 'chain'`);
+    const exists = await this.queue.assertTube('chain');
     console.log(`[x] ${exists}`);
-    console.log(`[x] asserting tube named 'ops'`);
-    exists = await this.queue.assertTube('ops');
+    // console.log(`[x] asserting tube named 'ops'`);
+    // exists = await this.queue.assertTube('ops');
     // [block]--[[ops]]
     // [546..]--[[...]]
-    console.log(`[x] ${exists}`);
+    // console.log(`[x] ${exists}`);
     // start listening to chain pulse
     console.log(`[x] initializing golosD connection ...`);
     this.socket = new PersistentWebSocket(``);

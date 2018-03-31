@@ -3,19 +3,20 @@ import {EventEmitter} from 'events';
 import Tarantool from 'tarantool-driver/lib/connection';
 import BadConfigError from './error/BadConfigError';
 import Tube from './Tube';
-
+//
 // https://github.com/tarantool/tarantool-python/blob/master/tarantool/utils.py
-
 // good docs : http://tarantool-queue-python.readthedocs.io/en/latest/quick-start.en.html#prepare-server
-
-
+//
+// todo make a correct base class to be the tarantool driver
+// queue should inherit from it
+//
 const ENCODING_DEFAULT = 'utf-8';
 const connectionStatus = {
   disconnected: 0,
   connected: 1,
   reconnecting: 2
 };
-
+//
 export default class Queue extends EventEmitter {
   constructor({
     host = 'localhost',
@@ -42,13 +43,13 @@ export default class Queue extends EventEmitter {
     this.password = password;
     this.namespace = namespace;
     // try to establish connection
-    this.tnt = new Tarantool({host, port, user, password});
+    this.driver = new Tarantool({host, port, user, password});
     // set current status
-    this.tnt.on('connect', data => {
+    this.driver.on('connect', data => {
       this.emit('connect', data);
       this.status = connectionStatus.connected;
     });
-    this.tnt.on('reconnecting', data => {
+    this.driver.on('reconnecting', data => {
       this.emit('reconnecting', data);
       this.status = connectionStatus.reconnecting;
     });
@@ -68,10 +69,10 @@ export default class Queue extends EventEmitter {
   }
 
   async exec(luaCode) {
-    const {tnt} = this;
+    const {driver} = this;
     let result = null;
     try {
-      result = await tnt.eval(luaCode);
+      result = await driver.eval(luaCode);
     } catch (e) {
       throw e;
       // console.log('Error running Lua code on Tarantool', e);
@@ -242,7 +243,7 @@ export default class Queue extends EventEmitter {
 
 
   close() {
-    this.tnt.disconnect();
+    this.driver.disconnect();
   }
 
 }
