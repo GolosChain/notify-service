@@ -23,14 +23,9 @@ class Worker extends SCWorker {
       app.use(morgan('dev'));
     }
     app.use(serveStatic(path.resolve(__dirname, 'public')));
-
     // Add GET /health-check express route
     healthChecker.attach(this, app);
-
     httpServer.on('request', app);
-
-    const count = 0;
-
     //
     this.golos = new Golos({
       rpcIn: 'ws://127.0.0.1:8091',
