@@ -42,18 +42,25 @@ export default class Golos extends EventEmitter {
     // or may be $complete field - thinking ...
     // console.log(block);
     // first push into queue (important)
+    // this makes consumers connected to queue know about a new block
     const inserted = parseInt((await this.queue.put({
       tube_name: `chain`,
       task_data: value
     }))[2]);
-
+    // todo get rid of undefined block value
     if (block) {
       const {operations} = block;
-      for (const op of operations) {
-        console.log(op.type);
-      }
+      // for (const op of operations) {
+      //   console.log(op.type);
+      // }
+    } else {
+      block = {
+        index: value
+      };
     }
-
+    console.log(block);
+    // let event subscribers know about a new block
+    this.emit('block', block);
     // then! cache block data
     try {
       if (block) {
@@ -210,15 +217,22 @@ export default class Golos extends EventEmitter {
     console.log(`[x] ${exists}`);
     // start listening to the chain pulse
     console.log(`[x] initializing golosD connection ...`);
-    this.socket = new PersistentWebSocket(`ws://78.46.193.218:8091`);
+    const {rpcIn} = this;
+    this.socket = new PersistentWebSocket(rpcIn);
     this.socket.on('open', this.onSocketOpen);
     this.socket.on('message', this.onSocketMessage);
   }
   //
-  constructor() {
+  constructor({
+    rpcIn = `ws://127.0.0.1:8091`,
+    rpcOut = { port: 3301}} = {}) {
     super();
     console.log('[x] sniffer initialization ...');
-    this.queue = new Queue({port: 3301});
+    // this.queue = new Queue({port: 3301});
+    this.rpcIn = rpcIn;
+    this.rpcOut = rpcOut;
+    const {rpcOut: {port}} = this;
+    this.queue = new Queue({port});
     this.queue.on('connect', this.onQueueConnect);
   }
 }
