@@ -14,6 +14,7 @@ import PersistentWebSocket from '../transport/WebSocket/Persistent';
 const {Tarantool: Queue} = Queues;
 //
 export default class Golos extends EventEmitter {
+  // the place where clear block sequence happens
   //
   put = async(value, block) => {
     // todo duplication of value and block which has index - refactor
@@ -207,14 +208,9 @@ export default class Golos extends EventEmitter {
     console.log(`[x] asserting tube named 'chain'`);
     const exists = await this.queue.assertTube('chain');
     console.log(`[x] ${exists}`);
-    // console.log(`[x] asserting tube named 'ops'`);
-    // exists = await this.queue.assertTube('ops');
-    // [block]--[[ops]]
-    // [546..]--[[...]]
-    // console.log(`[x] ${exists}`);
-    // start listening to chain pulse
+    // start listening to the chain pulse
     console.log(`[x] initializing golosD connection ...`);
-    this.socket = new PersistentWebSocket(``);
+    this.socket = new PersistentWebSocket(`ws://78.46.193.218:8091`);
     this.socket.on('open', this.onSocketOpen);
     this.socket.on('message', this.onSocketMessage);
   }
