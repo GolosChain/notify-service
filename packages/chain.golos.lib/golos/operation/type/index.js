@@ -42,66 +42,64 @@ export default {
   delegate_vesting_shares: 40,
   account_create_with_delegation: 41,
 };
-
+//
 export class AbstractOperation {
-
   // abstract
   // get the target (e.g. user id or system) from operation data
   // to generate system event for it
   get target() {
     return null;
   }
-
+  //
   constructor(data) {
     // merge passed data into an instance anyway
     const {type} = data;
     Object.assign(this, {type, ...data.data});
   }
 }
-
+//
 export class Vote extends AbstractOperation {
-
+  //
   get target() {
     return this.author;
   }
-
+  //
   constructor(data) {
     super(data);
   }
 }
-
+//
 export class Comment extends AbstractOperation {
-
+  //
   get target() {
     return this.parent_author;
   }
-
+  //
   constructor(data) {
     super(data);
   }
 }
-
+//
 export class Transfer extends AbstractOperation {
-
+  //
   get target() {
     return this.to;
   }
-
+  //
   constructor(data) {
     super(data);
   }
 }
-
-
-export class PostCreate extends AbstractOperation {
-
+//
+export class Post extends AbstractOperation {
+  //
   get target() {
     const {parent_author} = this;
     // comment only, new post is not processed for now
     const target = !(parent_author.length === 0) ? parent_author : target;
 
   }
-
+  //
   constructor(data) {
     super(data);
   }
