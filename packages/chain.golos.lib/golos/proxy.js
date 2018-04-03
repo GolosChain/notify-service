@@ -32,17 +32,6 @@ export default class Golos extends EventEmitter {
       ]);
       // console.log(`%%%%%%%%%%%%%%%%%%%%% `, res);
     };
-    // we should have saved block operations when it comes from block_applied_callback
-    // (from chain version 17 only)
-    // to reduce the number of further api requests
-    // if we have no operations data (gap closing mode)
-    // pass the request to fetch operations for block
-    // in $action field of the composed block object
-    // further cunsomers have an ability to complete the block using the field
-    // or may be $complete field - thinking ...
-    // console.log(block);
-    // first push into queue (important)
-    // this makes consumers connected to queue know about a new block
     const inserted = parseInt((await this.queue.put({
       tube_name: `chain`,
       task_data: value
@@ -84,16 +73,6 @@ export default class Golos extends EventEmitter {
     return h;
   }
   //
-  requestOps = block => {
-    this.socket.send(
-      JSON.stringify({
-        id: 2,
-        jsonrpc: '2.0',
-        method: 'call',
-        params: ['database_api', 'get_ops_in_block', [block, 'false']],
-      }));
-  }
-  //
   process = async({hRemote, hLocal, block}) => {
     // console.log(block);
     this.hRemote = hRemote;
@@ -133,20 +112,154 @@ export default class Golos extends EventEmitter {
     console.log(`|----------------------- `, hNew);
   }
   //
-  getInitialBlockInfo = (data, blocknum) => {
-    const {transactions} = data;
-    const operations = transactions
-      .map(trx => trx.operations)
-      .map(ops => ops[0])
-      .map(opTuple => {
-        const [type, payload] = opTuple;
-        // the final shape of each op
-        return {
-          block: blocknum,
-          type,
-          payload
+  getBlockTransactions = index => {
+    //
+    this.socket.send(
+      JSON.stringify({
+        id: index,
+        jsonrpc: '2.0',
+        method: 'call',
+        params: ['database_api', 'get_ops_in_block', [index, 'false']],
+      }));
+    //
+    return new Promise(
+      (resolve, reject) => {
+        // track get_ops_in_block response
+        const listener = event => {
+          // got data
+          const data = JSON.parse(event.data);
+          const {id, result} = data;
+          if (id === index) {
+          // stop tracking
+            this.socket.removeListener('message', listener);
+            // resolve
+            resolve(result);
+          }
         };
+        this.socket.addListener('message', listener);
       });
+  }
+  //
+  composeBlock = async(data, blocknum) => {
+
+    // 0.17 response shape
+    // {
+    //   jsonrpc: '2.0',
+    //   result:
+    //   {
+    //     previous: '0000d303e1d6af4b2593f2d660f7dcee1819af15',
+    //     timestamp: '2018-04-03T08:09:27',
+    //     witness: 'cyberfounder',
+    //     transaction_merkle_root: '0000000000000000000000000000000000000000',
+    //     extensions: [],
+    //     witness_signature: '202cd2ba6ed38454c95ebcd47efb543fb155733fe9e6d353...',
+    //     transactions: []
+    // },
+    //   id: 1 }
+
+    // 0.16 response shape
+    // {
+    //    method: 'notice',
+    //    params: [ 0, [ [Object] ] ]
+    // }
+
+    // start block construction
+    let block = {};
+    // fast forward mode
+    if (data) {
+      // 0.17
+      let {
+        result: info
+      } = data;
+      // 0.16
+      if (!info) {
+        const {params: [, [result]]} = data;
+        info = result;
+      }
+      const {previous} = info;
+      const index = parseInt(previous.slice(0, 8), 16) + 1;
+      //
+      block = {index, ...info};
+    } else {
+      // fast forward mode - no block data here
+      block = {
+        index: blocknum
+      };
+    }
+
+    // 0.16
+    // {
+    //   previous: '00e8ca39154d09fb0a7bd52ddee6427b959f4890',
+    //   timestamp: '2018-04-03T09:18:09',
+    //   witness: 'smailer',
+    //   transaction_merkle_root: 'ca5b66874502cb7cef9fb94f3bba5c9d3a86337e',
+    //   extensions: [],
+    //   witness_signature: '20539572248bad35a09ba3903...'
+    // }
+
+    // 0.17
+    // {
+    //   previous: '0000d8f87168f98cf5985c284bebe6a20ba63250',
+    //   timestamp: '2018-04-03T09:25:42',
+    //   witness: 'cyberfounder',
+    //   transaction_merkle_root: '0000000000000000000000000000000000000000',
+    //   extensions: [],
+    //   witness_signature: '2047661fc5ed136ae7cb235232...',
+    //   transactions: []
+    // }
+
+    // check if transactions already exist (0.17)
+    let {transactions, index} = block;
+    if (!transactions) {
+      // transactions is undefined (either fast forward or 0.16)
+      // request them
+      console.log(`[x] requesting ...`);
+      transactions = await this.getBlockTransactions(index);
+    }
+    // remove everything but block index and its transactions
+    block = {index, transactions};
+    //
+    console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~ `, index);
+    const operations = transactions
+      .map(trx => {
+        const {
+          // 0.16
+          op,
+          // 0.17
+          operations
+        } = trx;
+        // todo now processes only one op per transaction!
+        const opsArray = op || operations;
+        let type, payload;
+        if (operations) {
+          // 0.17
+          type = opsArray[0][0];
+          payload = opsArray[0][1];
+        }
+        if (op) {
+          // 0.16
+          type = opsArray[0];
+          payload = opsArray[1];
+        }
+        console.log({type, payload})
+        return {type, payload};
+      });
+
+    // console.log(operations);
+
+
+    // .map(ops => ops[0])
+    // .map(opTuple => {
+    //   const [type, payload] = opTuple;
+    //   // the final shape of each op
+    //   return {
+    //     block: blocknum,
+    //     type,
+    //     payload
+    //   };
+    // });
+
+
     // before mapping:
     // [ [ [ 'vote', [Object] ] ],
     // [ [ 'vote', [Object] ] ],
@@ -154,39 +267,53 @@ export default class Golos extends EventEmitter {
     //
     // only 1 operation per transaction for now
     // todo can be more?
-    return {operations};
+    // return {operations};
   }
   // each socket message
   onSocketMessage = async event => {
     try {
       const data = JSON.parse(event.data);
-      const {id, result} = data;
+      // console.log(data);
+      const {
+        // 0.17
+        id,
+        result,
+        // 0.16
+        method
+      } = data;
       // block applied on chain
-      const aBlock = (id === 1);
+      const aBlock = ((id === 1) && (result) || (method === 'notice'));
       if (aBlock) {
-        const {previous} = result;
-        // keep current applied block
-        // todo hRemote hLocal should be refactored!
-        const hRemote = parseInt(previous.slice(0, 8), 16) + 1;
-        const hLocal = await this.get();
-        const preblock = this.getInitialBlockInfo(result, hRemote);
-        const block = {
-          index: hRemote,
-          ...preblock
-        };
-        // now block looks as such:
-        // { index: 15153265,
-        //   operations:
-        //   [ { type: 'pow2', payload: [Object] },
-        //     { type: 'vote', payload: [Object] },
-        //     { type: 'vote', payload: [Object] } ] }
+        const block = this.composeBlock(data);
+
+
+        // const {previous} = result;
+        // // keep current applied block
+        // // todo hRemote hLocal should be refactored!
+        // const hRemote = parseInt(previous.slice(0, 8), 16) + 1;
+        // const hLocal = await this.get();
         //
-        //  process it
-        this.process({
-          hRemote,
-          hLocal,
-          block
-        });
+        // const preblock = this.getInitialBlockInfo(result, hRemote);
+        //
+        //
+        // const block = {
+        //   index: hRemote,
+        //   ...preblock
+        // };
+        // // 0.17
+        // // now block looks as such:
+        // // { index: 15153265,
+        // //   operations:
+        // //   [ { type: 'pow2', payload: [Object] },
+        // //     { type: 'vote', payload: [Object] },
+        // //     { type: 'vote', payload: [Object] } ] }
+        // //
+        // //  process it
+        // this.process({
+        //   hRemote,
+        //   hLocal,
+        //   block
+        // });
       }
     } catch (e) {
     //  do nothing - go to the next message
