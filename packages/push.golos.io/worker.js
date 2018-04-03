@@ -1,4 +1,5 @@
 import chains from 'chain.golos.lib';
+import {defs} from 'chain.golos.lib';
 const SCWorker = require('socketcluster/scworker');
 const express = require('express');
 const serveStatic = require('serve-static');
@@ -6,12 +7,10 @@ const path = require('path');
 const morgan = require('morgan');
 const healthChecker = require('sc-framework-health-check');
 const {Golos} = chains;
+const {Operation} = defs;
 
 class Worker extends SCWorker {
   run() {
-    const c1 = 0;
-    // let c2 = 0;
-    // let c3 = 0;
     console.log('   >> Worker PID:', process.pid);
     const environment = this.options.environment;
     const app = express();
@@ -28,7 +27,7 @@ class Worker extends SCWorker {
     httpServer.on('request', app);
     //
     this.golos = new Golos({
-      rpcIn: 'ws://127.0.0.1:8091',
+      rpcIn: 'wss://ws.golos.io',
       // tarantool queue is a must for now
       rpcOut: {
         // host and something else may exist here ...
@@ -37,9 +36,45 @@ class Worker extends SCWorker {
     });
     //
     this.golos.on('block', block => {
-      scServer.exchange.publish('a153048', block);
-      scServer.exchange.publish('b153048', block);
-      console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> published ', block.index);
+      const {operations} = block;
+      console.log('>>>>>>>>>>>>>>>');
+      console.log(operations.length);
+      // console.log('[x] before');
+      // for (const op of operations) {
+      //   console.log(op.type);
+      // }
+      // filter implemented ops
+      const iOps = operations
+        .filter(op => Operation.implemented(op))
+        // insert target channel name for each op
+        // (golos userId)
+        .map(op => Operation.instance(op))
+        .map(op => {
+          if (op.type === 'transfer') {
+            scServer.exchange.publish('a153048', op.clientShape);
+          }
+
+          //
+          console.log(`[${op.type}][${op.target}]`);
+        });
+      //
+      // console.log('[x] after');
+      // for (const op of iOps) {
+      //   console.log(op.type);
+      // }
+
+
+      //
+      //
+      // scServer.exchange.publish('a153048', block);
+      //
+      //
+      //
+      // // scServer.exchange.publish('b153048', block);
+      // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> published ', block.index);
+      // console.log(`[${block.operations.length}]`);
+
+
     });
 
 

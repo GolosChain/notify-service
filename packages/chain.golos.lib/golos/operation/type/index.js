@@ -1,3 +1,4 @@
+/* eslint-disable quotes */
 export default {
   vote: 0,
   comment: 1,
@@ -51,10 +52,14 @@ export class AbstractOperation {
     return null;
   }
   //
+  get presentation() {
+    return null;
+  }
+  //
   constructor(data) {
     // merge passed data into an instance anyway
-    const {type} = data;
-    Object.assign(this, {type, ...data.data});
+    const {type, payload} = data;
+    Object.assign(this, {type, ...payload});
   }
 }
 //
@@ -82,6 +87,15 @@ export class Comment extends AbstractOperation {
 //
 export class Transfer extends AbstractOperation {
   //
+  get clientShape(/*todo insert flag for source or target*/) {
+    return {
+      type: this.type,
+      from: this.from,
+      // todo use consts
+      text: `перевел вам ${this.amount}`
+    };
+  }
+  //
   get target() {
     return this.to;
   }
@@ -104,8 +118,6 @@ export class Post extends AbstractOperation {
     super(data);
   }
 }
-
-
 
 
 export const map = {
