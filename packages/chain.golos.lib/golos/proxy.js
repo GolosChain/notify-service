@@ -14,50 +14,39 @@ import PersistentWebSocket from '../transport/WebSocket/Persistent';
 const {Tarantool: Queue} = Queues;
 //
 export default class Golos extends EventEmitter {
-  // the place where clear block sequence happens
-  //
-  put = async(value, block) => {
+  // the place where consequent block sequence happens
+  put = async block => {
     // todo duplication of value and block which has index - refactor
-    const putBlockData = async block => {
-      // insert('test', [999, 999, 'fear'])
-      // console.log(block);
-      const blockNum = parseInt(block.index);
-      const dataStr = JSON.stringify(block);
-      // console.log(`-----------------------`);
-      // console.log(blockNum);
-      const {driver: store} = this.queue;
-      const res = await store.insert('block_data', [
-        blockNum,
-        dataStr
-      ]);
-      // console.log(`%%%%%%%%%%%%%%%%%%%%% `, res);
-    };
+    // const putBlockData = async block => {
+    //   // insert('test', [999, 999, 'fear'])
+    //   // console.log(block);
+    //   const blockNum = parseInt(block.index);
+    //   const dataStr = JSON.stringify(block);
+    //   // console.log(`-----------------------`);
+    //   // console.log(blockNum);
+    //   const {driver: store} = this.queue;
+    //   const res = await store.insert('block_data', [
+    //     blockNum,
+    //     dataStr
+    //   ]);
+    //   // console.log(`%%%%%%%%%%%%%%%%%%%%% `, res);
+    // };
+    const {index} = block;
+    // first insert into queue
     const inserted = parseInt((await this.queue.put({
       tube_name: `chain`,
-      task_data: value
+      task_data: index
     }))[2]);
-    // todo get rid of undefined block value
-    if (block) {
-      const {operations} = block;
-      // for (const op of operations) {
-      //   console.log(op.type);
-      // }
-    } else {
-      block = {
-        index: value
-      };
-    }
-    console.log(block);
-    // let event subscribers know about a new block
+    // then emit
     this.emit('block', block);
-    // then! cache block data
-    try {
-      if (block) {
-        await putBlockData(block);
-      }
-    } catch (e) {
-      console.log(`[xxxxxxxxxxxxx] error caching data for ${block.index}`, e);
-    }
+    // // then! cache block data
+    // try {
+    //   if (block) {
+    //     await putBlockData(block);
+    //   }
+    // } catch (e) {
+    //   console.log(`[xxxxxxxxxxxxx] error caching data for ${block.index}`, e);
+    // }
     return inserted;
   }
   //
@@ -71,45 +60,6 @@ export default class Golos extends EventEmitter {
     const q_top_index = q_height - 1;
     const h = parseInt((await this.queue.peek('chain', q_top_index))[2]);
     return h;
-  }
-  //
-  process = async({hRemote, hLocal, block}) => {
-    // console.log(block);
-    this.hRemote = hRemote;
-    // each chain tick
-    // compare remote and local heads
-    const delta = hRemote - hLocal;
-    //
-    if (delta > 1) {
-      if (!this.gap) {
-        //  gap detected
-        this.gap = true;
-        let current = hLocal + 1;
-        // close the gap
-        while (true) {
-          console.log(`|~~~~~~~ `, current);
-          const block = {
-            index: current,
-            // no more rpc requests
-            // let consumers do that
-            action: `requestOps`
-          };
-          // now pass undefined as block for this case
-          // to save nothing into corresponding space
-          current = await this.put(current/*, block*/) + 1;
-          // if ((this.hRemote - current) === 1) {
-          if (this.hRemote < current) {
-            this.gap = false;
-            break;
-          }
-        }
-      }
-      return;
-    }
-    // push local only if remote's the next
-    // or queue's empty (first run)
-    const hNew = await this.put(hRemote, block);
-    console.log(`|----------------------- `, hNew);
   }
   //
   getBlockTransactions = index => {
@@ -130,7 +80,7 @@ export default class Golos extends EventEmitter {
           const data = JSON.parse(event.data);
           const {id, result} = data;
           if (id === index) {
-          // stop tracking
+            // stop tracking
             this.socket.removeListener('message', listener);
             // resolve
             resolve(result);
@@ -141,28 +91,6 @@ export default class Golos extends EventEmitter {
   }
   //
   composeBlock = async(data, blocknum) => {
-
-    // 0.17 response shape
-    // {
-    //   jsonrpc: '2.0',
-    //   result:
-    //   {
-    //     previous: '0000d303e1d6af4b2593f2d660f7dcee1819af15',
-    //     timestamp: '2018-04-03T08:09:27',
-    //     witness: 'cyberfounder',
-    //     transaction_merkle_root: '0000000000000000000000000000000000000000',
-    //     extensions: [],
-    //     witness_signature: '202cd2ba6ed38454c95ebcd47efb543fb155733fe9e6d353...',
-    //     transactions: []
-    // },
-    //   id: 1 }
-
-    // 0.16 response shape
-    // {
-    //    method: 'notice',
-    //    params: [ 0, [ [Object] ] ]
-    // }
-
     // start block construction
     let block = {};
     // fast forward mode
@@ -186,28 +114,6 @@ export default class Golos extends EventEmitter {
         index: blocknum
       };
     }
-
-    // 0.16
-    // {
-    //   previous: '00e8ca39154d09fb0a7bd52ddee6427b959f4890',
-    //   timestamp: '2018-04-03T09:18:09',
-    //   witness: 'smailer',
-    //   transaction_merkle_root: 'ca5b66874502cb7cef9fb94f3bba5c9d3a86337e',
-    //   extensions: [],
-    //   witness_signature: '20539572248bad35a09ba3903...'
-    // }
-
-    // 0.17
-    // {
-    //   previous: '0000d8f87168f98cf5985c284bebe6a20ba63250',
-    //   timestamp: '2018-04-03T09:25:42',
-    //   witness: 'cyberfounder',
-    //   transaction_merkle_root: '0000000000000000000000000000000000000000',
-    //   extensions: [],
-    //   witness_signature: '2047661fc5ed136ae7cb235232...',
-    //   transactions: []
-    // }
-
     // check if transactions already exist (0.17)
     let {transactions, index} = block;
     if (!transactions) {
@@ -216,13 +122,11 @@ export default class Golos extends EventEmitter {
       console.log(`[x] requesting ...`);
       transactions = await this.getBlockTransactions(index);
     }
-    // remove everything but block index and its transactions
-    block = {index, transactions};
     //
-    console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~ `, index);
     const operations = transactions
       .map(trx => {
         const {
+          trx_id,
           // 0.16
           op,
           // 0.17
@@ -241,33 +145,54 @@ export default class Golos extends EventEmitter {
           type = opsArray[0];
           payload = opsArray[1];
         }
-        console.log({type, payload})
-        return {type, payload};
+        // console.log({type, payload});
+        return {
+          type,
+          payload,
+          trx_id
+        };
       });
-
-    // console.log(operations);
-
-
-    // .map(ops => ops[0])
-    // .map(opTuple => {
-    //   const [type, payload] = opTuple;
-    //   // the final shape of each op
-    //   return {
-    //     block: blocknum,
-    //     type,
-    //     payload
-    //   };
-    // });
-
-
-    // before mapping:
-    // [ [ [ 'vote', [Object] ] ],
-    // [ [ 'vote', [Object] ] ],
-    // [ [ 'vote', [Object] ] ] ]
     //
-    // only 1 operation per transaction for now
-    // todo can be more?
-    // return {operations};
+    block = {
+      index,
+      operations
+    };
+    return block;
+  }
+  //
+  process = async({hRemote, hLocal, block}) => {
+    // console.log(`++++++++++++++++++++ process `, block.index);
+    // console.log(block);
+    this.hRemote = hRemote;
+    // each chain tick
+    // compare remote and local heads
+    const delta = hRemote - hLocal;
+    //
+    if (delta > 1) {
+      if (!this.gap) {
+        //  gap detected
+        this.gap = true;
+        let current = hLocal + 1;
+        // close the gap
+        while (true) {
+          console.log(`|~~~~~~~ `, current);
+          const block = await this.composeBlock(undefined, current);
+          // now pass undefined as block for this case
+          // to save nothing into corresponding space
+          current = await this.put(block) + 1;
+          // if ((this.hRemote - current) === 1) {
+          if (this.hRemote < current) {
+            this.gap = false;
+            break;
+          }
+        }
+      }
+      return;
+    }
+    // push local only if remote's the next
+    // or queue's empty (first run)
+    const hNew = await this.put(block);
+    console.log(`|----------------------- `, hNew);
   }
   // each socket message
   onSocketMessage = async event => {
@@ -284,36 +209,17 @@ export default class Golos extends EventEmitter {
       // block applied on chain
       const aBlock = ((id === 1) && (result) || (method === 'notice'));
       if (aBlock) {
-        const block = this.composeBlock(data);
-
-
-        // const {previous} = result;
-        // // keep current applied block
-        // // todo hRemote hLocal should be refactored!
-        // const hRemote = parseInt(previous.slice(0, 8), 16) + 1;
-        // const hLocal = await this.get();
-        //
-        // const preblock = this.getInitialBlockInfo(result, hRemote);
-        //
-        //
-        // const block = {
-        //   index: hRemote,
-        //   ...preblock
-        // };
-        // // 0.17
-        // // now block looks as such:
-        // // { index: 15153265,
-        // //   operations:
-        // //   [ { type: 'pow2', payload: [Object] },
-        // //     { type: 'vote', payload: [Object] },
-        // //     { type: 'vote', payload: [Object] } ] }
-        // //
-        // //  process it
-        // this.process({
-        //   hRemote,
-        //   hLocal,
-        //   block
-        // });
+        const block = await this.composeBlock(data);
+        // keep current applied block
+        // todo hRemote hLocal should be refactored!
+        const hRemote = block.index;
+        const hLocal = await this.get();
+        //  process it
+        this.process({
+          hRemote,
+          hLocal,
+          block
+        });
       }
     } catch (e) {
     //  do nothing - go to the next message
