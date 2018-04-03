@@ -126,6 +126,7 @@ export default class Golos extends EventEmitter {
     const operations = transactions
       .map(trx => {
         const {
+          block,
           trx_id,
           // 0.16
           op,
@@ -147,9 +148,10 @@ export default class Golos extends EventEmitter {
         }
         // console.log({type, payload});
         return {
+          trx_id,
+          block,
           type,
           payload,
-          trx_id
         };
       });
     //
