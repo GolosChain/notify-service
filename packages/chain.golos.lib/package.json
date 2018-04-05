@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "detect-is-node": "^1.0.3",
+    "golos-js": "^0.6.3",
     "queue.golos.lib": "^0.0.1",
     "ws": "^5.1.0"
   }

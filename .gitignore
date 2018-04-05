@@ -5,5 +5,4 @@ yarn-error.log
 # to share common libs, testing, linter, compiler settings etc. etc.
 tolstoy
 lerna-debug.log
-packages/golos.queue/tarantool/data/
-packages/golos.queue/tarantool/log/
+*.lerna_backup

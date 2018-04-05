@@ -52,10 +52,6 @@ export class AbstractOperation {
     return null;
   }
   //
-  get presentation() {
-    return null;
-  }
-  //
   constructor(data) {
     // merge passed data into an instance anyway
     const {type, payload} = data;
@@ -64,6 +60,16 @@ export class AbstractOperation {
 }
 //
 export class Vote extends AbstractOperation {
+  //
+  get clientShape(/*todo insert flag for source or target*/) {
+    return {
+      type: this.type,
+      voter: this.voter,
+      permlink: this.permlink,
+      // todo use consts
+      text: `перевел вам ${this.amount}`
+    };
+  }
   //
   get target() {
     return this.author;
@@ -75,6 +81,16 @@ export class Vote extends AbstractOperation {
 }
 //
 export class Comment extends AbstractOperation {
+  //
+  get clientShape(/*todo insert flag for source or target*/) {
+    return {
+      type: this.type,
+      author: this.author,
+      parent_permlink: this.parent_permlink,
+      // todo use consts
+      text: `ответил на ваш пост/комментарий`
+    };
+  }
   //
   get target() {
     return this.parent_author;
@@ -91,8 +107,9 @@ export class Transfer extends AbstractOperation {
     return {
       type: this.type,
       from: this.from,
+      amount: this.amount,
       // todo use consts
-      text: `перевел вам ${this.amount}`
+      text: `перевел вам`
     };
   }
   //
