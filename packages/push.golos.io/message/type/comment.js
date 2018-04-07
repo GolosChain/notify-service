@@ -11,6 +11,7 @@ export default class Comment
       op: {
         payload: {
           author,
+          permlink,
           parent_author,
           parent_permlink
         }
@@ -24,6 +25,14 @@ export default class Comment
       parent_author,
       parent_permlink
     );
+    //
+    const commentContent = await api.getContentAsync(
+      author,
+      permlink
+    );
+    //
+    // console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ ', commentedContent.url);
+    const {url: comment_url} = commentContent;
     //
     const commenterData = await api.getAccountsAsync([author]);
     const [{json_metadata: mdStr}] = commenterData;
@@ -59,6 +68,7 @@ export default class Comment
       parent_title: title,
       parent_body: body,
       parent_depth: depth,
+      comment_url,
       ...this.op.payload
     };
     // //
@@ -68,11 +78,12 @@ export default class Comment
   get web() {
     //
     const {
-      type,
       payload: {
         // commenter
         // {account, profile_image}
         author,
+        // comment's url
+        comment_url,
         // permlink of comment itself
         permlink,
         // the author of what was commented
@@ -85,10 +96,10 @@ export default class Comment
         parent_title,
         // body of what was commented
         parent_body,
-        ///////////////////
-        acc
       }
     } = this.op;
+
+
     //
     return {
       channel: parent_author,
@@ -96,6 +107,7 @@ export default class Comment
         type: 'NOTIFY_COMMENT',
         payload: {
           author,
+          comment_url,
           permlink,
           parent: {
             type: (parent_depth > 0 ? 'comment' : 'post'),
