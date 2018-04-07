@@ -7,7 +7,7 @@ import message from './message/producer';
 
 const {Golos} = chains;
 const {Operation} = defs;
-config.set('websocket', /*'wss://ws.golos.io'*/'ws://127.0.0.1:8091');
+config.set('websocket', 'wss://ws.golos.io'/*'ws://127.0.0.1:8091'*/);
 
 
 class Worker extends SCWorker {
@@ -16,8 +16,8 @@ class Worker extends SCWorker {
     const scServer = this.scServer;
     //
     this.golos = new Golos({
-      // rpcIn: 'wss://ws.golos.io',
-      rpcIn: 'ws://127.0.0.1:8091',
+      rpcIn: 'wss://ws.golos.io',
+      // rpcIn: 'ws://127.0.0.1:8091',
       // tarantool queue is a must for now
       rpcOut: {
         // host and something else may exist here ...
@@ -53,7 +53,6 @@ class Worker extends SCWorker {
           // console.log('+++++++++++++++++ ', action);
 
           scServer.exchange.publish(channel, action);
-          // scServer.exchange.publish('a153048', action);
           // scServer.exchange.publish('a153048', action);
         }
 
