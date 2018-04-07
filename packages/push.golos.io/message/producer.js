@@ -3,7 +3,7 @@ import transfer from './type/transfer';
 import vote from './type/vote';
 //
 const implemented = {
-  comment,
+  // comment,
   transfer,
   // vote
 };

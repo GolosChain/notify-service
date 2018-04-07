@@ -49,6 +49,9 @@ class Worker extends SCWorker {
               action
             }
           } = message;
+
+          // console.log('+++++++++++++++++ ', action);
+
           // scServer.exchange.publish(channel, action);
           // scServer.exchange.publish('a153048', action);
           scServer.exchange.publish('a153048', action);
