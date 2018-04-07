@@ -2,7 +2,7 @@ import {Message} from './abstract';
 import {api} from 'golos-js';
 
 // see the op shape under the class
-export default class Comment
+export default class Vote
   extends Message {
   //
   async compose() {
@@ -18,8 +18,6 @@ export default class Comment
       }
     } = this;
     //
-    // console.log('++++++++++++++++++++++++++++++');
-    // console.log(this.op);
     //
     const votedContent = await api.getContentAsync(
       author,
@@ -53,15 +51,20 @@ export default class Comment
       // to detect if it was a post or a comment
       depth,
       // comment does not have a title, but has body
-      body
+      body,
+      // url of voted object
+      url: parent_url
     } = votedContent;
     // complement operation payload
     this.op.payload = {
       parent_title: title,
       parent_body: body,
       parent_depth: depth,
+      parent_url,
       ...this.op.payload
     };
+    // console.log('++++++++++++++++++++++++++++++');
+    // console.log(parent_url);
 
 
     // //
@@ -87,23 +90,25 @@ export default class Comment
         parent_title,
         // body of what was commented
         parent_body,
+        // url of what was commented
+        parent_url
       }
     } = this.op;
-
+    //
     if (parent_depth > 0 && (parent_title.length > 0 && parent_body.length > 0)) {
       console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
       console.log(parent_title);
     }
-
     //
     return {
-      channel: parent_author,
+      channel: author,
       action: {
         type: 'NOTIFY_VOTE',
         payload: {
           voter,
           parent: {
             author,
+            url: parent_url,
             type: (parent_depth > 0 ? 'comment' : 'post'),
             permlink,
             title: parent_title,

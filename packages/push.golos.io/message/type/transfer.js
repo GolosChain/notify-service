@@ -47,16 +47,10 @@ export default class Transfer
   get web() {
     //
     const {payload} = this.op;
-    const {
-      // money sender
-      // {account, profile_image}
-      from: {
-        account
-      }
-    } = payload;
+    const {to} = payload;
     //
     return {
-      channel: account,
+      channel: to,
       action: {
         type: 'NOTIFY_TRANSFER',
         payload

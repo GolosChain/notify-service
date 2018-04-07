@@ -98,8 +98,6 @@ export default class Comment
         parent_body,
       }
     } = this.op;
-
-
     //
     return {
       channel: parent_author,
