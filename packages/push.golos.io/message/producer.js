@@ -4,13 +4,16 @@ import vote from './type/vote';
 //
 const implemented = {
   comment,
-  // transfer,
+  transfer,
   // vote
 }
 // map chain type to system message type
 function fromChain(op) {
   const {type, payload: {
-    parent_author
+    author,
+    parent_author,
+    from,
+    to
   }} = op;
   //new post and new comment are different events for us
   if (type === 'comment') {
@@ -18,6 +21,17 @@ function fromChain(op) {
       // no such operation on chain but
       // they need to be separated for further usage
       return 'post';
+    }
+    if (author === parent_author) {
+      // no notification for me if commenter is myself
+      return null;
+    }
+  }
+  //
+  if (type === 'transfer') {
+    if (from === to) {
+      // no notification if I send money to myself
+      return null;
     }
   }
   //
@@ -28,6 +42,6 @@ function fromChain(op) {
 // {block, operations: []}
 export default function(op) {
   const type = fromChain(op);
-  const MessageConstructor = implemented[type];
+  const MessageConstructor = type ? implemented[type] : null;
   return (MessageConstructor ? new MessageConstructor(op) : null);
 }

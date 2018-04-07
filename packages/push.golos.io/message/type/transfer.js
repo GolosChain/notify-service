@@ -1,29 +1,69 @@
 import {Message} from './abstract';
 import {api} from 'golos-js';
+
 // see the op shape under the class
-export default class Transfer extends Message {
+export default class Transfer
+  extends Message {
   //
   async compose() {
-  }
-  // transfer
-  // enough data from chain - nothing to fetch
-  get web() {
     //
-    const {op:
-      {type, from, to, amount, memo}
+    const {
+      op: {
+        payload: {
+          from,
+          to,
+          amount,
+          memo
+        }
+      }
     } = this;
     //
-    return {type, from, amount,
-      // todo use consts
-            text: 'перевел вам'
+    // console.log('++++++++++++++++++++++++++++++');
+    // console.log(this.op);
+    //
+    const senderData = await api.getAccountsAsync([from]);
+    const [{json_metadata: mdStr}] = senderData;
+    let avaUrl;
+    let metadata;
+    try {
+      metadata = JSON.parse(mdStr);
+      const {profile} = metadata;
+      if (profile) {
+        const {profile_image} = profile;
+        avaUrl = profile_image;
+      }
+    } catch (e) {
+      // console.log('**************** ', metadata, mdStr);
+    }
+    //
+    this.op.payload.from = {
+      account: from,
+      profile_image: avaUrl
+    };
+    // console.log(`$$$$$$$$$$$$$$ `, profile_image)
+    // return data;
+  }
+  //
+  get web() {
+    //
+    const {payload} = this.op;
+    const {
+      // money sender
+      // {account, profile_image}
+      from: {
+        account
+      }
+    } = payload;
+    //
+    return {
+      channel: account,
+      action: {
+        type: 'NOTIFY_TRANSFER',
+        payload
+      }
     };
   }
 }
-// op
-// {
-//     type: "transfer",
-//     from: "a153048",
-//     to: "b153048",
-//     amount: "10.000 GOLOS",
-//     memo: ""
+//
+// let op = {
 // }
