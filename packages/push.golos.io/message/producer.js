@@ -6,8 +6,9 @@ const implemented = {
   comment,
   transfer,
   // vote
-}
+};
 // map chain type to system message type
+
 function fromChain(op) {
   const {type, payload: {
     author,
