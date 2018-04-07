@@ -10,6 +10,7 @@ export default class Comment
     const {
       op: {
         payload: {
+          author,
           parent_author,
           parent_permlink
         }
@@ -23,6 +24,27 @@ export default class Comment
       parent_author,
       parent_permlink
     );
+    //
+    const userData = await api.getAccountsAsync([author]);
+    const [{json_metadata: mdStr}] = userData;
+    let avaUrl;
+    let metadata;
+    try {
+      metadata = JSON.parse(mdStr);
+      const {profile} = metadata;
+      if (profile) {
+        const {profile_image} = profile;
+        avaUrl = profile_image;
+      }
+    } catch (e) {
+      console.log('**************** ', metadata, mdStr);
+    }
+    //
+    this.op.payload.author = {
+      author,
+      profile_image: avaUrl
+    };
+    // console.log(`$$$$$$$$$$$$$$ `, profile_image)
     //
     const {
       // to create post representation for client
@@ -45,7 +67,7 @@ export default class Comment
   //
   get web() {
     //
-    const { op: {
+    const {
       type,
       payload: {
         // commenter id
@@ -63,9 +85,10 @@ export default class Comment
         parent_title,
         // body of what was commented
         parent_body,
+        ///////////////////
+        acc
       }
-    }
-    } = this;
+    } = this.op;
     //
     return {
       channel: parent_author,

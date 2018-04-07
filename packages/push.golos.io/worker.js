@@ -7,7 +7,7 @@ import produceMessage from './message/producer';
 
 const {Golos} = chains;
 const {Operation} = defs;
-config.set('websocket', 'ws://127.0.0.1:8091');
+config.set('websocket', 'wss://ws.golos.io'/*'ws://127.0.0.1:8091'*/);
 
 
 class Worker extends SCWorker {
@@ -16,8 +16,8 @@ class Worker extends SCWorker {
     const scServer = this.scServer;
     //
     this.golos = new Golos({
-      // rpcIn: 'wss://ws.golos.io',
-      rpcIn: 'ws://127.0.0.1:8091',
+      rpcIn: 'wss://ws.golos.io',
+      // rpcIn: 'ws://127.0.0.1:8091',
       // tarantool queue is a must for now
       rpcOut: {
         // host and something else may exist here ...
@@ -32,7 +32,24 @@ class Worker extends SCWorker {
         const messages = operations
           // can produce a sparsed array
           // since unimplemented message will be null
-          .map(op => produceMessage(op))
+          .map(op => {
+            if (op.type === 'comment') {
+              // console.log(`>>>>>>>>> `, op.type)
+              const ms = produceMessage(op);
+              // if (!ms) {
+              // console.log('op :::: ', op);
+              // }
+
+
+              // const msg = op;
+              // console.log(`>>>>>>>>> `, msg.type)
+              return ms;
+            } else {
+              console.log('[x] ', op.type);
+              return null;
+            }
+          }
+          )
           // so, filter out implemented only
           .filter(op => op);
         // for of to process awaits correctly
@@ -40,13 +57,17 @@ class Worker extends SCWorker {
           // make additional operations on message
           // defined by its compose() method
           await message.compose();
+          // console.log(`composed : ${message.type}`);
+          console.log('[>]', message.op.type);
           //
-          const {
-            web: {
-              channel,
-              action
-            }} = message;
-          scServer.exchange.publish(channel, action);
+          // const {
+          //   web: {
+          //     channel,
+          //     action
+          //   }
+          // } = message;
+          // scServer.exchange.publish(channel, action);
+          scServer.exchange.publish('a153048', message.web);
         }
 
 
