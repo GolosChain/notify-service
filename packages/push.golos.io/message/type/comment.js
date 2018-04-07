@@ -20,13 +20,13 @@ export default class Comment
     // console.log('++++++++++++++++++++++++++++++');
     // console.log(this.op);
     //
-    const data = await api.getContentAsync(
+    const commentedContent = await api.getContentAsync(
       parent_author,
       parent_permlink
     );
     //
-    const userData = await api.getAccountsAsync([author]);
-    const [{json_metadata: mdStr}] = userData;
+    const commenterData = await api.getAccountsAsync([author]);
+    const [{json_metadata: mdStr}] = commenterData;
     let avaUrl;
     let metadata;
     try {
@@ -37,11 +37,11 @@ export default class Comment
         avaUrl = profile_image;
       }
     } catch (e) {
-      console.log('**************** ', metadata, mdStr);
+      // console.log('**************** ', metadata, mdStr);
     }
     //
     this.op.payload.author = {
-      author,
+      account: author,
       profile_image: avaUrl
     };
     // console.log(`$$$$$$$$$$$$$$ `, profile_image)
@@ -53,16 +53,16 @@ export default class Comment
       depth,
       // comment does not have a title, but has body
       body
-    } = data;
-    //
+    } = commentedContent;
+    // complement operation payload
     this.op.payload = {
       parent_title: title,
       parent_body: body,
       parent_depth: depth,
       ...this.op.payload
     };
-    //
-    return data;
+    // //
+    // return data;
   }
   //
   get web() {
@@ -70,8 +70,8 @@ export default class Comment
     const {
       type,
       payload: {
-        // commenter id
-        // this should be an object with encoded avatar
+        // commenter
+        // {account, profile_image}
         author,
         // permlink of comment itself
         permlink,

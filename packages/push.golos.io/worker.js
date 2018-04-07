@@ -2,7 +2,7 @@ import {config} from 'golos-js';
 import SCWorker from 'socketcluster/scworker';
 import chains from 'chain.golos.lib';
 import {defs} from 'chain.golos.lib';
-import produceMessage from './message/producer';
+import message from './message/producer';
 
 
 const {Golos} = chains;
@@ -32,24 +32,7 @@ class Worker extends SCWorker {
         const messages = operations
           // can produce a sparsed array
           // since unimplemented message will be null
-          .map(op => {
-            if (op.type === 'comment') {
-              // console.log(`>>>>>>>>> `, op.type)
-              const ms = produceMessage(op);
-              // if (!ms) {
-              // console.log('op :::: ', op);
-              // }
-
-
-              // const msg = op;
-              // console.log(`>>>>>>>>> `, msg.type)
-              return ms;
-            } else {
-              console.log('[x] ', op.type);
-              return null;
-            }
-          }
-          )
+          .map(op => message(op))
           // so, filter out implemented only
           .filter(op => op);
         // for of to process awaits correctly
@@ -58,16 +41,16 @@ class Worker extends SCWorker {
           // defined by its compose() method
           await message.compose();
           // console.log(`composed : ${message.type}`);
-          console.log('[>]', message.op.type);
-          //
-          // const {
-          //   web: {
-          //     channel,
-          //     action
-          //   }
-          // } = message;
+          console.log(' >', message.op.type);
+          // message.web: select target channel and redux action
+          const {
+            web: {
+              channel,
+              action
+            }
+          } = message;
           // scServer.exchange.publish(channel, action);
-          scServer.exchange.publish('a153048', message.web);
+          scServer.exchange.publish('a153048', action);
         }
 
 
