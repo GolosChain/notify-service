@@ -3,9 +3,9 @@ import transfer from './type/transfer';
 import vote from './type/vote';
 //
 const implemented = {
-  // comment,
-  // transfer,
-  vote
+  comment,
+  transfer,
+  // vote
 };
 // map chain type to system message type
 

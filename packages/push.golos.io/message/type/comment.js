@@ -99,6 +99,8 @@ export default class Comment
         parent_title,
         // body of what was commented
         parent_body,
+        // url of commented content
+        parent_url
       },
       count
     } = this.op;
@@ -118,7 +120,8 @@ export default class Comment
             type: (parent_depth > 0 ? 'comment' : 'post'),
             permlink: parent_permlink,
             title: parent_title,
-            body: parent_body
+            body: parent_body,
+            url: parent_url
           }
         }
       }
