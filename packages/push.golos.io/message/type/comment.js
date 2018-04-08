@@ -60,11 +60,14 @@ export default class Comment
       title,
       // to detect if it was a post or a comment
       depth,
-      // comment does not have a title, but has body
-      body
+      // comment does not have a title, but has body (not always!)
+      body,
+      //
+      url
     } = commentedContent;
     // complement operation payload
     this.op.payload = {
+      parent_url: url,
       parent_title: title,
       parent_body: body,
       parent_depth: depth,
@@ -96,7 +99,8 @@ export default class Comment
         parent_title,
         // body of what was commented
         parent_body,
-      }
+      },
+      count
     } = this.op;
     //
     return {
@@ -104,6 +108,9 @@ export default class Comment
       action: {
         type: 'NOTIFY_COMMENT',
         payload: {
+          count,
+          // todo this should have been an array of authors
+          // if count > 1
           author,
           comment_url,
           permlink,

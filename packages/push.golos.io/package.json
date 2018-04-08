@@ -37,6 +37,7 @@
     "chain.golos.lib": "^0.0.1",
     "connect": "3.0.1",
     "express": "^4.16.3",
+    "lodash": "^4.17.5",
     "minimist": "1.1.0",
     "morgan": "1.7.0",
     "sc-errors": "^1.4.0",

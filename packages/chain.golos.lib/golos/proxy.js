@@ -156,6 +156,9 @@ export default class Golos extends EventEmitter {
       index,
       operations
     };
+
+
+
     return block;
   }
   //

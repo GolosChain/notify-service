@@ -61,10 +61,10 @@ for (var i in SOCKETCLUSTER_OPTIONS) {
 
 var start = function () {
 
-  console.log({...options, host: '78.47.87.101'})
+  console.log({...options})
 
 
-  var socketCluster = new SocketCluster({...options, host: '78.47.87.101'});
+  var socketCluster = new SocketCluster({...options/*, host: '78.47.87.101'*/});
 
   socketCluster.on(socketCluster.EVENT_WORKER_CLUSTER_START, function (workerClusterInfo) {
     console.log('   >> WorkerCluster PID:', workerClusterInfo.pid);

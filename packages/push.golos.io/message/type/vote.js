@@ -91,7 +91,8 @@ export default class Vote
         parent_body,
         // url of what was commented
         parent_url
-      }
+      },
+      count
     } = this.op;
     //
     if (parent_depth > 0 && (parent_title.length > 0 && parent_body.length > 0)) {
@@ -104,6 +105,9 @@ export default class Vote
       action: {
         type: 'NOTIFY_VOTE',
         payload: {
+          count,
+          // todo this should have been an array of voters
+          // if count > 1
           voter,
           parent: {
             author,
