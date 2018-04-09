@@ -72,10 +72,14 @@ class Worker extends SCWorker {
       // group vote events by publication
       // to aggregate their count
       let votes = messages.filter(m => m.op.type === 'vote');
+      // console.log(votes[0]);
       votes = Object.values(
         _.groupBy(votes, vote => vote.op.payload.parent_url)
       )
         .map(arrayOfMessages => {
+          // arrayOfMessages.forEach(m => {
+          //   console.log(parseInt(m.op.payload.weight));
+          // });
           const count = arrayOfMessages.length;
           //  the first member will always represent enough info
           //  for further processing
@@ -93,7 +97,7 @@ class Worker extends SCWorker {
       // }
       //
       // mix everything up
-      const outbox = [...transfers, ...comments, ...votes]
+      const outbox = [...transfers, ...comments, ...votes];
       // send everything
       for (const message of outbox) {
         // message.web: select target channel and redux action
