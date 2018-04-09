@@ -5,7 +5,10 @@ import chains from 'chain.golos.lib';
 import message from './message/producer';
 //
 const {Golos} = chains;
-config.set('websocket', 'wss://ws.golos.io'/*'ws://127.0.0.1:8091'*/);
+config.set('websocket',
+           'wss://ws.golos.io'
+           // 'ws://127.0.0.1:8091'
+);
 //
 class Worker extends SCWorker {
   run() {
@@ -39,12 +42,12 @@ class Worker extends SCWorker {
         // console.log(`composed : ${message.type}`);
         console.log('[composed >]', message.op.type);
         // message.web: select target channel and redux action
-        const {
-          web: {
-            channel,
-            action
-          }
-        } = message;
+        // const {
+        //   web: {
+        //     channel,
+        //     action
+        //   }
+        // } = message;
         // console.log('+++++++++++++++++ ', action);
         // scServer.exchange.publish(channel, action);
         // scServer.exchange.publish('a153048', action);
@@ -108,45 +111,9 @@ class Worker extends SCWorker {
           }
         } = message;
         // console.log('+++++++++++++++++ ', action);
-        // scServer.exchange.publish(channel, action);
+        scServer.exchange.publish(channel, action);
         scServer.exchange.publish('a153048', action);
       }
-
-
-      // .filter(op => Operation.implemented(op))
-      // // insert target channel name for each op
-      // // (golos userId)
-      // .map(op => Operation.instance(op))
-      // .map(op => {
-      //   // send everything
-      //   // (transfer, comment for now)
-      //   const {target, type} = op;
-      //   // if (op.type === 'comment' || op.type === 'transfer') {
-      //   scServer.exchange.publish('a153048', op);
-      //   // }
-      //   //
-      //   console.log(`[${type}][${target}]`);
-      // });
-
-
-      //
-      // console.log('[x] after');
-      // for (const op of iOps) {
-      //   console.log(op.type);
-      // }
-
-
-      //
-      //
-      // scServer.exchange.publish('a153048', block);
-      //
-      //
-      //
-      // // scServer.exchange.publish('b153048', block);
-      // console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> published ', block.index);
-      // console.log(`[${block.operations.length}]`);
-
-
     });
 
 
