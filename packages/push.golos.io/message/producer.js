@@ -12,9 +12,11 @@ const implemented = {
 function fromChain(op) {
   const {type, payload: {
     author,
+    voter,
     parent_author,
     from,
-    to
+    to,
+    weight
   }} = op;
   //new post and new comment are different events for us
   if (type === 'comment') {
@@ -32,6 +34,15 @@ function fromChain(op) {
   if (type === 'transfer') {
     if (from === to) {
       // no notification if I send money to myself
+      return null;
+    }
+  }
+  //
+  if (type === 'vote') {
+    // console.log('~~~~~~~~~~~~~~~~~~~~~~~~~ ', parseInt(weight))
+    if (author === voter) {
+      // console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+      // no notification if I vote myself
       return null;
     }
   }

@@ -57,6 +57,25 @@ export default class Transfer
       }
     };
   }
+  //
+  get gcm() {
+    //
+    const {payload} = this.op;
+    const {to, from, amount, memo} = payload;
+    //
+    return {
+      topic: to,
+      data: {
+        type: 'transfer',
+        _from: from,
+        _to: to,
+        amount,
+        memo
+      }
+    };
+  }
+
+
 }
 //
 // let op = {

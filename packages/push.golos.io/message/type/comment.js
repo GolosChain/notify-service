@@ -127,6 +127,64 @@ export default class Comment
       }
     };
   }
+  //
+  get gcm() {
+    //
+    const {
+      payload: {
+        // commenter
+        // {account, profile_image}
+        author,
+        // comment's url
+        comment_url,
+        // permlink of comment itself
+        permlink,
+        // the author of what was commented
+        parent_author,
+        // depth of what was commented
+        parent_depth,
+        // link to what was commented
+        parent_permlink,
+        // title of what was commented
+        parent_title,
+        // body of what was commented
+        parent_body,
+        // url of commented content
+        parent_url
+      },
+      count
+    } = this.op;
+    //
+    return {
+      topic: parent_author,
+      data: {
+        type: 'comment',
+        // commenter
+        // {account, profile_image}
+        author,
+        // comment's url
+        comment_url,
+        // permlink of comment itself
+        permlink,
+        // the author of what was commented
+        parent_author,
+        // depth of what was commented
+        parent_depth,
+        // link to what was commented
+        parent_permlink,
+        // title of what was commented
+        parent_title,
+        // body of what was commented
+        parent_body,
+        // url of commented content
+        parent_url,
+        // how many times this url was commented in block
+        count
+      }
+    };
+  }
+
+
 }
 //
 // let op = {

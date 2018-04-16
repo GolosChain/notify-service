@@ -69,6 +69,7 @@ export default class Vote
     // //
     // return data;
   }
+
   //
   get web() {
     //
@@ -81,8 +82,6 @@ export default class Vote
         voter,
         // permlink of comment itself
         permlink,
-        // the author of what was commented
-        parent_author,
         // depth of what was commented
         parent_depth,
         // title of what was commented
@@ -121,6 +120,53 @@ export default class Vote
       }
     };
   }
+
+  //
+  get gcm() {
+    const {
+      payload: {
+        voter,
+        // permlink of comment itself
+        permlink: parent_permlink,
+        // the author of what was commented
+        author: parent_author,
+        // depth of what was commented
+        parent_depth,
+        // title of what was commented
+        parent_title,
+        // body of what was commented
+        parent_body,
+        // url of what was commented
+        parent_url
+      },
+      count
+    } = this.op;
+    //
+    //
+    return {
+      topic: parent_author,
+      data: {
+        type: 'upvote',
+        // {account, profile_image}
+        voter,
+        // permlink of voted stuff
+        parent_permlink,
+        // the author of voted stuff
+        parent_author,
+        // depth of voted stuff
+        parent_depth,
+        // title of voted stuff
+        parent_title,
+        // body of voted stuff
+        parent_body,
+        // url of voted stuff
+        parent_url,
+        // how many times this url was UPvoted in block
+        count
+      }
+    };
+  }
+
 }
 //
 // let op = {

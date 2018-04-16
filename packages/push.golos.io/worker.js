@@ -1,14 +1,19 @@
 import _ from 'lodash';
+import gcm from 'node-gcm';
 import {config} from 'golos-js';
 import SCWorker from 'socketcluster/scworker';
 import chains from 'chain.golos.lib';
 import message from './message/producer';
 //
+const gcmSender = new gcm.Sender('AAAA...');
+//
 const {Golos} = chains;
-config.set('websocket',
-           'wss://ws.golos.io'
-           // 'ws://127.0.0.1:8091'
+config.set(
+  'websocket',
+  'wss://ws.golos.io'
+  // 'ws://127.0.0.1:8091'
 );
+
 //
 class Worker extends SCWorker {
   run() {
@@ -29,8 +34,8 @@ class Worker extends SCWorker {
       const {operations} = block;
       // console.log(`^^^^^^^^^^^^^^^^^ `, operations[0])
       const messages = operations
-        // can produce a sparsed array
-        // since unimplemented message will be null
+      // can produce a sparsed array
+      // since unimplemented message will be null
         .map(op => message(op))
         // so, filter out implemented only
         .filter(op => op);
@@ -60,6 +65,7 @@ class Worker extends SCWorker {
       // group comment events by publication
       // to aggregate their count
       let comments = messages.filter(m => m.op.type === 'comment');
+      //
       comments = Object.values(
         _.groupBy(comments, comment => comment.op.payload.parent_url)
       )
@@ -72,9 +78,22 @@ class Worker extends SCWorker {
           message.op.count = count;
           return message;
         });
-      // group vote events by publication
+      // group up_vote! events by publication
       // to aggregate their count
-      let votes = messages.filter(m => m.op.type === 'vote');
+      let votes = messages.filter(m => m.op.type === 'vote' && parseInt(m.op.payload.weight) > 0);
+
+      // if (votes.length) {
+      //   console.log('<<<<<<<< a153048');
+      //   scServer.exchange.publish('a153048', votes);
+      // }
+
+      const down_votes = messages.filter(m => m.op.type === 'vote' && parseInt(m.op.payload.weight) < 0);
+      if (down_votes.length) {
+        console.log('@@@@@@@@@@@@@@@@@@@@@ a153048');
+        scServer.exchange.publish('a153048', down_votes);
+      }
+
+
       // console.log(votes[0]);
       votes = Object.values(
         _.groupBy(votes, vote => vote.op.payload.parent_url)
@@ -92,8 +111,6 @@ class Worker extends SCWorker {
           return message;
         });
       //
-      //
-      //
       // const votes = messages.filter(m => m.op.type === 'vote');
       // if (votes.length) {
       //   scServer.exchange.publish('a153048', votes);
@@ -110,55 +127,77 @@ class Worker extends SCWorker {
             action
           }
         } = message;
+        //
+        const {
+          gcm: {
+            topic,
+            data
+          }
+        } = message;
+        //
+        // Prepare a message to be sent
+        const gcmMessage = new gcm.Message({
+          data
+        });
+        //
+        // if (message.op.type === 'transfer') {
+        if (topic === 'yuri-vlad' || topic === 'yuri-vlad-second') {
+          gcmSender.send(gcmMessage, {to: `/topics/${topic}`}, (err, response) => {
+            if (err) console.error(err);
+            else console.log('[gcm <<<] ', response);
+          });
+        }
+
+        // }
         // console.log('+++++++++++++++++ ', action);
+        // console.log('>>> ------- ', channel);
         scServer.exchange.publish(channel, action);
-        scServer.exchange.publish('a153048', action);
+
+
+        // if (message.op.type === 'vote') {
+        //   console.log('<<<<<<<< a153048');
+        //   scServer.exchange.publish('a153048', action);
+        //   // scServer.exchange.publish('a153048', JSON.stringify(data));
+        //   scServer.exchange.publish('a153048', data);
+        // }
+
+
+        // if (message.op.type === 'vote') {
+        //   console.log('<<<<<<<< a153048')
+        //   scServer.exchange.publish('a153048', JSON.stringify(data));
+        // }
+
+
+        // if (message.op.type === 'transfer') {
+        //   console.log('<<<<<<<< a153048')
+        //   scServer.exchange.publish('a153048', JSON.stringify(data));
+        // }
+
+
+        // if (message.op.type === 'transfer') {
+        //   console.log('<<<<<<<< a153048');
+        //   scServer.exchange.publish('a153048', action);
+        // }
+
+        // if (message.op.type === 'comment') {
+        //   console.log('<<<<<<<< a153048');
+        //   scServer.exchange.publish('a153048', data);
+        // }
+
+        // if (message.op.type === 'comment') {
+        //   console.log('<<<<<<<< a153048');
+        //   scServer.exchange.publish('a153048', JSON.stringify(action));
+        // }
+
+
+        // if (message.op.type === 'comment' && action.payload.count > 1) {
+        //   console.log('<<<<<<<< a153048')
+        //   scServer.exchange.publish('a153048', action);
+        // }
+
+
       }
     });
-
-
-    /*
-      In here we handle our incoming realtime connections and listen for events.
-    */
-    // scServer.on('connection', socket => {
-    //
-    //   // Some sample logic to show how to handle client events,
-    //   // replace this with your own logic
-    //
-    //   socket.on('sampleClientEvent', data => {
-    //     count++;
-    //     console.log('Handled sampleClientEvent', data);
-    //     scServer.exchange.publish('sample', count);
-    //   });
-    //
-    //
-    //   socket.on('disconnect', () => {
-    //     clearInterval(interval);
-    //   });
-    // });
-
-    // const interval = setInterval(() => {
-    //   scServer.exchange.publish('a153048', {
-    //     rand: c1
-    //   });
-    //   c1++;
-    // }, 3000);
-    //
-    // const interval2 = setInterval(() => {
-    //   scServer.exchange.publish('c153048', {
-    //     rand: c2
-    //   });
-    //   c2--;
-    // }, 5000);
-    //
-    // const interval3 = setInterval(() => {
-    //   scServer.exchange.publish('b153048', {
-    //     rand: c3
-    //   });
-    //   c3 = (c3 + 1) * 1000;
-    // }, 5000);
-
-
   }
 }
 
