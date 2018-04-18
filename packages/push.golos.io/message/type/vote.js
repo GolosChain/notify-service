@@ -11,8 +11,7 @@ export default class Vote
         payload: {
           author,
           voter,
-          permlink,
-          weight
+          permlink
         }
       }
     } = this;
@@ -62,14 +61,7 @@ export default class Vote
       parent_url,
       ...this.op.payload
     };
-    // console.log('++++++++++++++++++++++++++++++');
-    // console.log(parent_url);
-
-
-    // //
-    // return data;
   }
-
   //
   get web() {
     //
@@ -89,7 +81,9 @@ export default class Vote
         // body of what was commented
         parent_body,
         // url of what was commented
-        parent_url
+        parent_url,
+        //
+        weight
       },
       count
     } = this.op;
@@ -102,9 +96,11 @@ export default class Vote
     return {
       channel: author,
       action: {
-        type: 'NOTIFY_VOTE',
+        // separate upvotes and downvotes
+        type: (weight > 0 ? 'NOTIFY_VOTE_UP' : 'NOTIFY_VOTE_DOWN'),
         payload: {
           count,
+          weight,
           // todo this should have been an array of voters
           // if count > 1
           voter,

@@ -10,8 +10,8 @@ const gcmSender = new gcm.Sender('AAAA...');
 const {Golos} = chains;
 config.set(
   'websocket',
-  'wss://ws.golos.io'
-  // 'ws://127.0.0.1:8091'
+  // 'wss://ws.golos.io'
+  'ws://127.0.0.1:8091'
 );
 
 //
@@ -21,8 +21,8 @@ class Worker extends SCWorker {
     const scServer = this.scServer;
     //
     this.golos = new Golos({
-      rpcIn: 'wss://ws.golos.io',
-      // rpcIn: 'ws://127.0.0.1:8091',
+      // rpcIn: 'wss://ws.golos.io',
+      rpcIn: 'ws://127.0.0.1:8091',
       // tarantool queue is a must for now
       rpcOut: {
         // host and something else may exist here ...
@@ -45,7 +45,7 @@ class Worker extends SCWorker {
         // defined by its compose() method
         await message.compose();
         // console.log(`composed : ${message.type}`);
-        console.log('[composed >]', message.op.type);
+        // console.log('[composed >]', message.op.type);
         // message.web: select target channel and redux action
         // const {
         //   web: {
@@ -87,11 +87,28 @@ class Worker extends SCWorker {
       //   scServer.exchange.publish('a153048', votes);
       // }
 
-      const down_votes = messages.filter(m => m.op.type === 'vote' && parseInt(m.op.payload.weight) < 0);
-      if (down_votes.length) {
-        console.log('@@@@@@@@@@@@@@@@@@@@@ a153048');
-        scServer.exchange.publish('a153048', down_votes);
-      }
+      let down_votes = messages.filter(m => m.op.type === 'vote' && parseInt(m.op.payload.weight) < 0);
+
+      down_votes = Object.values(
+        _.groupBy(down_votes, vote => vote.op.payload.parent_url)
+      )
+        .map(arrayOfMessages => {
+          // arrayOfMessages.forEach(m => {
+          //   console.log(parseInt(m.op.payload.weight));
+          // });
+          const count = arrayOfMessages.length;
+          //  the first member will always represent enough info
+          //  for further processing
+          const message = arrayOfMessages[0];
+          //  save comments count
+          message.op.count = count;
+          return message;
+        });
+
+      // if (down_votes.length) {
+      //   console.log('@@@@@@@@@@@@@@@@@@@@@ a153048');
+      //   scServer.exchange.publish('a153048', down_votes);
+      // }
 
 
       // console.log(votes[0]);
@@ -111,13 +128,16 @@ class Worker extends SCWorker {
           return message;
         });
       //
-      // const votes = messages.filter(m => m.op.type === 'vote');
-      // if (votes.length) {
-      //   scServer.exchange.publish('a153048', votes);
-      // }
-      //
+
+      console.log('votes length : ', votes.length);
+
       // mix everything up
-      const outbox = [...transfers, ...comments, ...votes];
+      const outbox = [
+        ...transfers,
+        ...comments,
+        ...votes,
+        ...down_votes
+      ];
       // send everything
       for (const message of outbox) {
         // message.web: select target channel and redux action
@@ -137,11 +157,14 @@ class Worker extends SCWorker {
         //
         // Prepare a message to be sent
         const gcmMessage = new gcm.Message({
-          data
+          data: {message: {...data}}
         });
+        // scServer.exchange.publish('a153048', gcmMessage);
         //
         // if (message.op.type === 'transfer') {
         if (topic === 'yuri-vlad' || topic === 'yuri-vlad-second') {
+          // scServer.exchange.publish('a153048', JSON.stringify(data));
+          console.log(`${data.type} ---> ${topic}`);
           gcmSender.send(gcmMessage, {to: `/topics/${topic}`}, (err, response) => {
             if (err) console.error(err);
             else console.log('[gcm <<<] ', response);
@@ -152,7 +175,8 @@ class Worker extends SCWorker {
         // console.log('+++++++++++++++++ ', action);
         // console.log('>>> ------- ', channel);
         scServer.exchange.publish(channel, action);
-
+        console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ', channel);
+        console.log(action);
 
         // if (message.op.type === 'vote') {
         //   console.log('<<<<<<<< a153048');
