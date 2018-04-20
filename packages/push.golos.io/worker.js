@@ -10,8 +10,8 @@ const gcmSender = new gcm.Sender('AAAA...');
 const {Golos} = chains;
 config.set(
   'websocket',
-  // 'wss://ws.golos.io'
-  'ws://127.0.0.1:8091'
+  'wss://ws.golos.io'
+  // 'ws://127.0.0.1:8091'
 );
 
 //
@@ -21,8 +21,8 @@ class Worker extends SCWorker {
     const scServer = this.scServer;
     //
     this.golos = new Golos({
-      // rpcIn: 'wss://ws.golos.io',
-      rpcIn: 'ws://127.0.0.1:8091',
+      rpcIn: 'wss://ws.golos.io',
+      // rpcIn: 'ws://127.0.0.1:8091',
       // tarantool queue is a must for now
       rpcOut: {
         // host and something else may exist here ...
@@ -60,6 +60,7 @@ class Worker extends SCWorker {
       // all the data we needed is here
       // group, aggregate on block level
       //
+
       // no processing for transfers
       const transfers = messages.filter(m => m.op.type === 'transfer');
       // group comment events by publication
@@ -128,9 +129,7 @@ class Worker extends SCWorker {
           return message;
         });
       //
-
-      console.log('votes length : ', votes.length);
-
+      // console.log('votes length : ', votes.length);
       // mix everything up
       const outbox = [
         ...transfers,
@@ -170,13 +169,12 @@ class Worker extends SCWorker {
             else console.log('[gcm <<<] ', response);
           });
         }
-
         // }
         // console.log('+++++++++++++++++ ', action);
         // console.log('>>> ------- ', channel);
         scServer.exchange.publish(channel, action);
-        console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ', channel);
-        console.log(action);
+        console.log(`| ( ${message.op.type} ) -> ${channel}`);
+        // console.log(action);
 
         // if (message.op.type === 'vote') {
         //   console.log('<<<<<<<< a153048');
@@ -210,14 +208,14 @@ class Worker extends SCWorker {
 
         // if (message.op.type === 'comment') {
         //   console.log('<<<<<<<< a153048');
-        //   scServer.exchange.publish('a153048', JSON.stringify(action));
         // }
 
 
-        // if (message.op.type === 'comment' && action.payload.count > 1) {
-        //   console.log('<<<<<<<< a153048')
-        //   scServer.exchange.publish('a153048', action);
-        // }
+        if (message.op.type === 'comment') {
+          console.log('<<<<<<<< a153048');
+          scServer.exchange.publish('a153048', action);
+          // scServer.exchange.publish('a153048', JSON.stringify(action));
+        }
 
 
       }

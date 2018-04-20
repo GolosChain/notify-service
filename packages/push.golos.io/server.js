@@ -7,21 +7,21 @@
   each one has a specific meaning within the SC ecosystem.
 */
 
-var path = require('path');
-var argv = require('minimist')(process.argv.slice(2));
-var scHotReboot = require('sc-hot-reboot');
+const path = require('path');
+const argv = require('minimist')(process.argv.slice(2));
+const scHotReboot = require('sc-hot-reboot');
 
-var fsUtil = require('socketcluster/fsutil');
-var waitForFile = fsUtil.waitForFile;
+const fsUtil = require('socketcluster/fsutil');
+const waitForFile = fsUtil.waitForFile;
 
-var SocketCluster = require('socketcluster');
+const SocketCluster = require('socketcluster');
 
-var workerControllerPath = argv.wc || process.env.SOCKETCLUSTER_WORKER_CONTROLLER;
-var brokerControllerPath = argv.bc || process.env.SOCKETCLUSTER_BROKER_CONTROLLER;
-var workerClusterControllerPath = argv.wcc || process.env.SOCKETCLUSTER_WORKERCLUSTER_CONTROLLER;
-var environment = process.env.ENV || 'dev';
+const workerControllerPath = argv.wc || process.env.SOCKETCLUSTER_WORKER_CONTROLLER;
+const brokerControllerPath = argv.bc || process.env.SOCKETCLUSTER_BROKER_CONTROLLER;
+const workerClusterControllerPath = argv.wcc || process.env.SOCKETCLUSTER_WORKERCLUSTER_CONTROLLER;
+const environment = process.env.ENV || 'dev';
 
-var options = {
+const options = {
   workers: Number(argv.w) || Number(process.env.SOCKETCLUSTER_WORKERS) || 1,
   brokers: Number(argv.b) || Number(process.env.SOCKETCLUSTER_BROKERS) || 1,
   port: Number(argv.p) || Number(process.env.SOCKETCLUSTER_PORT) || 8000,
@@ -43,30 +43,30 @@ var options = {
   crashWorkerOnError: argv['auto-reboot'] != false,
   // If using nodemon, set this to true, and make sure that environment is 'dev'.
   killMasterOnSignal: false,
-  environment: environment
+  environment
 };
 
-var bootTimeout = Number(process.env.SOCKETCLUSTER_CONTROLLER_BOOT_TIMEOUT) || 10000;
-var SOCKETCLUSTER_OPTIONS;
+const bootTimeout = Number(process.env.SOCKETCLUSTER_CONTROLLER_BOOT_TIMEOUT) || 10000;
+let SOCKETCLUSTER_OPTIONS;
 
 if (process.env.SOCKETCLUSTER_OPTIONS) {
   SOCKETCLUSTER_OPTIONS = JSON.parse(process.env.SOCKETCLUSTER_OPTIONS);
 }
 
-for (var i in SOCKETCLUSTER_OPTIONS) {
+for (const i in SOCKETCLUSTER_OPTIONS) {
   if (SOCKETCLUSTER_OPTIONS.hasOwnProperty(i)) {
     options[i] = SOCKETCLUSTER_OPTIONS[i];
   }
 }
 
-var start = function () {
+const start = function() {
 
-  console.log({...options})
+  console.log({...options});
 
 
-  var socketCluster = new SocketCluster({...options/*, host: '78.47.87.101'*/});
+  const socketCluster = new SocketCluster({...options, host: '0.0.0.0'});
 
-  socketCluster.on(socketCluster.EVENT_WORKER_CLUSTER_START, function (workerClusterInfo) {
+  socketCluster.on(socketCluster.EVENT_WORKER_CLUSTER_START, workerClusterInfo => {
     console.log('   >> WorkerCluster PID:', workerClusterInfo.pid);
   });
 
@@ -82,27 +82,27 @@ var start = function () {
   }
 };
 
-var bootCheckInterval = Number(process.env.SOCKETCLUSTER_BOOT_CHECK_INTERVAL) || 200;
-var bootStartTime = Date.now();
+const bootCheckInterval = Number(process.env.SOCKETCLUSTER_BOOT_CHECK_INTERVAL) || 200;
+const bootStartTime = Date.now();
 
 // Detect when Docker volumes are ready.
-var startWhenFileIsReady = (filePath) => {
-  var errorMessage = `Failed to locate a controller file at path ${filePath} ` +
-  `before SOCKETCLUSTER_CONTROLLER_BOOT_TIMEOUT`;
+const startWhenFileIsReady = filePath => {
+  const errorMessage = `Failed to locate a controller file at path ${filePath} ` +
+  'before SOCKETCLUSTER_CONTROLLER_BOOT_TIMEOUT';
 
   return waitForFile(filePath, bootCheckInterval, bootStartTime, bootTimeout, errorMessage);
 };
 
-var filesReadyPromises = [
+const filesReadyPromises = [
   startWhenFileIsReady(workerControllerPath),
   startWhenFileIsReady(brokerControllerPath),
   startWhenFileIsReady(workerClusterControllerPath)
 ];
 Promise.all(filesReadyPromises)
-.then(() => {
-  start();
-})
-.catch((err) => {
-  console.error(err.stack);
-  process.exit(1);
-});
+  .then(() => {
+    start();
+  })
+  .catch(err => {
+    console.error(err.stack);
+    process.exit(1);
+  });
