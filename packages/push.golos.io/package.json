@@ -35,19 +35,16 @@
   },
   "dependencies": {
     "chain.golos.lib": "^0.0.1",
-    "connect": "3.0.1",
-    "express": "^4.16.3",
+    "golos-js": "^0.6.3",
     "lodash": "^4.17.5",
-    "minimist": "1.1.0",
-    "morgan": "1.7.0",
+    "minimist": "1.2.0",
     "node-gcm": "^0.14.10",
     "sc-errors": "^1.4.0",
     "sc-framework-health-check": "^2.0.0",
     "sc-hot-reboot": "^1.0.0",
-    "scc-broker-client": "^2.2.0",
-    "serve-static": "1.11.2",
-    "socketcluster": "^10.1.2",
-    "socketcluster-client": "^10.1.2"
+    "scc-broker-client": "^5.0.1",
+    "socketcluster": "^11.3.6",
+    "socketcluster-client": "^11.1.0"
   },
   "devDependencies": {
     "sc-hot-reboot": "^1.0.0"

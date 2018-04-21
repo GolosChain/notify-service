@@ -13,6 +13,7 @@
     "detect-is-node": "^1.0.3",
     "golos-js": "^0.6.3",
     "queue.golos.lib": "^0.0.1",
+    "tracer": "^0.8.12",
     "ws": "^5.1.0"
   }
 }

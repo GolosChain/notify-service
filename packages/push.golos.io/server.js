@@ -1,32 +1,23 @@
-/*
-  This is the SocketCluster master controller file.
-  It is responsible for bootstrapping the SocketCluster master process.
-  Be careful when modifying the options object below.
-  If you plan to run SCC on Kubernetes or another orchestrator at some point
-  in the future, avoid changing the environment variable names below as
-  each one has a specific meaning within the SC ecosystem.
-*/
-
-const path = require('path');
-const argv = require('minimist')(process.argv.slice(2));
-const scHotReboot = require('sc-hot-reboot');
-
-const fsUtil = require('socketcluster/fsutil');
+import path from 'path';
+import minimist from 'minimist';
+import scHotReboot from 'sc-hot-reboot';
+import fsUtil from 'socketcluster/fsutil';
+import SocketCluster from 'socketcluster';
+//
 const waitForFile = fsUtil.waitForFile;
-
-const SocketCluster = require('socketcluster');
-
+const argv = minimist(process.argv.slice(2));
+//
 const workerControllerPath = argv.wc || process.env.SOCKETCLUSTER_WORKER_CONTROLLER;
 const brokerControllerPath = argv.bc || process.env.SOCKETCLUSTER_BROKER_CONTROLLER;
 const workerClusterControllerPath = argv.wcc || process.env.SOCKETCLUSTER_WORKERCLUSTER_CONTROLLER;
 const environment = process.env.ENV || 'dev';
-
+//
 const options = {
   workers: Number(argv.w) || Number(process.env.SOCKETCLUSTER_WORKERS) || 1,
   brokers: Number(argv.b) || Number(process.env.SOCKETCLUSTER_BROKERS) || 1,
   port: Number(argv.p) || Number(process.env.SOCKETCLUSTER_PORT) || 8000,
   // If your system doesn't support 'uws', you can switch to 'ws' (which is slower but works on older systems).
-  wsEngine: process.env.SOCKETCLUSTER_WS_ENGINE || 'uws',
+  wsEngine: process.env.SOCKETCLUSTER_WS_ENGINE || 'sc-uws',
   appName: argv.n || process.env.SOCKETCLUSTER_APP_NAME || null,
   workerController: workerControllerPath || path.join(__dirname, 'worker.js'),
   brokerController: brokerControllerPath || path.join(__dirname, 'broker.js'),
@@ -45,31 +36,28 @@ const options = {
   killMasterOnSignal: false,
   environment
 };
-
+//
 const bootTimeout = Number(process.env.SOCKETCLUSTER_CONTROLLER_BOOT_TIMEOUT) || 10000;
 let SOCKETCLUSTER_OPTIONS;
-
+//
 if (process.env.SOCKETCLUSTER_OPTIONS) {
   SOCKETCLUSTER_OPTIONS = JSON.parse(process.env.SOCKETCLUSTER_OPTIONS);
 }
-
+//
 for (const i in SOCKETCLUSTER_OPTIONS) {
   if (SOCKETCLUSTER_OPTIONS.hasOwnProperty(i)) {
     options[i] = SOCKETCLUSTER_OPTIONS[i];
   }
 }
-
+//
 const start = function() {
-
-  console.log({...options});
-
-
+  // console.log({...options});
   const socketCluster = new SocketCluster({...options, host: '0.0.0.0'});
-
+  //
   socketCluster.on(socketCluster.EVENT_WORKER_CLUSTER_START, workerClusterInfo => {
     console.log('   >> WorkerCluster PID:', workerClusterInfo.pid);
   });
-
+  //
   if (socketCluster.options.environment === 'dev') {
     // This will cause SC workers to reboot when code changes anywhere in the app directory.
     // The second options argument here is passed directly to chokidar.
@@ -81,10 +69,9 @@ const start = function() {
     });
   }
 };
-
+//
 const bootCheckInterval = Number(process.env.SOCKETCLUSTER_BOOT_CHECK_INTERVAL) || 200;
 const bootStartTime = Date.now();
-
 // Detect when Docker volumes are ready.
 const startWhenFileIsReady = filePath => {
   const errorMessage = `Failed to locate a controller file at path ${filePath} ` +
@@ -92,12 +79,13 @@ const startWhenFileIsReady = filePath => {
 
   return waitForFile(filePath, bootCheckInterval, bootStartTime, bootTimeout, errorMessage);
 };
-
+//
 const filesReadyPromises = [
   startWhenFileIsReady(workerControllerPath),
   startWhenFileIsReady(brokerControllerPath),
   startWhenFileIsReady(workerClusterControllerPath)
 ];
+//
 Promise.all(filesReadyPromises)
   .then(() => {
     start();
