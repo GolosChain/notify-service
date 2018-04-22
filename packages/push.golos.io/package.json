@@ -1,7 +1,7 @@
 {
   "name": "push.golos.io",
   "description": "Golos.io push notification service",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Golos.io",
   "license": "MIT",
   "repository": {
@@ -30,10 +30,10 @@
   },
   "main": "./lib/index.js",
   "files": [
-    "lib",
-    "src"
+    "lib"
   ],
   "scripts": {
+    "build": "yarn clean && cross-env BABEL_ENV=production babel src --out-dir lib",
     "clean": "rimraf lib",
     "test": "npm run lint && npm run cover",
     "test:prod": "cross-env BABEL_ENV=production npm run test",
@@ -41,11 +41,10 @@
     "test:watch": "npm test -- --watch",
     "test:examples": "node examples/",
     "cover": "istanbul cover _mocha -- --require babel-core/register --require babel-polyfill --recursive",
-    "lint": "eslint src test",
-    "build": "cross-env BABEL_ENV=production babel src --out-dir lib"
+    "lint": "eslint src test"
   },
   "dependencies": {
-    "chain.golos.lib": "^0.0.1",
+    "chain.golos.lib": "^0.0.2",
     "golos-js": "^0.6.3",
     "lodash": "^4.17.5",
     "minimist": "1.2.0",
