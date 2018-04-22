@@ -11,8 +11,15 @@ services:
     stdin_open: true
     tty: true
     # environment:
-      #  MYSQL_ALLOW_EMPTY_PASSWORD: 'yes' # dev mode
-      #  MYSQL_DATABASE: golos_dev
+    #      TARANTOOL_USER_NAME:
+    #      TARANTOOL_USER_PASSWORD:
+    #      TARANTOOL_PORT:
+    #      TARANTOOL_REPLICATION_SOURCE:
+    #      TARANTOOL_SLAB_ALLOC_ARENA:
+    #      TARANTOOL_SLAB_ALLOC_FACTOR:
+    #      TARANTOOL_SLAB_ALLOC_MAXIMAL:
+    #      TARANTOOL_SLAB_ALLOC_MINIMAL:
+    #      TARANTOOL_SNAPSHOT_PERIOD:
     ports:
       - 3301:3301
     volumes:

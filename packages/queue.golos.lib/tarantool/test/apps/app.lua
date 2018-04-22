@@ -1,5 +1,5 @@
 io.output():setvbuf("no")
-
+--
 box.cfg {
     log_level = 5,
     listen = '0.0.0.0:3301',
@@ -8,9 +8,8 @@ box.cfg {
     -- snap_dir   = "/var/lib/tarantool",
     -- vinyl_dir = "/var/lib/tarantool"
 }
-
+--
 box.once('bootstrap', function()
-  print('<<<<<<<<<<<<<<<<<<<<<<<<<< initializing..')
   -- box.schema.user.grant('guest', 'read,write,execute,create,drop,alter ', 'universe')
   -- box.session.su('guest')
   -- raw space of operations
@@ -24,10 +23,7 @@ box.once('bootstrap', function()
   block_data:create_index('primary', {type = 'tree', parts = {1, 'unsigned'}})
 
 end)
-
-
-
+--
 queue = require 'queue'
 queue.start()
 box.queue = queue
-print('--------------------------------------------------------')

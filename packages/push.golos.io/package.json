@@ -28,10 +28,21 @@
   "engines": {
     "node": ">=8.0.0"
   },
-  "main": "server.js",
+  "main": "./lib/index.js",
+  "files": [
+    "lib",
+    "src"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "clean": "rimraf lib",
+    "test": "npm run lint && npm run cover",
+    "test:prod": "cross-env BABEL_ENV=production npm run test",
+    "test:only": "mocha --require babel-core/register --require babel-polyfill --recursive",
+    "test:watch": "npm test -- --watch",
+    "test:examples": "node examples/",
+    "cover": "istanbul cover _mocha -- --require babel-core/register --require babel-polyfill --recursive",
+    "lint": "eslint src test",
+    "build": "cross-env BABEL_ENV=production babel src --out-dir lib"
   },
   "dependencies": {
     "chain.golos.lib": "^0.0.1",

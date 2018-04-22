@@ -25,7 +25,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "dev": "npx lerna bootstrap && npx babel-node ./packages/push.golos.io/server.js"
+    "dev": "npx lerna bootstrap && npx babel-node ./packages/push.golos.io/src/server.js"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -33,13 +33,14 @@
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.6.1",
+    "cross-env": "^5.1.4",
     "eslint": "^4.19.1",
     "eslint-config-nodejs": "^2.0.0",
     "eslint-plugin-import": "^2.11.0",
     "lerna": "^2.10.2",
     "nodemon": "^1.17.3",
-    "npm-check-updates": "^2.14.1"
+    "npm-check-updates": "^2.14.1",
+    "rimraf": "^2.6.2"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
