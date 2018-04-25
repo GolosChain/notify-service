@@ -8,20 +8,26 @@
     "node": ">=8.9.4"
   },
   "babel": {
-    "presets": [
-      [
-        "env",
-        {
-          "targets": {
-            "node": "current"
-          }
-        }
-      ]
-    ],
-    "plugins": [
-      "transform-class-properties",
-      "transform-object-rest-spread"
-    ]
+    "env": {
+      "development": {
+        "presets": [
+          "env"
+        ],
+        "plugins": [
+          "transform-class-properties",
+          "transform-object-rest-spread"
+        ]
+      },
+      "production": {
+        "presets": [
+          "env"
+        ],
+        "plugins": [
+          "transform-class-properties",
+          "transform-object-rest-spread"
+        ]
+      }
+    }
   },
   "main": "index.js",
   "scripts": {

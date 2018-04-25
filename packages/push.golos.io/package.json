@@ -1,7 +1,7 @@
 {
   "name": "push.golos.io",
   "description": "Golos.io push notification service",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "author": "Golos.io",
   "license": "MIT",
   "repository": {
@@ -33,6 +33,7 @@
     "lib"
   ],
   "scripts": {
+    "prepublish": "npm run build",
     "build": "yarn clean && cross-env BABEL_ENV=production babel src --out-dir lib",
     "clean": "rimraf lib",
     "test": "npm run lint && npm run cover",

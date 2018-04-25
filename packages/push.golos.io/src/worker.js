@@ -176,11 +176,11 @@ class Worker extends SCWorker {
         console.log(`| ( ${message.op.type} ) -> ${channel}`);
         // console.log(action);
 
-        // if (message.op.type === 'vote') {
-        //   console.log('<<<<<<<< a153048');
+        // if (message.op.type === 'vote' && message.op.weight < 0) {
+        //   console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< a153048');
         //   scServer.exchange.publish('a153048', action);
         //   // scServer.exchange.publish('a153048', JSON.stringify(data));
-        //   scServer.exchange.publish('a153048', data);
+        //   // scServer.exchange.publish('a153048', data);
         // }
 
 
@@ -196,10 +196,10 @@ class Worker extends SCWorker {
         // }
 
 
-        // if (message.op.type === 'transfer') {
-        //   console.log('<<<<<<<< a153048');
-        //   scServer.exchange.publish('a153048', action);
-        // }
+        if (message.op.type === 'transfer') {
+          console.log('<<<<<<<< a153048');
+          scServer.exchange.publish('a153048', action);
+        }
 
         // if (message.op.type === 'comment') {
         //   console.log('<<<<<<<< a153048');
@@ -211,11 +211,11 @@ class Worker extends SCWorker {
         // }
 
 
-        if (message.op.type === 'comment') {
-          console.log('<<<<<<<< a153048');
-          scServer.exchange.publish('a153048', action);
-          // scServer.exchange.publish('a153048', JSON.stringify(action));
-        }
+        // if (message.op.type === 'comment') {
+        //   console.log('<<<<<<<< a153048');
+        //   scServer.exchange.publish('a153048', action);
+        //   // scServer.exchange.publish('a153048', JSON.stringify(action));
+        // }
 
 
       }
