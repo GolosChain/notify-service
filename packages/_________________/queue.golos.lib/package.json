@@ -2,19 +2,15 @@
   "name": "queue.golos.lib",
   "version": "0.0.2",
   "description": "",
-  "main": "./lib/index.js",
-  "files": [
-    "lib"
-  ],
+  "main": "index.js",
   "scripts": {
-    "clean": "rimraf lib",
-    "prepublish": "npm run build",
-    "build": "yarn clean && cross-env BABEL_ENV=production babel src --out-dir lib"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "error.golos.lib": "^0.0.1",
     "tarantool-driver": "tarantool/node-tarantool-driver#master"
   }
 }

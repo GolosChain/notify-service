@@ -8,10 +8,15 @@
     "node": ">=8.9.4"
   },
   "babel": {
+    "comments": false,
     "env": {
       "development": {
         "presets": [
-          "env"
+          ["env", {
+            "targets": {
+              "node": "current"
+            }
+          }]
         ],
         "plugins": [
           "transform-class-properties",
@@ -20,7 +25,11 @@
       },
       "production": {
         "presets": [
-          "env"
+          ["env", {
+            "targets": {
+              "node": "current"
+            }
+          }]
         ],
         "plugins": [
           "transform-class-properties",
@@ -31,7 +40,9 @@
   },
   "main": "index.js",
   "scripts": {
-    "dev": "npx lerna bootstrap && npx babel-node ./packages/push.golos.io/src/server.js"
+    "build:docker": "lerna bootstrap && lerna run build:docker",
+    "dev": "npx lerna bootstrap && npx babel-node ./packages/push.golos.io/lib/server.js",
+    "start": "npx lerna bootstrap && node ./packages/push.golos.io/lib/server.js"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -46,7 +57,8 @@
     "lerna": "^2.10.2",
     "nodemon": "^1.17.3",
     "npm-check-updates": "^2.14.1",
-    "rimraf": "^2.6.2"
+    "rimraf": "^2.6.2",
+    "webpack": "^4.6.0"
   },
   "dependencies": {}
 }

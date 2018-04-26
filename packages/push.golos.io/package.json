@@ -28,14 +28,15 @@
   "engines": {
     "node": ">=8.0.0"
   },
-  "main": "./lib/index.js",
+  "main": "./lib/server.js",
   "files": [
     "lib"
   ],
   "scripts": {
+    "clean": "rimraf lib",
     "prepublish": "npm run build",
     "build": "yarn clean && cross-env BABEL_ENV=production babel src --out-dir lib",
-    "clean": "rimraf lib",
+    "build:docker": "docker-compose build",
     "test": "npm run lint && npm run cover",
     "test:prod": "cross-env BABEL_ENV=production npm run test",
     "test:only": "mocha --require babel-core/register --require babel-polyfill --recursive",

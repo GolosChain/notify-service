@@ -1,0 +1,34 @@
+version: "3"
+#
+services:
+#
+  datastore:
+    restart: always
+    image: golosio/push-datastore:latest
+    build:
+      context: ./datastore
+      dockerfile: Dockerfile
+#      args:
+#    command: tarantool /usr/local/etc/tarantool/instances.enabled/app.lua
+    # environment:
+    #      TARANTOOL_USER_NAME:
+    #      TARANTOOL_USER_PASSWORD:
+    #      TARANTOOL_PORT:
+    #      TARANTOOL_REPLICATION_SOURCE:
+    #      TARANTOOL_SLAB_ALLOC_ARENA:
+    #      TARANTOOL_SLAB_ALLOC_FACTOR:
+    #      TARANTOOL_SLAB_ALLOC_MAXIMAL:
+    #      TARANTOOL_SLAB_ALLOC_MINIMAL:
+    #      TARANTOOL_SNAPSHOT_PERIOD:
+    ports:
+      - 3301:3301
+#    volumes:
+#      - [apps]:/usr/local/etc/tarantool/instances.enabled
+#      - [apps]:/opt/tarantool/app.lua
+#      - [data]:/var/lib/tarantool
+#      - [log]:/var/log/tarantool
+#    networks:
+#      - dev
+
+#networks:
+#  dev:

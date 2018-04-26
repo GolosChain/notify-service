@@ -1,15 +1,12 @@
 version: "3"
 
 services:
-  golos.queue.tarantool:
-    # name: golos.queue.tarantool
+  datastore:
+    # name: blablabla
     image: tarantool/tarantool:latest
     # command: tarantoolctl start app
     command: tarantool /usr/local/etc/tarantool/instances.enabled/app.lua
-
     restart: always
-    stdin_open: true
-    tty: true
     # environment:
     #      TARANTOOL_USER_NAME:
     #      TARANTOOL_USER_PASSWORD:
