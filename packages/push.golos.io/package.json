@@ -1,7 +1,7 @@
 {
   "name": "push.golos.io",
   "description": "Golos.io push notification service",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Golos.io",
   "license": "MIT",
   "repository": {
@@ -34,7 +34,6 @@
   ],
   "scripts": {
     "clean": "rimraf lib",
-    "prepublish": "npm run build",
     "build": "yarn clean && cross-env BABEL_ENV=production babel src --out-dir lib",
     "build:docker": "docker-compose build",
     "test": "npm run lint && npm run cover",
@@ -43,7 +42,8 @@
     "test:watch": "npm test -- --watch",
     "test:examples": "node examples/",
     "cover": "istanbul cover _mocha -- --require babel-core/register --require babel-polyfill --recursive",
-    "lint": "eslint src test"
+    "lint": "eslint src test",
+    "production": "NODE_ENV=production node ./lib/server.js"
   },
   "dependencies": {
     "chain.golos.lib": "^0.0.2",
@@ -57,8 +57,5 @@
     "scc-broker-client": "^5.0.1",
     "socketcluster": "^11.3.6",
     "socketcluster-client": "^11.1.0"
-  },
-  "devDependencies": {
-    "sc-hot-reboot": "^1.0.0"
   }
 }

@@ -1,0 +1,21 @@
+FROM node:8 as builder
+#
+RUN mkdir -p /usr/src/
+WORKDIR /usr/src/
+COPY . /usr/src/
+RUN npm install npm-link-shared -g
+RUN npm-link-shared ./ ./push.golos.io/
+#
+FROM tatsushid/tinycore-node:8.9
+RUN mkdir -p /usr/src/
+WORKDIR /usr/src/
+COPY --from=builder /usr/local/lib/node_modules /usr/local/lib/node_modules
+COPY --from=builder /usr/src .
+WORKDIR /usr/src/push.golos.io
+#
+EXPOSE 8000
+#
+#CMD ["npm", "run", "start:docker"]
+#CMD ["/bin/sh"]
+CMD [ "npm", "run", "production" ]
+

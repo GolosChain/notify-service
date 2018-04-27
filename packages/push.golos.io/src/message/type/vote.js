@@ -62,6 +62,7 @@ export default class Vote
       ...this.op.payload
     };
   }
+
   //
   get web() {
     //
@@ -133,7 +134,9 @@ export default class Vote
         // body of what was commented
         parent_body,
         // url of what was commented
-        parent_url
+        parent_url,
+        //
+        weight
       },
       count
     } = this.op;
@@ -142,7 +145,7 @@ export default class Vote
     return {
       topic: parent_author,
       data: {
-        type: 'upvote',
+        type: (weight > 0 ? 'upvote' : 'downvote'),
         // {account, profile_image}
         voter,
         // permlink of voted stuff
@@ -154,11 +157,13 @@ export default class Vote
         // title of voted stuff
         parent_title,
         // body of voted stuff
-        parent_body,
+        parent_body, /**/
         // url of voted stuff
         parent_url,
         // how many times this url was UPvoted in block
-        count
+        count,
+        //
+        weight
       }
     };
   }

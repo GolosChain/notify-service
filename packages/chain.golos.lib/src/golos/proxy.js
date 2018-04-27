@@ -260,14 +260,17 @@ export default class Golos extends EventEmitter {
   //
   constructor({
     rpcIn = `ws://127.0.0.1:8091`,
-    rpcOut = { port: 3301}} = {}) {
+    rpcOut = {host: 'localhost', port: 3301}} = {}) {
     super();
     console.log('[x] sniffer initialization ...');
     // this.queue = new Queue({port: 3301});
     this.rpcIn = rpcIn;
     this.rpcOut = rpcOut;
-    const {rpcOut: {port}} = this;
-    this.queue = new Queue({port});
+    const {rpcOut: {host, port}} = this;
+
+    // console.log('+++++++++++++++++++++++++++++++++++++ ', host, port)
+
+    this.queue = new Queue({host, port});
     this.queue.on('connect', this.onQueueConnect);
   }
 }

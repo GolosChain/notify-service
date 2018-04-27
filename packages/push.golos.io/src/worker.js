@@ -4,13 +4,24 @@ import {config} from 'golos-js';
 import SCWorker from 'socketcluster/scworker';
 import chains from 'chain.golos.lib';
 import message from './message/producer';
+// read envs
+const {
+  API_GCM_KEY,
+  API_GOLOS_URL,
+  API_QUEUE_HOST,
+} = process.env;
 //
-const gcmSender = new gcm.Sender('AAAA...');
+// console.log('+++++++++++++++++++++++++++++++++++ ', API_GCM_KEY)
+// console.log('+++++++++++++++++++++++++++++++++++ ', API_GOLOS_URL)
+// console.log('+++++++++++++++++++++++++++++++++++ ', API_QUEUE_HOST)
+//
+const gcmSender = new gcm.Sender(API_GCM_KEY);
 //
 const {Golos} = chains;
 config.set(
   'websocket',
-  'wss://ws.golos.io'
+  API_GOLOS_URL
+  // 'wss://ws.golos.io'
   // 'ws://127.0.0.1:8091'
 );
 
@@ -21,11 +32,14 @@ class Worker extends SCWorker {
     const scServer = this.scServer;
     //
     this.golos = new Golos({
-      rpcIn: 'wss://ws.golos.io',
+      rpcIn: API_GOLOS_URL,
+      // rpcIn: 'wss://ws.golos.io',
       // rpcIn: 'ws://127.0.0.1:8091',
       // tarantool queue is a must for now
       rpcOut: {
         // host and something else may exist here ...
+        host: API_QUEUE_HOST,
+        // host: 'datastore',
         port: 3301
       }
     });

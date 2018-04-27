@@ -1,14 +1,25 @@
 {
   "name": "chain.golos.lib",
+  "description": "Golos.io sniffer implementation",
   "version": "0.0.2",
-  "description": "",
+  "author": "Golos.io",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GolosChain/golos-notifications.git"
+  },
+  "contributors": [
+    {
+      "name": "Alex Gu",
+      "email": "sualexx@aol.com"
+    }
+  ],
   "main": "./lib/index.js",
   "files": [
     "lib"
   ],
   "scripts": {
     "clean": "rimraf lib",
-    "prepublish": "npm run build",
     "build": "yarn clean && cross-env BABEL_ENV=production babel src --out-dir lib"
   },
   "keywords": [],

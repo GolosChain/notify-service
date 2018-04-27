@@ -40,9 +40,9 @@
   },
   "main": "index.js",
   "scripts": {
-    "build:docker": "lerna bootstrap && lerna run build:docker",
-    "dev": "npx lerna bootstrap && npx babel-node ./packages/push.golos.io/lib/server.js",
-    "start": "npx lerna bootstrap && node ./packages/push.golos.io/lib/server.js"
+    "build:docker": "yarn && lerna run build && docker-compose build && lerna run clean",
+    "dev": "lerna bootstrap && babel-node ./packages/push.golos.io/lib/server.js",
+    "start": "lerna bootstrap && lerna run build && node ./packages/push.golos.io/lib/server.js"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

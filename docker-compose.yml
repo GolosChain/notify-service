@@ -6,7 +6,7 @@ services:
     restart: always
     image: golosio/push-datastore:latest
     build:
-      context: ./datastore
+      context: ./packages/push.golos.io/datastore
       dockerfile: Dockerfile
 #      args:
 #    command: tarantool /usr/local/etc/tarantool/instances.enabled/app.lua
@@ -27,8 +27,28 @@ services:
 #      - [apps]:/opt/tarantool/app.lua
 #      - [data]:/var/lib/tarantool
 #      - [log]:/var/log/tarantool
-#    networks:
-#      - dev
+    networks:
+      - prod
+  push:
+#    depends_on:
+#      - datastore
+    stdin_open: true
+    tty: true
+    restart: always
+    image: golosio/push-service:latest
+    environment:
+      - API_GCM_KEY=AAAA...
+      - API_GOLOS_URL=wss://ws.golos.io
+      - API_QUEUE_HOST=datastore
+#    env_file:
+#      - ./packages/push.golos.io/.env
+    build:
+      context: ./packages
+      dockerfile: ./push.golos.io/Dockerfile.local
+    ports:
+      - 8000:8000
+    networks:
+      - prod
 
-#networks:
-#  dev:
+networks:
+  prod:
