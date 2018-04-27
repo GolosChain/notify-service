@@ -1,3 +1,13 @@
-*
-!*/package.json
-!*/lib/
+*/.env
+*/src/
+*/datastore/
+*/datastore/
+*/Dockerfile*
+*/.npmignore
+*/README*
+*/yarn*.*
+.dockerignore
+_*/
+#*
+#!*/package.json
+#!*/lib/

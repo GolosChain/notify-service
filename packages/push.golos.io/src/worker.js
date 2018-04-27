@@ -175,7 +175,12 @@ class Worker extends SCWorker {
         // scServer.exchange.publish('a153048', gcmMessage);
         //
         // if (message.op.type === 'transfer') {
-        if (topic === 'yuri-vlad' || topic === 'yuri-vlad-second') {
+        if (
+          topic === 'yuri-vlad' ||
+          topic === 'yuri-vlad-second' ||
+          topic === 'jevgenika' ||
+          topic === 'eparshin'
+        ) {
           // scServer.exchange.publish('a153048', JSON.stringify(data));
           console.log(`${data.type} ---> ${topic}`);
           gcmSender.send(gcmMessage, {to: `/topics/${topic}`}, (err, response) => {
