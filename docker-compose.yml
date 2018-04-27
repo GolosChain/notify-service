@@ -37,6 +37,7 @@ services:
     restart: always
     image: golosio/push-service:latest
     environment:
+      - API_STATSD_URL=someurl
       - API_GCM_KEY=AAAA...
       - API_GOLOS_URL=wss://ws.golos.io
       - API_QUEUE_HOST=datastore
