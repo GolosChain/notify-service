@@ -3,17 +3,11 @@ import gcm from 'node-gcm';
 import {config} from 'golos-js';
 import SCWorker from 'socketcluster/scworker';
 import chains from 'chain.golos.lib';
-import message from './message/producer';
-// read envs
-const {
-  API_GCM_KEY,
-  API_GOLOS_URL,
-  API_QUEUE_HOST,
-} = process.env;
+import message from 'message/producer';
 //
-console.log('+++++++++++++++++++++++++++++++++++ ', API_GCM_KEY)
-console.log('+++++++++++++++++++++++++++++++++++ ', API_GOLOS_URL)
-console.log('+++++++++++++++++++++++++++++++++++ ', API_QUEUE_HOST)
+import GolosEventListener from 'chain/golos/GolosEventListener';
+// read envs
+const {API_GCM_KEY, API_GOLOS_URL, API_QUEUE_HOST} = process.env;
 //
 const gcmSender = new gcm.Sender(API_GCM_KEY);
 //
@@ -28,7 +22,10 @@ config.set(
 //
 class Worker extends SCWorker {
   run() {
-    console.log('   >> Worker PID:', process.pid);
+    this.golos = new GolosEventListener();
+    console.log('---------------------------------');
+    return;
+
     const scServer = this.scServer;
     //
     this.golos = new Golos({

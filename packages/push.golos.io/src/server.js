@@ -1,3 +1,6 @@
+process.env.NODE_PATH = __dirname;
+require('module').Module._initPaths();
+
 import path from 'path';
 import minimist from 'minimist';
 import scHotReboot from 'sc-hot-reboot';
