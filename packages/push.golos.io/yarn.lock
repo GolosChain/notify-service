@@ -930,9 +930,13 @@ lodash@^3.10.1:
   version "3.10.1"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
 
-lodash@^4.14.0, lodash@^4.16.4, lodash@^4.17.5, lodash@^4.3.0, lodash@^4.8.0:
+lodash@^4.14.0, lodash@^4.16.4, lodash@^4.3.0, lodash@^4.8.0:
   version "4.17.5"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.5.tgz#99a92d65c0272debe8c96b6057bc8fbfa3bed511"
+
+lodash@^4.17.10:
+  version "4.17.10"
+  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.10.tgz#1b7793cf7259ea38fb3661d4d38b3260af8ae4e7"
 
 long@~3:
   version "3.2.0"
@@ -1407,12 +1411,12 @@ sc-uws@^10.0.1:
   version "10.0.1"
   resolved "https://registry.yarnpkg.com/sc-uws/-/sc-uws-10.0.1.tgz#639ec9f97567baaa2d24255ef936ff676875d360"
 
-scc-broker-client@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/scc-broker-client/-/scc-broker-client-5.0.1.tgz#f0a0455d6ad2a27cdf20ce2505087e0a642a0dca"
+scc-broker-client@^5.0.2:
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/scc-broker-client/-/scc-broker-client-5.0.2.tgz#4f6cd4c4ce57e3a1c9d4c031a8f5f7b3f54ced7e"
   dependencies:
     skeleton-rendezvous "^1.1.0"
-    socketcluster-client "^11.0.1"
+    socketcluster-client "^11.2.0"
 
 secure-random@^1.1.1:
   version "1.1.1"
@@ -1463,9 +1467,9 @@ sntp@1.x.x:
   dependencies:
     hoek "2.x.x"
 
-socketcluster-client@^11.0.1, socketcluster-client@^11.1.0:
-  version "11.1.0"
-  resolved "https://registry.yarnpkg.com/socketcluster-client/-/socketcluster-client-11.1.0.tgz#625f57080a50951c81ecd6c60b6c931c1da0f93e"
+socketcluster-client@^11.2.0:
+  version "11.2.2"
+  resolved "https://registry.yarnpkg.com/socketcluster-client/-/socketcluster-client-11.2.2.tgz#65e2754c52e56a7a52ada7c77bc95627346c9420"
   dependencies:
     base-64 "0.1.0"
     clone "2.1.1"
@@ -1478,9 +1482,24 @@ socketcluster-client@^11.0.1, socketcluster-client@^11.1.0:
     uuid "3.2.1"
     ws "5.1.1"
 
-socketcluster-server@^11.1.0:
-  version "11.1.0"
-  resolved "https://registry.yarnpkg.com/socketcluster-server/-/socketcluster-server-11.1.0.tgz#f86d053774bdaf0fccb9274e4e1c4b5f09588d5e"
+socketcluster-client@^13.0.0:
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/socketcluster-client/-/socketcluster-client-13.0.0.tgz#2bc799736e7b476a5012ec272b589ca0f79c1b70"
+  dependencies:
+    base-64 "0.1.0"
+    clone "2.1.1"
+    component-emitter "1.2.1"
+    linked-list "0.1.0"
+    querystring "0.2.0"
+    sc-channel "^1.2.0"
+    sc-errors "^1.4.0"
+    sc-formatter "^3.0.1"
+    uuid "3.2.1"
+    ws "5.1.1"
+
+socketcluster-server@^13.0.0:
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/socketcluster-server/-/socketcluster-server-13.0.0.tgz#266ccc2f1ade70ca69b64c2f3b16966a1d08ec84"
   dependencies:
     async "2.3.0"
     base64id "1.0.0"
@@ -1494,9 +1513,9 @@ socketcluster-server@^11.1.0:
     uuid "3.2.1"
     ws "5.1.1"
 
-socketcluster@^11.3.6:
-  version "11.3.6"
-  resolved "https://registry.yarnpkg.com/socketcluster/-/socketcluster-11.3.6.tgz#02d790d89c04d69148aca38fc857cf6049b06af3"
+socketcluster@^13.0.1:
+  version "13.0.1"
+  resolved "https://registry.yarnpkg.com/socketcluster/-/socketcluster-13.0.1.tgz#c8831b0bef1881a1c8cd4b33dabc97d98f136c07"
   dependencies:
     async "2.3.0"
     fs-extra "2.0.0"
@@ -1505,7 +1524,7 @@ socketcluster@^11.3.6:
     sc-auth "^5.0.0"
     sc-broker-cluster "^6.1.4"
     sc-errors "^1.4.0"
-    socketcluster-server "^11.1.0"
+    socketcluster-server "^13.0.0"
     uid-number "0.0.6"
     uuid "3.2.1"
 

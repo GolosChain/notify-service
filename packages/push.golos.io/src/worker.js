@@ -11,16 +11,16 @@ const {
   API_QUEUE_HOST,
 } = process.env;
 //
-// console.log('+++++++++++++++++++++++++++++++++++ ', API_GCM_KEY)
-// console.log('+++++++++++++++++++++++++++++++++++ ', API_GOLOS_URL)
-// console.log('+++++++++++++++++++++++++++++++++++ ', API_QUEUE_HOST)
+console.log('+++++++++++++++++++++++++++++++++++ ', API_GCM_KEY)
+console.log('+++++++++++++++++++++++++++++++++++ ', API_GOLOS_URL)
+console.log('+++++++++++++++++++++++++++++++++++ ', API_QUEUE_HOST)
 //
 const gcmSender = new gcm.Sender(API_GCM_KEY);
 //
 const {Golos} = chains;
 config.set(
   'websocket',
-  API_GOLOS_URL
+  API_GOLOS_URL || 'ws://127.0.0.1:8091'
   // 'wss://ws.golos.io'
   // 'ws://127.0.0.1:8091'
 );
@@ -32,7 +32,7 @@ class Worker extends SCWorker {
     const scServer = this.scServer;
     //
     this.golos = new Golos({
-      rpcIn: API_GOLOS_URL,
+      rpcIn: API_GOLOS_URL || 'ws://127.0.0.1:8091',
       // rpcIn: 'wss://ws.golos.io',
       // rpcIn: 'ws://127.0.0.1:8091',
       // tarantool queue is a must for now
@@ -46,6 +46,11 @@ class Worker extends SCWorker {
     //
     this.golos.on('block', async block => {
       const {operations} = block;
+
+      console.log('<<<<<<<< a153048');
+      scServer.exchange.publish('a153048', block);
+      // return;
+
       // console.log(`^^^^^^^^^^^^^^^^^ `, operations[0])
       const messages = operations
       // can produce a sparsed array
@@ -193,6 +198,9 @@ class Worker extends SCWorker {
         // console.log('>>> ------- ', channel);
         scServer.exchange.publish(channel, action);
         console.log(`| ( ${message.op.type} ) -> ${channel}`);
+        // console.log('<<<<<<<< a153048');
+        // scServer.exchange.publish('a153048', data);
+
         // console.log(action);
 
         // if (message.op.type === 'vote' && message.op.weight < 0) {
@@ -215,10 +223,10 @@ class Worker extends SCWorker {
         // }
 
 
-        if (message.op.type === 'transfer') {
-          console.log('<<<<<<<< a153048');
-          scServer.exchange.publish('a153048', action);
-        }
+        // if (message.op.type === 'transfer') {
+        //   console.log('<<<<<<<< a153048');
+        //   scServer.exchange.publish('a153048', action);
+        // }
 
         // if (message.op.type === 'comment') {
         //   console.log('<<<<<<<< a153048');

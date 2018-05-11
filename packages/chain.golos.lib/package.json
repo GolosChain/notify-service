@@ -14,7 +14,7 @@
       "email": "sualexx@aol.com"
     }
   ],
-  "main": "./lib/index.js",
+  "main": "./src/index.js",
   "files": [
     "lib"
   ],
@@ -29,7 +29,7 @@
     "detect-is-node": "^1.0.3",
     "golos-js": "^0.6.3",
     "queue.golos.lib": "^0.0.2",
-    "tracer": "^0.8.12",
-    "ws": "^5.1.0"
+    "tracer": "^0.8.15",
+    "ws": "^5.1.1"
   }
 }

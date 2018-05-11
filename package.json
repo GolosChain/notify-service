@@ -12,11 +12,14 @@
     "env": {
       "development": {
         "presets": [
-          ["env", {
-            "targets": {
-              "node": "current"
+          [
+            "env",
+            {
+              "targets": {
+                "node": "current"
+              }
             }
-          }]
+          ]
         ],
         "plugins": [
           "transform-class-properties",
@@ -25,11 +28,14 @@
       },
       "production": {
         "presets": [
-          ["env", {
-            "targets": {
-              "node": "current"
+          [
+            "env",
+            {
+              "targets": {
+                "node": "current"
+              }
             }
-          }]
+          ]
         ],
         "plugins": [
           "transform-class-properties",
@@ -41,8 +47,8 @@
   "main": "index.js",
   "scripts": {
     "build:docker": "yarn && lerna run build && docker-compose build && lerna run clean",
-    "dev": "lerna bootstrap && babel-node ./packages/push.golos.io/lib/server.js",
-    "start": "lerna bootstrap && lerna run build && node ./packages/push.golos.io/lib/server.js"
+    "dev:win": "./scripts/win/dev.bat",
+    "start": "lerna bootstrap && lerna run build && babel-node ./packages/push.golos.io/src/server.js"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -50,15 +56,15 @@
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.6.1",
-    "cross-env": "^5.1.4",
+    "cross-env": "^5.1.5",
     "eslint": "^4.19.1",
     "eslint-config-nodejs": "^2.0.0",
     "eslint-plugin-import": "^2.11.0",
-    "lerna": "^2.10.2",
-    "nodemon": "^1.17.3",
-    "npm-check-updates": "^2.14.1",
+    "lerna": "^2.11.0",
+    "nodemon": "^1.17.4",
+    "npm-check-updates": "^2.14.2",
     "rimraf": "^2.6.2",
-    "webpack": "^4.6.0"
+    "webpack": "^4.8.1"
   },
   "dependencies": {}
 }

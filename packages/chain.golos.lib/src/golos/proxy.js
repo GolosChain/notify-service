@@ -10,6 +10,17 @@
 import {EventEmitter} from 'events';
 import Queues from 'queue.golos.lib';
 import PersistentWebSocket from '../transport/WebSocket/Persistent';
+import {api} from 'golos-js';
+import {config} from 'golos-js';
+
+config.set(
+  'websocket',
+  'ws://127.0.0.1:8091'
+  // 'wss://ws.golos.io'
+  // 'ws://127.0.0.1:8091'
+);
+
+
 //
 const {Tarantool: Queue} = Queues;
 //
@@ -116,15 +127,25 @@ export default class Golos extends EventEmitter {
     }
     // check if transactions already exist (0.17)
     let {transactions, index} = block;
-    if (!transactions) {
+    // if (!transactions) {
       // transactions is undefined (either fast forward or 0.16)
       // request them
-      console.log(`[x] requesting ...`);
-      transactions = await this.getBlockTransactions(index);
-    }
+      console.log(`[${index}] requesting ...`);
+      // transactions = await this.getBlockTransactions(index);
+      transactions = await api.getOpsInBlock(index);
+      console.log('@@@@@@@@@@@@@@@@@@@@ ', transactions);
+
+    // }
+    // });
+
+
+    // console.log('!!!!!!!!!!!!!!!!!!!!!!!!! ', transactions);
+    // }
     //
     const operations = transactions
       .map(trx => {
+
+
         const {
           // 0.16
           op,
@@ -143,6 +164,7 @@ export default class Golos extends EventEmitter {
           // 0.16
           type = opsArray[0];
           payload = opsArray[1];
+
         }
         // console.log({type, payload});
         return {
@@ -156,7 +178,6 @@ export default class Golos extends EventEmitter {
       index,
       operations
     };
-
 
 
     return block;
@@ -224,7 +245,7 @@ export default class Golos extends EventEmitter {
         });
       }
     } catch (e) {
-    //  do nothing - go to the next message
+      //  do nothing - go to the next message
     } finally {
     }
   }
@@ -257,10 +278,12 @@ export default class Golos extends EventEmitter {
     this.socket.on('open', this.onSocketOpen);
     this.socket.on('message', this.onSocketMessage);
   }
+
   //
   constructor({
     rpcIn = `ws://127.0.0.1:8091`,
-    rpcOut = {host: 'localhost', port: 3301}} = {}) {
+    rpcOut = {host: 'localhost', port: 3301}
+  } = {}) {
     super();
     console.log('[x] sniffer initialization ...');
     // this.queue = new Queue({port: 3301});
