@@ -4,7 +4,7 @@ import {config} from 'golos-js';
 import SCWorker from 'socketcluster/scworker';
 import message from 'message/producer';
 //
-import GolosEventListener from 'chain/golos/GolosEventListener';
+import GolosChainProxy from 'chain/golos/GolosChainProxy';
 // read envs
 const {API_GCM_KEY, API_GOLOS_URL, API_QUEUE_HOST} = process.env;
 //
@@ -22,7 +22,7 @@ class Worker extends SCWorker {
   run() {
     const scServer = this.scServer;
     //
-    this.golos = new GolosEventListener({
+    this.golos = new GolosChainProxy({
       rpcIn: API_GOLOS_URL,
       // rpcIn: 'wss://ws.golos.io',
       // rpcIn: 'ws://127.0.0.1:8091',
