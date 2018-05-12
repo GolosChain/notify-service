@@ -6,7 +6,7 @@ services:
     restart: always
     image: golosio/push-datastore:latest
     build:
-      context: ./packages/push.golos.io/datastore
+      context: ./datastore
       dockerfile: Dockerfile
 #      args:
 #    command: tarantool /usr/local/etc/tarantool/instances.enabled/app.lua
@@ -24,7 +24,7 @@ services:
       - 3301:3301
     volumes:
 #      - [apps]:/usr/local/etc/tarantool/instances.enabled
-      - ./packages/push.golos.io/datastore:/opt/tarantool
+      - ./datastore:/opt/tarantool
 #      - [data]:/var/lib/tarantool
 #      - [log]:/var/log/tarantool
 #    networks:

@@ -2,7 +2,6 @@ import _ from 'lodash';
 import gcm from 'node-gcm';
 import {config} from 'golos-js';
 import SCWorker from 'socketcluster/scworker';
-import chains from 'chain.golos.lib';
 import message from 'message/producer';
 //
 import GolosEventListener from 'chain/golos/GolosEventListener';
@@ -11,7 +10,6 @@ const {API_GCM_KEY, API_GOLOS_URL, API_QUEUE_HOST} = process.env;
 //
 const gcmSender = new gcm.Sender(API_GCM_KEY);
 //
-const {Golos} = chains;
 config.set(
   'websocket',
   API_GOLOS_URL || 'ws://127.0.0.1:8091'
@@ -22,14 +20,10 @@ config.set(
 //
 class Worker extends SCWorker {
   run() {
-    this.golos = new GolosEventListener();
-    console.log('---------------------------------');
-    return;
-
     const scServer = this.scServer;
     //
-    this.golos = new Golos({
-      rpcIn: API_GOLOS_URL || 'ws://127.0.0.1:8091',
+    this.golos = new GolosEventListener({
+      rpcIn: API_GOLOS_URL,
       // rpcIn: 'wss://ws.golos.io',
       // rpcIn: 'ws://127.0.0.1:8091',
       // tarantool queue is a must for now

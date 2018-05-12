@@ -46,8 +46,8 @@
   },
   "main": "index.js",
   "scripts": {
+    "dev:win": "./scripts/dev.bat",
     "build:docker": "yarn && lerna run build && docker-compose build && lerna run clean",
-    "dev:win": "./scripts/win/dev.bat",
     "start": "lerna bootstrap && lerna run build && babel-node ./packages/push.golos.io/src/server.js"
   },
   "devDependencies": {
@@ -60,11 +60,20 @@
     "eslint": "^4.19.1",
     "eslint-config-nodejs": "^2.0.0",
     "eslint-plugin-import": "^2.11.0",
-    "lerna": "^2.11.0",
-    "nodemon": "^1.17.4",
     "npm-check-updates": "^2.14.2",
-    "rimraf": "^2.6.2",
-    "webpack": "^4.8.1"
+    "rimraf": "^2.6.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "tarantool-driver": "tarantool/node-tarantool-driver#master",
+    "golos-js": "^0.6.3",
+    "lodash": "^4.17.10",
+    "minimist": "1.2.0",
+    "node-gcm": "^0.14.10",
+    "sc-errors": "^1.4.0",
+    "sc-framework-health-check": "^2.0.0",
+    "sc-hot-reboot": "^1.0.0",
+    "scc-broker-client": "^5.0.2",
+    "socketcluster": "^13.0.1",
+    "socketcluster-client": "^13.0.0"
+  }
 }

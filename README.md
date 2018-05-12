@@ -1,1 +1,1 @@
-# golos-notifications
+# push.golos.io

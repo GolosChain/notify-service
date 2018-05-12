@@ -1,8 +1,6 @@
 /* eslint-disable quotes */
 import {EventEmitter} from 'events';
 import Tarantool from 'tarantool-driver/lib/connection';
-import BadConfigError from './error/BadConfigError';
-import Tube from './Tube';
 //
 // https://github.com/tarantool/tarantool-python/blob/master/tarantool/utils.py
 // good docs : http://tarantool-queue-python.readthedocs.io/en/latest/quick-start.en.html#prepare-server
@@ -17,7 +15,7 @@ const connectionStatus = {
   reconnecting: 2
 };
 //
-export default class Queue extends EventEmitter {
+export default class TarantoolQueue extends EventEmitter {
   constructor({
     host = 'localhost',
     port = 33013,
@@ -28,10 +26,10 @@ export default class Queue extends EventEmitter {
   }) {
     // check args
     if (!host || !port) {
-      throw new BadConfigError('host and port params must be not empty');
+      throw new Error('host and port params must be not empty');
     }
     if (!Number.isInteger(port)) {
-      throw new BadConfigError('port must be int');
+      throw new Error('port must be int');
     }
     super();
     // set initial status
@@ -62,7 +60,7 @@ export default class Queue extends EventEmitter {
       result = oString.replace(':', '=');
       return result;
     } catch (e) {
-    //  log something about wrong object?
+      //  log something about wrong object?
     } finally {
       return result;
     }
