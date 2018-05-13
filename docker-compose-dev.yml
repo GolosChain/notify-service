@@ -3,8 +3,17 @@ version: "3"
 services:
 #
   datastore:
+    # app.lua starts a console in dev mode
+    #
     restart: always
-    image: golosio/push-datastore:latest
+    stdin_open: true
+    tty: true
+#    image: tarantool/tarantool:latest
+    image: push/datastore:latest
+#    command: /usr/local/bin/tarantool /usr/local/etc/tarantool/instances.enabled/app.lua
+#    command: ls -al /usr/local/etc/tarantool/instances.enabled
+#    command: /bin/sh
+
     build:
       context: ./datastore
       dockerfile: Dockerfile
@@ -24,7 +33,7 @@ services:
       - 3301:3301
     volumes:
 #      - [apps]:/usr/local/etc/tarantool/instances.enabled
-      - ./datastore:/opt/tarantool
+      - ./datastore/src:/usr/local/etc/tarantool/instances.enabled
 #      - [data]:/var/lib/tarantool
 #      - [log]:/var/log/tarantool
 #    networks:

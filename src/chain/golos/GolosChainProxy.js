@@ -15,7 +15,7 @@ export default class GolosChainProxy extends EventEmitter {
       task_data: index
     }))[2]);
     // then emit
-    this.emit('block', block);
+    // this.emit('block', block);
     return inserted;
   }
   //
@@ -58,6 +58,7 @@ export default class GolosChainProxy extends EventEmitter {
               const block = await Block.compose(current);
               console.log(`|~~~~~~~~~~~~~~~~~~~~~~~ `, current, ` ~ `, block.transactions.length, ',', block.operations.length, ` ~~~~> `, this.hChain);
               current = await this.putHead(block) + 1;
+              this.emit('block', block);
               if (current > this.hChain) {
                 // console.log(`######################################################## UNSET`);
                 // this.isSynching = false;
@@ -73,6 +74,7 @@ export default class GolosChainProxy extends EventEmitter {
             const processed = await this.putHead(block);
             // console.log(block)
             console.log(`|----------------------- `, processed, ` - `, block.transactions.length, ',', block.operations.length);
+            this.emit('block', block);
           }
 
         }

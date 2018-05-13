@@ -11,6 +11,20 @@ if (API_GOLOS_URL) {
   );
 }
 //
+function flattenOperations(transactions) {
+  let count = 0;
+  let result = [];
+  for (const trx of transactions) {
+    const {operations} = trx;
+    result = [...result, ...operations];
+    count = count + operations.length;
+  }
+  // console.log('TRXS: ', transactions.length);
+  // console.log('count: ', count);
+  // console.log('result: ', result.length);
+  return result;
+}
+//
 export default class GolosBlock {
   //
   get index() {
@@ -19,34 +33,22 @@ export default class GolosBlock {
     return current;
   }
   //
-  flattenOperations(transactions) {
-    let count = 0;
-    let result = [];
-    for (const trx of transactions) {
-      const {operations} = trx;
-      result = [...result, ...operations];
-      count = count + operations.length;
-    }
-    // console.log('TRXS: ', transactions.length);
-    // console.log('count: ', count);
-    // console.log('result: ', result.length);
-    return result;
-  }
-  //
   // composes an instance of service block object (this) fetching missing data if needed
   // block: chain block representation || block number
   //
   static async compose(data) {
     // console.log('############ ', typeof data);
     data = (typeof data === 'number') ? await chain.getBlock(data) : data;
+    const {transactions} = data;
+    data.operations = flattenOperations(transactions)
     return new GolosBlock(data);
   }
   //
   constructor(data) {
     // select transactions
     Object.assign(this, {...data});
-    const {transactions} = this;
-    this.operations = this.flattenOperations(transactions);
+    // const {transactions} = this;
+    // this.operations = this.flattenOperations(transactions);
   }
 }
 //

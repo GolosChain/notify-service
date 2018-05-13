@@ -47,6 +47,7 @@
   "main": "index.js",
   "scripts": {
     "dev:win": "./scripts/dev.bat",
+    "console": "docker attach pushgolosio_datastore_1",
     "build:docker": "yarn && lerna run build && docker-compose build && lerna run clean",
     "start": "lerna bootstrap && lerna run build && babel-node ./packages/push.golos.io/src/server.js"
   },
