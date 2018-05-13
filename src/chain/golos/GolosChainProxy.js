@@ -3,6 +3,7 @@ import {EventEmitter} from 'events';
 import Queue from 'queue/TarantoolQueue';
 import PersistentWebSocket from 'transport/WebSocket/Persistent';
 import Block from 'chain/golos/entity/GolosBlock';
+import onBlockApplied from 'chain/golos/handlers/onGolosBlockApplied';
 //
 export default class GolosChainProxy extends EventEmitter {
   // the place where consequent block sequence happens
@@ -14,7 +15,7 @@ export default class GolosChainProxy extends EventEmitter {
       task_data: index
     }))[2]);
     // then emit
-    // this.emit('block', block);
+    this.emit('block', block);
     return inserted;
   }
   //
@@ -40,37 +41,43 @@ export default class GolosChainProxy extends EventEmitter {
       const aBlock = (id === 1 && result);
       if (aBlock) {
         const block = await Block.compose(result);
-        this.chainHead = block.index;
-        this.localHead = await this.getHead();
-        const {chainHead, localHead} = this;
-        const delta = chainHead - localHead;
+        // current chain head
+        this.hChain = block.index;
+        // last saved local head
+        const hLocal = await this.getHead() || this.hChain;
+        const delta = this.hChain - hLocal;
+        // console.log('+++++++++++++++ ', this.hChain);
+        // console.log('+++++++++++++++ ', hLocal);
+        // console.log('+++++++++++++++ ', delta);
         if (delta > 1) {
-          // fast forward
-          if (!this.ff) {
-            this.ff = true;
-            let current = localHead + 1;
-            // close the gap
+          if (!this.isSynching) {
+            this.isSynching = true;
+            // console.log(`######################################################## SET`);
+            let current = hLocal + 1;
             while (true) {
-              console.log(`|~~~~~~~ `, current);
-              // const block = await this.composeBlock(undefined, current);
               const block = await Block.compose(current);
+              console.log(`|~~~~~~~~~~~~~~~~~~~~~~~ `, current, ` ~ `, block.transactions.length, ',', block.operations.length, ` ~~~~> `, this.hChain);
               current = await this.putHead(block) + 1;
-              if (this.chainHead === current) {
-                this.ff = false;
+              if (current > this.hChain) {
+                // console.log(`######################################################## UNSET`);
+                // this.isSynching = false;
                 break;
               }
             }
+            // console.log(`######################################################## UNSET`);
+            this.isSynching = false;
           }
-          //   return;
-        }
-        const processed = await this.putHead(block);
-        console.log(`|----------------------- `, processed);
+        } else {
+          // console.log(`|----------------------- `, this.isSynching);
+          if (!this.isSynching) {
+            const processed = await this.putHead(block);
+            // console.log(block)
+            console.log(`|----------------------- `, processed, ` - `, block.transactions.length, ',', block.operations.length);
+          }
 
+        }
       }
-    } catch (e) {
-      //  do nothing - go to the next message
-    } finally {
-    }
+    } catch (e) { /* do nothing - go to the next message */ }
   }
   //
   onSocketOpen = event => {
@@ -100,6 +107,8 @@ export default class GolosChainProxy extends EventEmitter {
     this.socket = new PersistentWebSocket(rpcIn);
     this.socket.on('open', this.onSocketOpen);
     this.socket.on('message', this.onSocketMessage);
+    //  register default handler for an applied block
+    this.on('block', onBlockApplied);
   }
   //
   constructor({
@@ -113,9 +122,6 @@ export default class GolosChainProxy extends EventEmitter {
     this.rpcIn = API_GOLOS_URL || rpcIn;
     this.rpcOut = rpcOut;
     const {rpcOut: {host, port}} = this;
-
-    // console.log('+++++++++++++++++++++++++++++++++++++ ', host, port)
-
     this.queue = new Queue({host, port});
     this.queue.on('connect', this.onQueueConnect);
   }
