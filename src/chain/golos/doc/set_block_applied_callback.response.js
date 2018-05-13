@@ -1,5 +1,6 @@
 /* eslint-disable max-len */
 /* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
 // below is just for reference
 //
 const set_block_applied_callback_response = {
@@ -12,7 +13,7 @@ const set_block_applied_callback_response = {
       transaction_merkle_root: '0000000000000000000000000000000000000000',
       extensions: [],
       witness_signature: '2001a...',
-      transactions: [transaction, transaction, ...]
+      transactions: [transaction, transaction, ...transactions]
     },
   id: 1
 };
