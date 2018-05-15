@@ -6,23 +6,21 @@ local digest = require('digest')
 local uuid = require('uuid')
 --local validator =  require('authman.validator')
 --
-notifications.SPACE_NAME = 'notifications'
-notifications.PRIMARY_INDEX = 'primary'
-notifications.TARGET_INDEX = 'target_index'
+notifications.spaceName = 'notifications'
+notifications.indexPrimary = 'primary'
+notifications.indexTarget = 'indexTarget'
 --
-notifications.ID = 1
-notifications.TTIMESTAMP = 2
-notifications.TYPE = 3
-notifications.TARGET_GOLOS_ID = 4
-notifications.TOUCHED = 5
-notifications.PAYLOAD = 6
+notifications.id = 1
+notifications.timestamp = 2
+notifications.type = 3
+notifications.targetId = 4
+notifications.touched = 5
+notifications.payload = 6
 --
-function notifications.space()
-  return box.space[notifications.SPACE_NAME]
+function notifications.spaceInstance()
+  return box.space[notifications.spaceName]
 end
-
-
-
+--
 function notifications.add(t)
   -- create is registration
   --user_tuple[model.REGISTRATION_TS] = utils.now()

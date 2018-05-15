@@ -11,7 +11,7 @@ export default async block => {
 
   const {operations} = block;
   for (const operation of operations) {
-    console.log(operation[0]);
+    // console.log(operation[0]);
   }
 
   // const index = block.index.toString();

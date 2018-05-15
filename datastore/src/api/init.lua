@@ -2,14 +2,14 @@ local api = {}
 local notifications = require('api.model.notifications')
 
 local notifications_space = box.schema.space.create(
-  notifications.SPACE_NAME,
+  notifications.spaceName,
   { if_not_exists = true })
 
 notifications_space:create_index(
-  notifications.PRIMARY_INDEX,
+  notifications.indexPrimary,
   {
     type = 'hash',
-    parts = { notifications.ID, 'string' },
+    parts = { notifications.id, 'string' },
     if_not_exists = true
   })
 --user_space:create_index(user.EMAIL_INDEX, {

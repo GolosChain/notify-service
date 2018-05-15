@@ -36,50 +36,52 @@ export default class GolosChainProxy extends EventEmitter {
     try {
       const data = JSON.parse(event.data);
       // console.log(data);
-      const {id, result} = data;
+      const {id, result: blockData} = data;
       // block applied on chain
-      const aBlock = (id === 1 && result);
+      const aBlock = (id === 1 && blockData);
       if (aBlock) {
-        const block = await Block.compose(result);
-        // current chain head
+        // const block = await Block.compose(result);
+        // transform raw block data into service Block object
+        const block = new Block(blockData);
+        // console.log('//////////// ', block.index)
+        // keep current chain head each time
         this.hChain = block.index;
         // last saved local head
         const hLocal = await this.getHead() || this.hChain;
         const delta = this.hChain - hLocal;
-        // console.log('+++++++++++++++ ', this.hChain);
-        // console.log('+++++++++++++++ ', hLocal);
-        // console.log('+++++++++++++++ ', delta);
+        //
         if (delta > 1) {
           if (!this.isSynching) {
             this.isSynching = true;
-            // console.log(`######################################################## SET`);
             let current = hLocal + 1;
             while (true) {
-              const block = await Block.compose(current);
-              console.log(`|~~~~~~~~~~~~~~~~~~~~~~~ `, current, ` ~ `, block.transactions.length, ',', block.operations.length, ` ~~~~> `, this.hChain);
-              current = await this.putHead(block) + 1;
+              console.log(`| ++++++++++++++++++++++  ${current}`);
+              const block = new Block(current);
+              await block.compose();
+              const next = await this.putHead(block) + 1;
+              console.log(`| ++++++++++++++++++++++  ${current} (trxs: ${block.transactions.length}, ops: ${block.operations.length}) >> ${this.hChain}`);
+              current = next;
               this.emit('block', block);
               if (current > this.hChain) {
-                // console.log(`######################################################## UNSET`);
-                // this.isSynching = false;
                 break;
               }
             }
-            // console.log(`######################################################## UNSET`);
             this.isSynching = false;
           }
         } else {
-          // console.log(`|----------------------- `, this.isSynching);
           if (!this.isSynching) {
+            // wait for middleware
+            console.log(`|-----------------------  ${block.index}`);
+            await block.compose();
             const processed = await this.putHead(block);
-            // console.log(block)
-            console.log(`|----------------------- `, processed, ` - `, block.transactions.length, ',', block.operations.length);
+            console.log(`|-----------------------  ${processed} (trxs: ${block.transactions.length}, ops: ${block.operations.length})`);
             this.emit('block', block);
           }
 
         }
       }
-    } catch (e) { /* do nothing - go to the next message */ }
+    } catch (e) { /* do nothing - go to the next message */
+    }
   }
   //
   onSocketOpen = event => {
@@ -112,6 +114,7 @@ export default class GolosChainProxy extends EventEmitter {
     //  register default handler for an applied block
     this.on('block', onBlockApplied);
   }
+
   //
   constructor({
     rpcIn = `ws://127.0.0.1:8091`,
