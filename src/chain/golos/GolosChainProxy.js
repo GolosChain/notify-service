@@ -42,7 +42,9 @@ export default class GolosChainProxy extends EventEmitter {
       if (aBlock) {
         // const block = await Block.compose(result);
         // transform raw block data into service Block object
+        console.log(`***************************`)
         const block = new Block(blockData);
+        console.log(`xxxxxxxxxxxxxxxxxxxxxxxxxxx`)
         // console.log('//////////// ', block.index)
         // keep current chain head each time
         this.hChain = block.index;

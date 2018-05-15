@@ -1,17 +1,8 @@
 /* eslint-disable quotes */
-import {api as chain, config as chainConfig} from 'golos-js';
 import notification from 'notifications/notificationFactory';
-// get the golosD endpoint url from environment var
-const {API_GOLOS_URL} = process.env;
-// config golos-js
-if (API_GOLOS_URL) {
-  chainConfig.set(
-    'websocket',
-    API_GOLOS_URL
-  );
-}
+import GolosApi from 'chain/golos/api';
 //
-export default class GolosBlock {
+export default class GolosBlock extends GolosApi {
   //
   flattenOperations(transactions) {
     let count = 0;
@@ -66,18 +57,19 @@ export default class GolosBlock {
     //
     if (!transactions) {
       // incomplete block. fetch additional data
-      const data = await chain.getBlock(index);
+      const data = await this.chain.getBlock(index);
       //  fill
       Object.assign(this, {...data});
     }
     // now enough data to compose notifications
     const n = await this.notifications;
-    console.log(`--`)
-    n.map(i => console.log(i.type))
+    console.log(`--`);
+    n.map(i => console.log(i.type));
     return this;
   }
   // accepts either number or a chain-shaped block object
   constructor(x) {
+    super();
     // check input
     if (typeof x === 'number') {
       this._index = x;
