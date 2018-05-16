@@ -1,8 +1,6 @@
-import {Message} from './abstract';
-import {api} from 'golos-js';
-// see the op shape under the class
-export default class Vote
-  extends Message {
+import AbstractNotification from './abstract';
+//
+export default class Vote extends AbstractNotification {
   //
   async compose() {
     //

@@ -1,16 +1,15 @@
 import comment from './type/comment';
 import transfer from './type/transfer';
 import vote from './type/vote';
-
 //
 const implemented = {
   comment,
   transfer,
-  vote
+  // vote
 };
 // map chain type to system message type
 //
-function fromChain(op) {
+function nType(op) {
   //
   const [
     type,
@@ -19,11 +18,14 @@ function fromChain(op) {
       voter,
       parent_author,
       from,
-      to,
-      weight
+      to
     }
   ] = op;
-  console.log(`[${type}]`);
+  //
+  // console.log(`[${type}]`);
+  //
+  //
+  //
   //new post and new comment are different events for us
   if (type === 'comment') {
     if (parent_author.length === 0) {
@@ -57,12 +59,7 @@ function fromChain(op) {
 }
 // create and return a Message instance according to the passed data
 // op expected to be shaped by sniffer
-// {block, operations: []}
-export default function(op) {
-  // console.log(op[0]);
-  const type = fromChain(op);
-  const MessageConstructor = type ? implemented[type] : null;
-  // console.log(`* ${type}, ${MessageConstructor ? MessageConstructor.name : MessageConstructor}`);
-  return (MessageConstructor ? new MessageConstructor(op) : null);
-  // return MessageConstructor;
-}
+export default op => {
+  const Constructor = implemented[nType(op)];
+  return (Constructor ? new Constructor(op) : Constructor);
+};

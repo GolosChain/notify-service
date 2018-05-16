@@ -1,27 +1,13 @@
-import {Message} from './abstract';
-import {api} from 'golos-js';
-
-// see the op shape under the class
-export default class Transfer
-  extends Message {
+import AbstractNotification from './abstract';
+//
+export default class Transfer extends AbstractNotification {
   //
   async compose() {
     //
-    const {
-      op: {
-        payload: {
-          from,
-          to,
-          amount,
-          memo
-        }
-      }
-    } = this;
+    const {from} = this;
+    const {chain} = this;
     //
-    // console.log('++++++++++++++++++++++++++++++');
-    // console.log(this.op);
-    //
-    const senderData = await api.getAccountsAsync([from]);
+    const senderData = await chain.getAccountsAsync([from]);
     const [{json_metadata: mdStr}] = senderData;
     let avaUrl;
     let metadata;
@@ -36,24 +22,25 @@ export default class Transfer
       // console.log('**************** ', metadata, mdStr);
     }
     //
-    this.op.payload.from = {
+    this.from = {
       account: from,
       profile_image: avaUrl
     };
-    // console.log(`$$$$$$$$$$$$$$ `, profile_image)
-    // return data;
   }
   //
   get web() {
     //
-    const {payload} = this.op;
-    const {to} = payload;
-    //
     return {
-      channel: to,
+      targetId: this.to,
       action: {
         type: 'NOTIFY_TRANSFER',
-        payload
+        payload: {
+          timestamp: this.timestamp,
+          from: this.from,
+          to: this.to,
+          amount: this.amount,
+          memo: this.memo
+        }
       }
     };
   }

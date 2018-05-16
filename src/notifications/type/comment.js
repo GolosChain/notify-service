@@ -1,32 +1,18 @@
-import {Message} from './abstract';
-import {api} from 'golos-js';
-
-// see the op shape under the class
-export default class Comment
-  extends Message {
+import AbstractNotification from './abstract';
+//
+export default class Comment extends AbstractNotification {
   //
   async compose() {
     //
-    const {
-      op: {
-        payload: {
-          author,
-          permlink,
-          parent_author,
-          parent_permlink
-        }
-      }
-    } = this;
+    const { author, permlink, parent_author, parent_permlink } = this;
+    const {chain} = this;
     //
-    // console.log('++++++++++++++++++++++++++++++');
-    // console.log(this.op);
-    //
-    const commentedContent = await api.getContentAsync(
+    const commentedContent = await chain.getContentAsync(
       parent_author,
       parent_permlink
     );
     //
-    const commentContent = await api.getContentAsync(
+    const commentContent = await chain.getContentAsync(
       author,
       permlink
     );
@@ -34,7 +20,7 @@ export default class Comment
     // console.log('$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ ', commentedContent.url);
     const {url: comment_url} = commentContent;
     //
-    const commenterData = await api.getAccountsAsync([author]);
+    const commenterData = await chain.getAccountsAsync([author]);
     const [{json_metadata: mdStr}] = commenterData;
     let avaUrl;
     let metadata;
@@ -49,7 +35,7 @@ export default class Comment
       // console.log('**************** ', metadata, mdStr);
     }
     //
-    this.op.payload.author = {
+    this.author = {
       account: author,
       profile_image: avaUrl
     };
@@ -66,62 +52,37 @@ export default class Comment
       url
     } = commentedContent;
     // complement operation payload
-    this.op.payload = {
+    Object.assign(this, {
       parent_url: url,
       parent_title: title,
       parent_body: body,
       parent_depth: depth,
       comment_url,
-      ...this.op.payload
-    };
-    // //
-    // return data;
+      ...this
+    });
   }
   //
   get web() {
     //
-    const {
-      payload: {
-        // commenter
-        // {account, profile_image}
-        author,
-        // comment's url
-        comment_url,
-        // permlink of comment itself
-        permlink,
-        // the author of what was commented
-        parent_author,
-        // depth of what was commented
-        parent_depth,
-        // link to what was commented
-        parent_permlink,
-        // title of what was commented
-        parent_title,
-        // body of what was commented
-        parent_body,
-        // url of commented content
-        parent_url
-      },
-      count
-    } = this.op;
-    //
     return {
-      channel: parent_author,
+      targetId: this.parent_author,
       action: {
         type: 'NOTIFY_COMMENT',
         payload: {
-          count,
+          timestamp: this.timestamp,
+          count: this.count,
           // todo this should have been an array of authors
           // if count > 1
-          author,
-          comment_url,
-          permlink,
+          author: this.author,
+          comment_url: this.comment_url,
+          permlink: this.permlink,
           parent: {
-            type: (parent_depth > 0 ? 'comment' : 'post'),
-            permlink: parent_permlink,
-            title: parent_title,
-            body: parent_body,
-            url: parent_url
+            type: (this.parent_depth > 0 ? 'comment' : 'post'),
+            permlink: this.parent_permlink,
+            title: this.parent_title,
+            // this can be huge!
+            body: this.parent_body,
+            url: this.parent_url
           }
         }
       }
