@@ -4,23 +4,15 @@ export default class Vote extends AbstractNotification {
   //
   async compose() {
     //
-    const {
-      op: {
-        payload: {
-          author,
-          voter,
-          permlink
-        }
-      }
-    } = this;
+    const {author, voter, permlink} = this;
+    const {chain} = this;
     //
-    //
-    const votedContent = await api.getContentAsync(
+    const votedContent = await chain.getContentAsync(
       author,
       permlink
     );
     //
-    const voterData = await api.getAccountsAsync([voter]);
+    const voterData = await chain.getAccountsAsync([voter]);
     const [{json_metadata: mdStr}] = voterData;
     let avaUrl;
     let metadata;
@@ -35,7 +27,7 @@ export default class Vote extends AbstractNotification {
       // console.log('**************** ', metadata, mdStr);
     }
     //
-    this.op.payload.voter = {
+    this.voter = {
       account: voter,
       profile_image: avaUrl
     };
@@ -49,73 +41,78 @@ export default class Vote extends AbstractNotification {
       // comment does not have a title, but has body
       body,
       // url of voted object
-      url: parent_url
+      url
     } = votedContent;
     // complement operation payload
-    this.op.payload = {
+
+    // complement operation payload
+    Object.assign(this, {
+      parent_url: url,
       parent_title: title,
       parent_body: body,
       parent_depth: depth,
-      parent_url,
-      ...this.op.payload
-    };
-  }
+      ...this
+    });
 
+
+    // this.op.payload = {
+    //   parent_title: title,
+    //   parent_body: body,
+    //   parent_depth: depth,
+    //   parent_url,
+    //   ...this.op.payload
+    // };
+
+
+  }
   //
   get web() {
-    //
-    const {
-      payload: {
-        // commenter
-        // {account, profile_image}
-        author,
-        //
-        voter,
-        // permlink of comment itself
-        permlink,
-        // depth of what was commented
-        parent_depth,
-        // title of what was commented
-        parent_title,
-        // body of what was commented
-        parent_body,
-        // url of what was commented
-        parent_url,
-        //
-        weight
-      },
-      count
-    } = this.op;
-    //
-    if (parent_depth > 0 && (parent_title.length > 0 && parent_body.length > 0)) {
-      console.log('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
-      console.log(parent_title);
-    }
-    //
     return {
-      channel: author,
+      targetId: this.author,
       action: {
-        // separate upvotes and downvotes
-        type: (weight > 0 ? 'NOTIFY_VOTE_UP' : 'NOTIFY_VOTE_DOWN'),
+        type: (this.weight > 0 ? 'NOTIFY_VOTE_UP' : 'NOTIFY_VOTE_DOWN'),
         payload: {
-          count,
-          weight,
-          // todo this should have been an array of voters
-          // if count > 1
-          voter,
+          timestamp: this.timestamp,
+          count: this.count,
+          weight: this.weight,
+          voter: this.voter,
           parent: {
-            author,
-            url: parent_url,
-            type: (parent_depth > 0 ? 'comment' : 'post'),
-            permlink,
-            title: parent_title,
-            body: parent_body
+            type: (this.parent_depth > 0 ? 'comment' : 'post'),
+            permlink: this.permlink,
+            title: this.parent_title,
+            // this can be huge!
+            body: this.parent_body,
+            url: this.parent_url
           }
         }
       }
     };
   }
-
+  //
+  get tnt() {
+    //
+    return [
+      // model.timestamp
+      this.timestamp,
+      // model.type
+      (this.weight > 0 ? 'voteup' : 'votedown'),
+      // model.targetId
+      this.author,
+      // model.touched
+      0,
+      JSON.stringify({
+        voter: this.voter,
+        parent: {
+          type: (this.parent_depth > 0 ? 'comment' : 'post'),
+          permlink: this.permlink,
+          title: this.parent_title,
+          // this can be huge!
+          body: this.parent_body,
+          url: this.parent_url
+        }
+      })
+    ];
+  }
   //
   get gcm() {
     const {

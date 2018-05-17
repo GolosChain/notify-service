@@ -5,7 +5,7 @@ import vote from './type/vote';
 const implemented = {
   comment,
   transfer,
-  // vote
+  vote
 };
 // map chain type to system message type
 //
@@ -22,7 +22,7 @@ function nType(op) {
     }
   ] = op;
   //
-  console.log(`[${type}]`);
+  // console.log(`[${type}]`);
   //
   //
   //

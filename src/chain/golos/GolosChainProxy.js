@@ -55,12 +55,12 @@ export default class GolosChainProxy extends EventEmitter {
             this.isSynching = true;
             let current = hLocal + 1;
             while (true) {
-              console.log(`| ++++++++++++++++++++++++++++++++++++++++++  ${current}`);
+              // console.log(`| ++++++++++++++++++++++++++++++++++++++++++  ${current}`);
               const block = new Block(current);
               await block.compose();
               const next = await this.putHead(block) + 1;
-              console.log(`| ++++++++++++++++++++++++++++++++++++++++++  ${current} (trxs: ${block.transactions.length}, ops: ${block.operations.length}) >> ${this.hChain}`);
-              console.log(`*`);
+              // console.log(`| ++++++++++++++++++++++++++++++++++++++++++  ${current} (trxs: ${block.transactions.length}, ops: ${block.operations.length}) >> ${this.hChain}`);
+              // console.log(`*`);
               current = next;
               this.emit('block', block);
               if (current > this.hChain) {
@@ -72,11 +72,11 @@ export default class GolosChainProxy extends EventEmitter {
         } else {
           if (!this.isSynching) {
             // wait for middleware
-            console.log(`|-------------------------------------------  ${block.index}`);
+            // console.log(`|-------------------------------------------  ${block.index}`);
             await block.compose();
             const processed = await this.putHead(block);
-            console.log(`|-------------------------------------------  ${processed} (trxs: ${block.transactions.length}, ops: ${block.operations.length})`);
-            console.log(`*`);
+            // console.log(`|-------------------------------------------  ${processed} (trxs: ${block.transactions.length}, ops: ${block.operations.length})`);
+            // console.log(`*`);
             this.emit('block', block);
           }
 

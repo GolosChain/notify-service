@@ -16,7 +16,6 @@ export default class NotificationList extends GolosApi {
       .map(op => Notification(op))
       .filter(op => op);
   }
-
   //
   async compose() {
     const {block: {index, timestamp, operations}} = this;
@@ -32,36 +31,15 @@ export default class NotificationList extends GolosApi {
       // defined by its compose() method
       await notification.compose();
       let tuple = notification.tnt;
-
+      //
       const nId = `${index}_${count}`;
-
-
       tuple = [nId, index.toString(), ...tuple];
-
-      // console.log('============ ', tuple)
       const resp = await tnt.call('notification_add', tuple);
-      // const resp1 = await tnt.call('notification_get_by_id', nId.toString());
-      const [[, ts, tp, tg]] = resp;
-      console.log(`${ts} : ${tp} -> ${tg}`);
-
+      // // const resp1 = await tnt.call('notification_get_by_id', nId.toString());
+      const [[ta, tb, ts, tp, tg]] = resp;
+      console.log(`[${tb}][${ta}] : ${tp} -> ${tg}`);
       count++;
-      // console.log('_______________________ ', count);
-
-
-      // console.log(`composed : ${notification.type}`);
-      // console.log('[composed >]', message.op.type);
-      // message.web: select target channel and redux action
-      // const {
-      //   web: {
-      //     channel,
-      //     action
-      //   }
-      // } = message;
-      // console.log('+++++++++++++++++ ', action);
-      // scServer.exchange.publish(channel, action);
-      // scServer.exchange.publish('a153048', action);
     }
-
     // cache notifications in corresponding tnt space for further usage
     return this;
   }
