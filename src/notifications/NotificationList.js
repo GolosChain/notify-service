@@ -31,15 +31,16 @@ export default class NotificationList extends GolosApi {
       // make additional async operations on each notification
       // defined by its compose() method
       await notification.compose();
-
       let tuple = notification.tnt;
 
       const nId = `${index}_${count}`;
 
 
-      tuple = [nId, ...tuple];
+      tuple = [nId, index.toString(), ...tuple];
 
+      // console.log('============ ', tuple)
       const resp = await tnt.call('notification_add', tuple);
+      // const resp1 = await tnt.call('notification_get_by_id', nId.toString());
       const [[, ts, tp, tg]] = resp;
       console.log(`${ts} : ${tp} -> ${tg}`);
 

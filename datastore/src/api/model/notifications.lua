@@ -8,14 +8,15 @@ local uuid = require('uuid')
 --
 model.spaceName = 'notifications'
 model.indexPrimary = 'primary'
-model.indexTarget = 'indexTarget'
+model.indexBlock = 'indexBlock'
 --
 model.id = 1
-model.timestamp = 2
-model.type = 3
-model.targetId = 4
-model.touched = 5
-model.payload = 6
+model.block = 2
+model.timestamp = 3
+model.type = 4
+model.targetId = 5
+model.touched = 6
+model.payload = 7
 --
 function model.get_space()
   return box.space[model.spaceName]

@@ -23,5 +23,7 @@ box.queue = queue
 dbapi = require('api')
 notifications = dbapi.notifications
 notification_add = notifications.create
+notification_get_by_id = notifications.get_by_id
+
 --
 require('console').start()

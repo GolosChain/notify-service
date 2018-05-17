@@ -86,3 +86,7 @@ export default class Transfer extends AbstractNotification {
 //
 // let op = {
 // }
+
+[ '16521526_0', '16521526', '2018-05-17T12:59:06', 'transfer', 'budimyr', 0, '{"from":{"account":"robot","profile_image":"bla"}' ]
+
+

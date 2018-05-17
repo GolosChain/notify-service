@@ -12,6 +12,17 @@ notifications_space:create_index(
     parts = { notifications.id, 'string' },
     if_not_exists = true
   })
+
+notifications_space:create_index(
+  notifications.indexBlock,
+  {
+    type = 'tree',
+    unique = false,
+    parts = { notifications.block, 'string' },
+    if_not_exists = true
+  })
+
+
 --user_space:create_index(user.EMAIL_INDEX, {
 --  type = 'tree',
 --  unique = false,
