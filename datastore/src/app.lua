@@ -22,6 +22,6 @@ box.queue = queue
 -- todo pass real config object
 dbapi = require('api')
 notifications = dbapi.notifications
-notification_add = notifications.add
+notification_add = notifications.create
 --
 require('console').start()

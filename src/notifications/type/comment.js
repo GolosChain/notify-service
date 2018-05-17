@@ -89,6 +89,33 @@ export default class Comment extends AbstractNotification {
     };
   }
   //
+  get tnt() {
+    //
+    return [
+      // model.timestamp
+      this.timestamp,
+      // model.type
+      this.type,
+      // model.targetId
+      this.parent_author,
+      // model.touched
+      0,
+      JSON.stringify({
+        author: this.author,
+        comment_url: this.comment_url,
+        permlink: this.permlink,
+        parent: {
+          type: (this.parent_depth > 0 ? 'comment' : 'post'),
+          permlink: this.parent_permlink,
+          // title: this.parent_title,
+          // this can be huge!
+          // body: this.parent_body,
+          url: this.parent_url
+        }
+      })
+    ];
+  }
+  //
   get gcm() {
     //
     const {

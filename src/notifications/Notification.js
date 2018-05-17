@@ -22,7 +22,7 @@ function nType(op) {
     }
   ] = op;
   //
-  // console.log(`[${type}]`);
+  console.log(`[${type}]`);
   //
   //
   //

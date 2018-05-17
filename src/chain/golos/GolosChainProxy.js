@@ -116,7 +116,6 @@ export default class GolosChainProxy extends EventEmitter {
     //  register default handler for an applied block
     this.on('block', onBlockApplied);
   }
-
   //
   constructor({
     rpcIn = `ws://127.0.0.1:8091`,

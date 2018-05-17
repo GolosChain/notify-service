@@ -1,36 +1,33 @@
-import TarantoolDriver from 'tarantool-driver';
-
-const config = require('config');
-const instance = {
-  'tarantool': null,
-  'chainproxy': null
-};
-
+import TarantoolDriver from 'tarantool-driver/lib/connection';
+//
 export default class Tarantool {
   //
-  constructor(key) {
-    this.key = key;
-    const host = config.get(key + '.host');
-    const port = config.get(key + '.port');
-    const username = config.get(key + '.username');
-    const password = config.get(key + '.password');
-    const connection = this.connection = new TarantoolDriver({host, port});
+  constructor({host = 'localhost', port = 3301} = {}) {
+
+    console.log('))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))) ', host, port)
+
+    const connection = this.connection = new TarantoolDriver({host, port, lazyConnect: true});
     this.ready_promise = new Promise((resolve, reject) => {
-      connection.connect()
-        .then(() => connection.auth(username, password))
-        .then(() => resolve())
-        .catch(error => resolve(false));
+      if (connection.state === 1) {
+        resolve();
+      } else {
+        connection.connect()
+          // .then(() => connection.auth(username, password))
+          .then(() => resolve())
+          .catch(error => {
+            console.log('!!!!!!!!!!!!!!!!!!!!! ', error)
+            resolve(false)
+          });
+      }
     });
   }
   //
   makeCall(call_name, args) {
+    // console.log('!!!!!!!!!!!!!!!!!!!!! ', call_name, args)
+
     return this.ready_promise
       .then(() => this.connection[call_name].apply(this.connection, args))
-      .catch(error => {
-        if (error.message.indexOf('connect') >= 0)
-          instance[this.key] = null;
-        return Promise.reject(error);
-      });
+      .catch(error => Promise.reject(error));
   }
   //
   select() {

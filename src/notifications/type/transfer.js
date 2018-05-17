@@ -45,6 +45,25 @@ export default class Transfer extends AbstractNotification {
     };
   }
   //
+  get tnt() {
+    //
+    return [
+      // model.timestamp
+      this.timestamp,
+      // model.type
+      this.type,
+      // model.targetId
+      this.to,
+      // model.touched
+      0,
+      JSON.stringify({
+        from: this.from,
+        amount: this.amount,
+        memo: this.memo
+      })
+    ];
+  }
+  //
   get gcm() {
     //
     const {payload} = this.op;

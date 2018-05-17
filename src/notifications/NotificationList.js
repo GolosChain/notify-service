@@ -1,5 +1,13 @@
 import GolosApi from 'chain/golos/api';
 import Notification from 'notifications/Notification';
+
+// import Tarantool from 'tarantool-driver/lib/connection';
+// const tnt = new Tarantool({host: 'localhost', port: 3301});
+
+import Tarantool from 'db/Tarantool';
+const tnt = new Tarantool();
+
+
 //
 export default class NotificationList extends GolosApi {
   //
@@ -11,17 +19,34 @@ export default class NotificationList extends GolosApi {
 
   //
   async compose() {
-    const {block: {operations, timestamp}} = this;
+    const {block: {index, timestamp, operations}} = this;
     // transform each raw block operation into push-notification
     // only if correcponding class is implemented
     // else generate undefined
     this.list = this.selectFrom(operations);
+    let count = 0;
     for (const notification of this.list) {
       // mark each notification with current block's timestamp
       notification.timestamp = timestamp;
       // make additional async operations on each notification
       // defined by its compose() method
       await notification.compose();
+
+      let tuple = notification.tnt;
+
+      const nId = `${index}_${count}`;
+
+
+      tuple = [nId, ...tuple];
+
+      const resp = await tnt.call('notification_add', tuple);
+      const [[, ts, tp, tg]] = resp;
+      console.log(`${ts} : ${tp} -> ${tg}`);
+
+      count++;
+      // console.log('_______________________ ', count);
+
+
       // console.log(`composed : ${notification.type}`);
       // console.log('[composed >]', message.op.type);
       // message.web: select target channel and redux action

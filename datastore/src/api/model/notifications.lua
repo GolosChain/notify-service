@@ -1,50 +1,38 @@
 --https://habr.com/company/mailru/blog/334266/
 --https://ilovelua.wordpress.com/tag/require/
-local notifications = {}
+local model = {}
 --
 local digest = require('digest')
 local uuid = require('uuid')
 --local validator =  require('authman.validator')
 --
-notifications.spaceName = 'notifications'
-notifications.indexPrimary = 'primary'
-notifications.indexTarget = 'indexTarget'
+model.spaceName = 'notifications'
+model.indexPrimary = 'primary'
+model.indexTarget = 'indexTarget'
 --
-notifications.id = 1
-notifications.timestamp = 2
-notifications.type = 3
-notifications.targetId = 4
-notifications.touched = 5
-notifications.payload = 6
+model.id = 1
+model.timestamp = 2
+model.type = 3
+model.targetId = 4
+model.touched = 5
+model.payload = 6
 --
-function notifications.spaceInstance()
-  return box.space[notifications.spaceName]
+function model.get_space()
+  return box.space[model.spaceName]
 end
 --
-function notifications.add(t)
-  -- create is registration
-  --user_tuple[model.REGISTRATION_TS] = utils.now()
+function model.get_by_id(nId)
+  return model.get_space():get(nId)
+end
+--
+function model.create(user_tuple)
+  local result = model.get_by_id(user_tuple[model.id])
   --
-  --local user_id
-  --if user_tuple[model.ID] then
-  --  user_id = user_tuple[model.ID]
-  --else
-  --  user_id = uuid.str()
-  --end
-  --local email = validator.string(user_tuple[model.EMAIL]) and user_tuple[model.EMAIL] or ''
-  --return notifications.space():insert{
-  --  user_id,
-  --  email,
-  --  user_tuple[model.TYPE],
-  --  user_tuple[model.IS_ACTIVE],
-  --  user_tuple[model.PROFILE],
-  --  user_tuple[model.REGISTRATION_TS],
-  --  user_tuple[model.SESSION_UPDATE_TS],
-  --}
-  return notifications.space():insert(t)
+  if not result then
+    result = model.get_space():insert(user_tuple)
+  end
+  --
+  return result
 end
-
-
-
 --
-return notifications
+return model

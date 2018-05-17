@@ -43,9 +43,9 @@ export default class GolosBlock extends GolosApi {
     }
     // now enough data to compose notifications
     this.notifications = await new NotificationList(this).compose();
-    // console.log(`--`);
+    // console.log(`////////`);
     // console.log(this.notifications)
-    this.notifications.list.map(i => console.log(`| ${i.web.targetId} <- (${i.type})`));
+    // this.notifications.list.map(i => console.log(`| ${i.web.targetId} <- (${i.type})`));
     return this;
   }
   // accepts either number or a chain-shaped block object
