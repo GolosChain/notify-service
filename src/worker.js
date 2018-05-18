@@ -1,15 +1,52 @@
+import express from 'express';
 import _ from 'lodash';
 import gcm from 'node-gcm';
+import healthChecker from 'sc-framework-health-check';
+import morgan from 'morgan';
 import SCWorker from 'socketcluster/scworker';
 import GolosChainProxy from 'chain/golos/GolosChainProxy';
-import message from 'message/producer';
 //
 // const gcmSender = new gcm.Sender(API_GCM_KEY);
 //
+
+import Tarantool from 'db/Tarantool';
+const tnt = new Tarantool();
+
+
 class Worker extends SCWorker {
   run() {
     const scServer = this.scServer;
     this.golos = new GolosChainProxy();
+
+    const restApi = express();
+    restApi.use(morgan('dev'));
+    // Add GET /health-check express route
+    healthChecker.attach(this, restApi);
+    const httpServer = this.httpServer;
+    httpServer.on('request', restApi);
+
+
+    const router = express.Router();
+    router.get('/:targetId?', async(req, res, next) => {
+
+      // const {params: {id}} = req;
+
+      // const resp = await tnt.call('notification_get_by_block', id);
+      const {params: {targetId}} = req;
+      const resp = await tnt.call('notification_get_by_target', targetId);
+
+
+      // console.log(resp);
+
+
+      res.json(resp);
+
+
+    });
+
+    restApi.use('/api', router);
+
+
     // this.golos.on('block', async block => {
     //   const {operations} = block;
     //

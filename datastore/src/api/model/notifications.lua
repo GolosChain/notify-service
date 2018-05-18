@@ -9,6 +9,7 @@ local uuid = require('uuid')
 model.spaceName = 'notifications'
 model.indexPrimary = 'primary'
 model.indexBlock = 'indexBlock'
+model.indexTarget = 'indexTarget'
 --
 model.id = 1
 model.block = 2
@@ -24,6 +25,14 @@ end
 --
 function model.get_by_id(nId)
   return model.get_space():get(nId)
+end
+--
+function model.get_by_block(blockId)
+    return model.get_space().index[model.indexBlock]:select({blockId})
+end
+--
+function model.get_by_target(targetId)
+  return model.get_space().index[model.indexTarget]:select({targetId})
 end
 --
 function model.create(user_tuple)

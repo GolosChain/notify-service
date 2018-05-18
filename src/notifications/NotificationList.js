@@ -1,13 +1,9 @@
 import GolosApi from 'chain/golos/api';
 import Notification from 'notifications/Notification';
-
 // import Tarantool from 'tarantool-driver/lib/connection';
 // const tnt = new Tarantool({host: 'localhost', port: 3301});
-
 import Tarantool from 'db/Tarantool';
 const tnt = new Tarantool();
-
-
 //
 export default class NotificationList extends GolosApi {
   //
@@ -48,7 +44,6 @@ export default class NotificationList extends GolosApi {
   async cache() {
 
   }
-
   //
   constructor(block) {
     super();
