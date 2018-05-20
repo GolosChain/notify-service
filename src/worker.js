@@ -17,31 +17,21 @@ class Worker extends SCWorker {
   run() {
     const scServer = this.scServer;
     this.golos = new GolosChainProxy();
-
     const restApi = express();
     restApi.use(morgan('dev'));
     // Add GET /health-check express route
     healthChecker.attach(this, restApi);
     const httpServer = this.httpServer;
     httpServer.on('request', restApi);
-
-
     const router = express.Router();
+
     router.get('/:targetId?', async(req, res, next) => {
-
       // const {params: {id}} = req;
-
       // const resp = await tnt.call('notification_get_by_block', id);
       const {params: {targetId}} = req;
       const resp = await tnt.call('notification_get_by_target', targetId);
-
-
       // console.log(resp);
-
-
       res.json(resp);
-
-
     });
 
     restApi.use('/api', router);
