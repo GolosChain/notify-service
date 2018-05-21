@@ -30,6 +30,16 @@ notifications_space:create_index(
     parts = { notifications.targetId, 'string' },
     if_not_exists = true
   })
+--
+--
+notifications_space:create_index(
+  notifications.indexTargetTouched,
+  {
+    type = 'tree',
+    unique = false,
+    parts = { notifications.targetId, 'string', notifications.touched, 'unsigned' },
+    if_not_exists = true
+  })
 
 
 --user_space:create_index(user.EMAIL_INDEX, {

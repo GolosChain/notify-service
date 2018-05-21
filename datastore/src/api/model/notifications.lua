@@ -10,6 +10,7 @@ model.spaceName = 'notifications'
 model.indexPrimary = 'primary'
 model.indexBlock = 'indexBlock'
 model.indexTarget = 'indexTarget'
+model.indexTargetTouched = 'indexTargetTouched'
 --
 model.id = 1
 model.block = 2
@@ -33,6 +34,10 @@ end
 --
 function model.get_by_target(targetId)
   return model.get_space().index[model.indexTarget]:select({targetId})
+end
+--
+function model.get_untouched_count_by_target(targetId)
+  return #model.get_space().index[model.indexTargetTouched]:select({targetId, 0})
 end
 --
 function model.create(user_tuple)

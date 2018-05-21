@@ -24,7 +24,7 @@ class Worker extends SCWorker {
     const httpServer = this.httpServer;
     httpServer.on('request', restApi);
     const router = express.Router();
-
+    //
     router.get('/:targetId?', async(req, res, next) => {
       // const {params: {id}} = req;
       // const resp = await tnt.call('notification_get_by_block', id);
@@ -33,8 +33,20 @@ class Worker extends SCWorker {
       // console.log(resp);
       res.json(resp);
     });
+    //
+    router.get('/:targetId?/count', async(req, res, next) => {
+      // const {params: {id}} = req;
+      // const resp = await tnt.call('notification_get_by_block', id);
+      const {params: {targetId}} = req;
+      const [[count]] = await tnt.call('get_untouched_count_by_target', targetId);
+      console.log('------------------------------------- ', count);
+      res.json({count});
+    });
 
-    restApi.use('/api', router);
+
+
+
+    restApi.use('/api/v1', router);
 
 
     // this.golos.on('block', async block => {

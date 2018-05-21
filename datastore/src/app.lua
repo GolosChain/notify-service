@@ -31,7 +31,8 @@ notification_get_by_id = notifications.get_by_id
 notification_get_by_block = notifications.get_by_block
 --
 notification_get_by_target = notifications.get_by_target
-
+--
+get_untouched_count_by_target = notifications.get_untouched_count_by_target
 
 --
 require('console').start()
