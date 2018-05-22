@@ -70,7 +70,7 @@ export default class Transfer
         _from: from,
         _to: to,
         amount,
-        memo
+        // memo
       }
     };
   }

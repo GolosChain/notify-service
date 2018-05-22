@@ -47,10 +47,10 @@
   },
   "dependencies": {
     "chain.golos.lib": "^0.0.2",
+    "gcm.golos.lib": "^0.14.10",
     "golos-js": "^0.6.3",
     "lodash": "^4.17.5",
     "minimist": "1.2.0",
-    "node-gcm": "^0.14.10",
     "sc-errors": "^1.4.0",
     "sc-framework-health-check": "^2.0.0",
     "sc-hot-reboot": "^1.0.0",

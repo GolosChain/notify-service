@@ -4,7 +4,7 @@ services:
 #
   datastore:
     restart: always
-    image: golosio/push-datastore:latest
+    image: golosio/push-datastore:0.0.2
     build:
       context: ./packages/push.golos.io/datastore
       dockerfile: Dockerfile
@@ -35,8 +35,9 @@ services:
     stdin_open: true
     tty: true
     restart: always
-    image: golosio/push-service:latest
+    image: golosio/push-service:0.0.2
     environment:
+      - DEBUG=node-gcm
       - API_STATSD_URL=someurl
       - API_GCM_KEY=AAAA...
       - API_GOLOS_URL=wss://ws.golos.io

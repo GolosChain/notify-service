@@ -156,8 +156,11 @@ export default class Vote
         parent_depth,
         // title of voted stuff
         parent_title,
+
         // body of voted stuff
-        parent_body, /**/
+        // causes { error: 'MessageTooBig' } when sent to gcm topic!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // parent_body,
+
         // url of voted stuff
         parent_url,
         // how many times this url was UPvoted in block

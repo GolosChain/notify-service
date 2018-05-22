@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import gcm from 'node-gcm';
+import gcm from 'gcm.golos.lib';
 import {config} from 'golos-js';
 import SCWorker from 'socketcluster/scworker';
 import chains from 'chain.golos.lib';
@@ -16,6 +16,9 @@ const {
 // console.log('+++++++++++++++++++++++++++++++++++ ', API_QUEUE_HOST)
 //
 const gcmSender = new gcm.Sender(API_GCM_KEY);
+console.log('+++++++++++++++++++++++++++++++++++ ', API_GCM_KEY);
+
+
 //
 const {Golos} = chains;
 config.set(
@@ -172,27 +175,19 @@ class Worker extends SCWorker {
         const gcmMessage = new gcm.Message({
           data: {message: {...data}}
         });
-        // scServer.exchange.publish('a153048', gcmMessage);
-        //
-        // if (message.op.type === 'transfer') {
-        if (
-          topic === 'yuri-vlad' ||
-          topic === 'yuri-vlad-second' ||
-          topic === 'jevgenika' ||
-          topic === 'eparshin'
-        ) {
-          // scServer.exchange.publish('a153048', JSON.stringify(data));
-          console.log(`${data.type} ---> ${topic}`);
-          gcmSender.send(gcmMessage, {to: `/topics/${topic}`}, (err, response) => {
-            if (err) console.error(err);
-            else console.log('[gcm <<<] ', response);
-          });
-        }
-        // }
-        // console.log('+++++++++++++++++ ', action);
-        // console.log('>>> ------- ', channel);
+
+
+        gcmSender.send(gcmMessage, {to: `/topics/${topic}`}, (err, response) => {
+          if (err) {
+            console.log(`[gcm err] topic : ${topic}`);
+          } else console.log('[gcm <<<] ', response);
+        });
+
+
         scServer.exchange.publish(channel, action);
         console.log(`| ( ${message.op.type} ) -> ${channel}`);
+
+
         // console.log(action);
 
         // if (message.op.type === 'vote' && message.op.weight < 0) {
@@ -215,10 +210,10 @@ class Worker extends SCWorker {
         // }
 
 
-        if (message.op.type === 'transfer') {
-          console.log('<<<<<<<< a153048');
-          scServer.exchange.publish('a153048', action);
-        }
+        // if (message.op.type === 'transfer') {
+        //   console.log('<<<<<<<< a153048');
+        //   scServer.exchange.publish('a153048', action);
+        // }
 
         // if (message.op.type === 'comment') {
         //   console.log('<<<<<<<< a153048');
