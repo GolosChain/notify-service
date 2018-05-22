@@ -1,6 +1,7 @@
 import {Message} from './abstract';
 import {api} from 'golos-js';
 
+
 // see the op shape under the class
 export default class Comment
   extends Message {
