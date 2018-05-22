@@ -2,7 +2,8 @@ call yarn
 docker-compose --file .\docker-compose-dev.yml down
 docker-compose --file .\docker-compose-dev.yml up -d --build
 
-set API_GOLOS_URL=wss://ws.golos.io
+set API_GOLOS_URL=ws://127.0.0.1:8091
+REM set API_GOLOS_URL=ws//ws.golos.io
 set API_QUEUE_HOST=127.0.0.1
 set API_GCM_KEY=AAA...
 

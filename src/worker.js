@@ -42,10 +42,7 @@ class Worker extends SCWorker {
       console.log('------------------------------------- ', count);
       res.json({count});
     });
-
-
-
-
+    // start routing
     restApi.use('/api/v1', router);
 
 
