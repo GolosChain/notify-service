@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import gcm from 'gcm.golos.lib';
+import gcm from 'node-gcm';
 import {config} from 'golos-js';
 import SCWorker from 'socketcluster/scworker';
 import chains from 'chain.golos.lib';
