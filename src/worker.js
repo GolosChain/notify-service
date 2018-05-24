@@ -42,6 +42,15 @@ class Worker extends SCWorker {
       console.log('------------------------------------- ', count);
       res.json({count});
     });
+    //
+    router.get('/:targetId?/:type', async(req, res, next) => {
+      // const {params: {id}} = req;
+      // const resp = await tnt.call('notification_get_by_block', id);
+      const {params: {targetId, type}} = req;
+      console.log('----------> ', targetId, type);
+      const list = await tnt.call('notification_get_by_target', targetId);
+      res.json({type, list});
+    });
     // start routing
     restApi.use('/api/v1', router);
 

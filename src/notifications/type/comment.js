@@ -106,7 +106,7 @@ export default class Comment extends AbstractNotification {
         permlink: this.permlink,
         parent: {
           type: (this.parent_depth > 0 ? 'comment' : 'post'),
-          permlink: this.parent_permlink,
+          // permlink: this.parent_permlink,
           // title: this.parent_title,
           // this can be huge!
           // body: this.parent_body,

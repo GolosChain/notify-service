@@ -104,10 +104,9 @@ export default class Vote extends AbstractNotification {
         voter: this.voter,
         parent: {
           type: (this.parent_depth > 0 ? 'comment' : 'post'),
-          permlink: this.permlink,
           title: this.parent_title,
           // this can be huge!
-          body: this.parent_body,
+          // body: this.parent_body,
           url: this.parent_url
         }
       })
