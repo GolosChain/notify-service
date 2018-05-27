@@ -48,6 +48,7 @@ class Worker extends SCWorker {
       // const resp = await tnt.call('notification_get_by_block', id);
       const {params: {targetId, type}} = req;
       console.log('----------> ', targetId, type);
+      // fixme get ALL notifications for account for now
       const list = await tnt.call('notification_get_by_target', targetId);
       res.json({type, list});
     });
