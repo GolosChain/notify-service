@@ -1,8 +1,14 @@
 import AbstractNotification from './abstract';
 //
 export default class Comment extends AbstractNotification {
+  // rule to detect the target user of this notification
+  get target() {
+    return this.parent_author;
+  }
   //
-  async compose() {
+  async compose({blockIndex, opIndex, timestamp}) {
+    // assign id and timestamp
+    super.compose({blockIndex, opIndex, timestamp});
     //
     const { author, permlink, parent_author, parent_permlink } = this;
     const {chain} = this;
@@ -60,6 +66,7 @@ export default class Comment extends AbstractNotification {
       comment_url,
       ...this
     });
+    return this;
   }
   //
   get web() {
@@ -92,12 +99,14 @@ export default class Comment extends AbstractNotification {
   get tnt() {
     //
     return [
+      this.id,
+      this.blockIndex,
       // model.timestamp
       this.timestamp,
       // model.type
       this.type,
       // model.targetId
-      this.parent_author,
+      this.target,
       // model.touched
       0,
       JSON.stringify({

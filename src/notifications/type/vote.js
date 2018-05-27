@@ -1,8 +1,13 @@
 import AbstractNotification from './abstract';
 //
 export default class Vote extends AbstractNotification {
+  // rule to detect the target user of this notification
+  get target() {
+    return this.author;
+  }
   //
-  async compose() {
+  async compose({blockIndex, opIndex, timestamp}) {
+    super.compose({blockIndex, opIndex, timestamp})
     //
     const {author, voter, permlink} = this;
     const {chain} = this;
@@ -53,6 +58,7 @@ export default class Vote extends AbstractNotification {
       parent_depth: depth,
       ...this
     });
+    return this;
 
 
     // this.op.payload = {
@@ -92,12 +98,14 @@ export default class Vote extends AbstractNotification {
   get tnt() {
     //
     return [
+      this.id,
+      this.blockIndex,
       // model.timestamp
       this.timestamp,
       // model.type
       (this.weight > 0 ? 'voteup' : 'votedown'),
       // model.targetId
-      this.author,
+      this.target,
       // model.touched
       0,
       JSON.stringify({

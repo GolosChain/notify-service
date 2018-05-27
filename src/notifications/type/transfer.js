@@ -1,8 +1,13 @@
 import AbstractNotification from './abstract';
 //
 export default class Transfer extends AbstractNotification {
+  // rule to detect the target user of this notification
+  get target() {
+    return this.to;
+  }
   //
-  async compose() {
+  async compose({blockIndex, opIndex, timestamp}) {
+    super.compose({blockIndex, opIndex, timestamp})
     //
     const {from} = this;
     const {chain} = this;
@@ -26,6 +31,7 @@ export default class Transfer extends AbstractNotification {
       account: from,
       profile_image: avaUrl
     };
+    return this;
   }
   //
   get web() {
@@ -48,12 +54,14 @@ export default class Transfer extends AbstractNotification {
   get tnt() {
     //
     return [
+      this.id,
+      this.blockIndex,
       // model.timestamp
       this.timestamp,
       // model.type
       this.type,
       // model.targetId
-      this.to,
+      this.target,
       // model.touched
       0,
       JSON.stringify({
