@@ -49,6 +49,7 @@ export default class Transfer extends AbstractNotification {
       0,
       JSON.stringify({
         from: this.from,
+        to: this.to,
         amount: this.amount,
         memo: this.memo
       })
