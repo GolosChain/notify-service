@@ -69,33 +69,6 @@ export default class Comment extends AbstractNotification {
     return this;
   }
   //
-  get web() {
-    //
-    return {
-      targetId: this.parent_author,
-      action: {
-        type: 'NOTIFY_COMMENT',
-        payload: {
-          timestamp: this.timestamp,
-          count: this.count,
-          // todo this should have been an array of authors
-          // if count > 1
-          author: this.author,
-          comment_url: this.comment_url,
-          permlink: this.permlink,
-          parent: {
-            type: (this.parent_depth > 0 ? 'comment' : 'post'),
-            permlink: this.parent_permlink,
-            title: this.parent_title,
-            // this can be huge!
-            body: this.parent_body,
-            url: this.parent_url
-          }
-        }
-      }
-    };
-  }
-  //
   get tnt() {
     //
     return [

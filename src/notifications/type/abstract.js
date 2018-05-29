@@ -15,8 +15,8 @@ export default class AbstractNotification extends GolosApi {
   //
   async save(driver) {
     const tuple = this.tnt;
-    const [ta, tb, ts, tp, tg] = tuple;
-    console.log(`[${tb}][${ta}] : ${tp} -> ${tg}`);
+    // const [ta, tb, ts, tp, tg] = tuple;
+    // console.log(`[${tb}][${ta}] : ${tp} -> ${tg}`);
     const result = await driver.call('notification_add', tuple);
     return result;
   }

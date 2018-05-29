@@ -72,29 +72,6 @@ export default class Vote extends AbstractNotification {
 
   }
   //
-  get web() {
-    return {
-      targetId: this.author,
-      action: {
-        type: (this.weight > 0 ? 'NOTIFY_VOTE_UP' : 'NOTIFY_VOTE_DOWN'),
-        payload: {
-          timestamp: this.timestamp,
-          count: this.count,
-          weight: this.weight,
-          voter: this.voter,
-          parent: {
-            type: (this.parent_depth > 0 ? 'comment' : 'post'),
-            permlink: this.permlink,
-            title: this.parent_title,
-            // this can be huge!
-            body: this.parent_body,
-            url: this.parent_url
-          }
-        }
-      }
-    };
-  }
-  //
   get tnt() {
     //
     return [

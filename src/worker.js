@@ -8,15 +8,25 @@ import GolosChainProxy from 'chain/golos/GolosChainProxy';
 //
 // const gcmSender = new gcm.Sender(API_GCM_KEY);
 //
-
+// fixme move this into separate module
 import Tarantool from 'db/Tarantool';
+//
+import Pusher from './pusher'
 const tnt = new Tarantool();
-
-
+//
 class Worker extends SCWorker {
   run() {
-    const scServer = this.scServer;
+
+
+    const {scServer: {exchange}} = this;
+
+    // init an sc exchange wrapper
+    const pusher = new Pusher(exchange)
+    // init a chain proxy
     this.golos = new GolosChainProxy();
+    // link chain proxy and exchange wrapper
+    this.golos.on('block', pusher.onBlockComposed);
+
     const restApi = express();
     restApi.use(morgan('dev'));
     // Add GET /health-check express route

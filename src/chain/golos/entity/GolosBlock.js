@@ -1,6 +1,9 @@
 /* eslint-disable quotes */
 import GolosApi from 'chain/golos/api';
 import NotificationList from 'notifications/NotificationList';
+import _ from 'lodash';
+import Tarantool from 'db/Tarantool';
+const tnt = new Tarantool();
 //
 export default class GolosBlock extends GolosApi {
   //
@@ -43,9 +46,22 @@ export default class GolosBlock extends GolosApi {
     }
     // now enough data to compose notifications
     this.notifications = await new NotificationList(this).compose();
-    // console.log(`////////`);
-    // console.log(this.notifications)
-    // this.notifications.list.map(i => console.log(`| ${i.web.targetId} <- (${i.type})`));
+    // start composing state diffs for target clients
+    this.state = {};
+    // all supported notifications for block are composed and saved
+    // group the raw list by target user
+    const targets = _.groupBy(this.notifications.list, notification => notification.target);
+    // store state changes for each target user under 'state' key
+    for (const target in targets) {
+      const [[untouched_count]] = await tnt.call('get_untouched_count_by_target', target);
+      this.state[target] = {
+        notifications: {
+          untouched_count,
+          list: targets[target]
+        }
+      };
+    }
+    // return composed block to the caller
     return this;
   }
   // accepts either number or a chain-shaped block object

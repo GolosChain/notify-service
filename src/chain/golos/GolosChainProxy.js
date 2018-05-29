@@ -3,7 +3,6 @@ import {EventEmitter} from 'events';
 import Queue from 'queue/TarantoolQueue';
 import PersistentWebSocket from 'transport/WebSocket/Persistent';
 import Block from 'chain/golos/entity/GolosBlock';
-import onBlockApplied from 'chain/golos/handlers/onGolosBlockApplied';
 //
 export default class GolosChainProxy extends EventEmitter {
   // the place where consequent block sequence happens
@@ -106,8 +105,6 @@ export default class GolosChainProxy extends EventEmitter {
     this.socket = new PersistentWebSocket(rpcIn);
     this.socket.on('open', this.onSocketOpen);
     this.socket.on('message', this.onSocketMessage);
-    //  register default handler for an applied block
-    this.on('block', onBlockApplied);
   }
   //
   constructor({
