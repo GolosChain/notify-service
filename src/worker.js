@@ -11,8 +11,10 @@ import GolosChainProxy from 'chain/golos/GolosChainProxy';
 // fixme move this into separate module
 import Tarantool from 'db/Tarantool';
 //
-import Pusher from './pusher'
+import Pusher from './pusher';
+
 const tnt = new Tarantool();
+
 //
 class Worker extends SCWorker {
   run() {
@@ -21,7 +23,7 @@ class Worker extends SCWorker {
     const {scServer: {exchange}} = this;
 
     // init an sc exchange wrapper
-    const pusher = new Pusher(exchange)
+    const pusher = new Pusher(exchange);
     // init a chain proxy
     this.golos = new GolosChainProxy();
     // link chain proxy and exchange wrapper
@@ -59,8 +61,41 @@ class Worker extends SCWorker {
       const {params: {targetId, type}} = req;
       console.log('----------> ', targetId, type);
       // fixme get ALL notifications for account for now
-      const list = await tnt.call('notification_get_by_target', targetId);
-      res.json({type, list});
+      let list = await tnt.call('notification_get_by_target', targetId);
+
+
+      try { // transform into plain objects
+        list = list.map(
+          notification => {
+            let [
+              id,
+              blockIndex,
+              timestamp,
+              type,
+              // targetid is known
+              ,
+              // touched is not needed
+              ,
+              // string
+              payload
+            ] = notification;
+            //
+            payload = JSON.parse(payload);
+            //
+            return {
+              id, blockIndex, timestamp, type, payload
+            };
+          });
+
+
+        //
+        res.json({type, list});
+      } catch (e) {
+        // fixme temporary!!!!!!!!!!!!!!!
+        res.json({type: 'all', list: []});
+      }
+
+
     });
     // start routing
     restApi.use('/api/v1', router);

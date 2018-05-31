@@ -80,6 +80,7 @@ export default class Vote extends AbstractNotification {
       // model.timestamp
       this.timestamp,
       // model.type
+      // fixme change to up... down... ??
       (this.weight > 0 ? 'voteup' : 'votedown'),
       // model.targetId
       this.target,
