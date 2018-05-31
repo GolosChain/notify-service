@@ -5,8 +5,10 @@ export default class AbstractNotification extends GolosApi {
   // @abstract
   // the place to fetch more data if needed
   async compose({opIndex, blockIndex, timestamp}) {
-    // fixme it is initially number, but tnt model gets string
+    // fixme it is initially number, but tnt index needs string
     blockIndex = String(blockIndex);
+    // convert string timestamp (comes from daemon) to int for further operations
+    timestamp = (new Date(timestamp).getTime());
     // generate unique id for this notification
     const id = `${blockIndex}_${opIndex}`;
     Object.assign(this, {id, blockIndex, timestamp});
