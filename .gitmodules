@@ -1,0 +1,3 @@
+[submodule ".\\packages\\tolstoy"]
+	path = .\\packages\\tolstoy
+	url = git@github.com:GolosChain/tolstoy.git
