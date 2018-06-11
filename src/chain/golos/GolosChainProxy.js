@@ -65,6 +65,7 @@ export default class GolosChainProxy extends EventEmitter {
             const after = Date.now();
             const td = (after - before) / 1000;
             console.log(`| ~~~~~~~~~~~~~~~~~~~~~ ${block.index} : ${td} sec.`);
+            console.log()
             if (current > this.hChain) {
               this.socket.addListener('message', this.onSocketMessage);
               break;
@@ -81,6 +82,7 @@ export default class GolosChainProxy extends EventEmitter {
           const after = Date.now();
           const td = (after - before) / 1000;
           console.log(`| xxxxxxxxxxxxxxxxxxxxx ${block.index} : ${td} sec.`);
+          console.log()
           this.socket.addListener('message', this.onSocketMessage);
         }
       }
