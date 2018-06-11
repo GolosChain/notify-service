@@ -1,8 +1,7 @@
 export default class Pusher {
   onBlockComposed = async block => {
     const {index, state} = block;
-    console.log('|---------------------------- ', index)
-
+    console.log(`| -------------------------------------- ${index}`);
     for (const target in state) {
       let {notifications: {untouched_count, list}} = state[target];
       // transform into plain objects
@@ -35,7 +34,7 @@ export default class Pusher {
       };
       //  message is ready to be pushed
       this.exchange.publish(target, message);
-      console.log('----> ', target);
+      console.log('| ', target);
     }
   }
   //
