@@ -1,6 +1,6 @@
 /* eslint-disable quotes */
 import GolosApi from 'chain/golos/api';
-
+//
 export default class AbstractNotification extends GolosApi {
   // @abstract
   // the place to fetch more data if needed

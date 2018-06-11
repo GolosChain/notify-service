@@ -19,17 +19,26 @@ export default class NotificationList extends GolosApi {
     const {block: {index: blockIndex, timestamp, operations}} = this;
     // transform each raw block operation into push-notification
     this.list = this.selectFrom(operations);
-    let opIndex = 0;
+    // const opIndex = 0;
     //
-    for (const notification of this.list) {
-      // make additional async operations on each notification
-      // defined by its compose() method
-      await notification.compose({blockIndex, opIndex, timestamp});
-      // save composed notification
-      const result = await notification.save(tnt)
-
-      opIndex++;
-    }
+    console.log('... total ops: ', this.list.length);
+    const composeBatch = this.list.map((notification, opIndex) => notification.compose({blockIndex, opIndex, timestamp})
+    );
+    await Promise.all(composeBatch);
+    //
+    // not fast enough
+    //
+    // for (const notification of this.list) {
+    //   // make additional async operations on each notification
+    //   // defined by its compose() method
+    //   await notification.compose({blockIndex, opIndex, timestamp});
+    //   console.log('op: ', opIndex)
+    //   // save composed notification
+    //   const result = await notification.save(tnt)
+    //
+    //   opIndex++;
+    // }
+    //
     return this;
   }
   //
