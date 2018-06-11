@@ -46,22 +46,25 @@ export default class GolosChainProxy extends EventEmitter {
         // last saved local head
         const hLocal = await this.getHead() || this.hChain;
         const delta = this.hChain - hLocal;
-        // console.log(`[<<] -------------------------------------- ${block.index}`)
+        console.log(`[.] xxxxxxxxxxxxxxxxxxxxx ${block.index}`)
         //
         if (delta > 1) {
+          console.log(`[delta] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${delta}`)
           this.socket.removeListener('message', this.onSocketMessage);
           let current = hLocal + 1;
           while (true) {
             const block = new Block(current);
-            // console.log(`[<<] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${block.index}`);
+            console.log(`[.] ~~~~~~~~~~~~~~~~~~~~~ ${block.index}`);
             const before = Date.now();
+            // 1
             await block.compose();
             const next = await this.putHead(block) + 1;
             current = next;
+            // 2
             this.emit('block', block);
             const after = Date.now()
             const td = (after - before) / 1000;
-            // console.log(`[>>] ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ${block.index} : ${td} sec.`);
+            console.log(`[.] ~~~~~~~~~~~~~~~~~~~~~ ${block.index} : ${td} sec.`);
             if (current > this.hChain) {
               this.socket.addListener('message', this.onSocketMessage);
               break;
@@ -70,12 +73,14 @@ export default class GolosChainProxy extends EventEmitter {
         } else {
           this.socket.removeListener('message', this.onSocketMessage);
           const before = Date.now();
+          // 1
           await block.compose();
           const processed = await this.putHead(block);
+          // 2
           this.emit('block', block);
           const after = Date.now()
           const td = (after - before) / 1000;
-          // console.log(`[>>] -------------------------------------- ${block.index} : ${td} sec.`);
+          console.log(`[.] xxxxxxxxxxxxxxxxxxxxx ${block.index} : ${td} sec.`);
           this.socket.addListener('message', this.onSocketMessage);
         }
       }
