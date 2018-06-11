@@ -13,7 +13,6 @@ services:
 #    command: /usr/local/bin/tarantool /usr/local/etc/tarantool/instances.enabled/app.lua
 #    command: ls -al /usr/local/etc/tarantool/instances.enabled
 #    command: /bin/sh
-
     build:
       context: ./datastore
       dockerfile: Dockerfile
@@ -36,30 +35,43 @@ services:
       - ./datastore/src:/usr/local/etc/tarantool/instances.enabled
 #      - [data]:/var/lib/tarantool
 #      - [log]:/var/log/tarantool
-#    networks:
-#      - dev
+    networks:
+      - dev
 
-#  push:
-##    depends_on:
-##      - datastore
-#    stdin_open: true
-#    tty: true
-#    restart: always
-#    image: golosio/push-service:latest
-#    environment:
-#      - API_STATSD_URL=someurl
-#      - API_GCM_KEY=AAAA...
-#      - API_GOLOS_URL=wss://ws.golos.io
-#      - API_QUEUE_HOST=datastore
-##    env_file:
-##      - ./packages/push.golos.io/.env
+  push:
+    #
+    depends_on:
+      - datastore
+    #
+    stdin_open: true
+    tty: true
+    #
+    restart: always
+    #
+    image: node:8
+#    image: golosio/push
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.dev
+#    #
+    environment:
+      - API_GOLOS_URL=wss://ws.golos.io
+      - API_QUEUE_HOST=datastore
+      - API_GCM_KEY=AAAA...
+      - API_STATSD_URL=someurl
+#    env_file:
+#      - ./packages/push.golos.io/.env
 #    build:
 #      context: ./packages
 #      dockerfile: ./push.golos.io/Dockerfile.local
-#    ports:
-#      - 8000:8000
-#    networks:
-#      - prod
+    ports:
+      - 8000:8000
+    volumes:
+      - ./:/opt/node/golos.io
+    working_dir: /opt/node/golos.io
+    command: bash -c "yarn && npx babel-node ./src/server.js"
+    networks:
+      - dev
 
-#networks:
-#  dev:
+networks:
+  dev:

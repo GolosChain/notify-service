@@ -3,9 +3,12 @@ import TarantoolDriver from 'tarantool-driver/lib/connection';
 export default class Tarantool {
   //
   constructor({host = 'localhost', port = 3301} = {}) {
-
+    // fixme temporary!!!
+    const {API_QUEUE_HOST} = process.env;
+    host = API_QUEUE_HOST
+    //
     console.log('))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))) ', host, port)
-
+    //
     const connection = this.connection = new TarantoolDriver({host, port, lazyConnect: true});
     this.ready_promise = new Promise((resolve, reject) => {
       if (connection.state === 1) {

@@ -1,0 +1,5 @@
+FROM node:8
+#RUN yarn
+
+#CMD [ "npx", "babel-node", "./src/server.js" ]
+CMD ["/bin/sh"]

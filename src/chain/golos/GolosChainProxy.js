@@ -18,7 +18,7 @@ export default class GolosChainProxy extends EventEmitter {
     return inserted;
   }
   //
-  getHead = async () => {
+  getHead = async() => {
     // todo refactor this to take()
     // get the queue's tail
     const q_height = parseInt((await this.queue.statistics('chain'))
@@ -46,15 +46,15 @@ export default class GolosChainProxy extends EventEmitter {
         // last saved local head
         const hLocal = await this.getHead() || this.hChain;
         const delta = this.hChain - hLocal;
-        console.log(`[.] xxxxxxxxxxxxxxxxxxxxx ${block.index}`)
+        console.log(`| xxxxxxxxxxxxxxxxxxxxx ${block.index}`);
         //
         if (delta > 1) {
-          console.log(`[delta] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${delta}`)
+          console.log(`[delta] >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ${delta}`);
           this.socket.removeListener('message', this.onSocketMessage);
           let current = hLocal + 1;
           while (true) {
             const block = new Block(current);
-            console.log(`[.] ~~~~~~~~~~~~~~~~~~~~~ ${block.index}`);
+            console.log(`| ~~~~~~~~~~~~~~~~~~~~~ ${block.index}`);
             const before = Date.now();
             // 1
             await block.compose();
@@ -62,9 +62,9 @@ export default class GolosChainProxy extends EventEmitter {
             current = next;
             // 2
             this.emit('block', block);
-            const after = Date.now()
+            const after = Date.now();
             const td = (after - before) / 1000;
-            console.log(`[.] ~~~~~~~~~~~~~~~~~~~~~ ${block.index} : ${td} sec.`);
+            console.log(`| ~~~~~~~~~~~~~~~~~~~~~ ${block.index} : ${td} sec.`);
             if (current > this.hChain) {
               this.socket.addListener('message', this.onSocketMessage);
               break;
@@ -78,9 +78,9 @@ export default class GolosChainProxy extends EventEmitter {
           const processed = await this.putHead(block);
           // 2
           this.emit('block', block);
-          const after = Date.now()
+          const after = Date.now();
           const td = (after - before) / 1000;
-          console.log(`[.] xxxxxxxxxxxxxxxxxxxxx ${block.index} : ${td} sec.`);
+          console.log(`| xxxxxxxxxxxxxxxxxxxxx ${block.index} : ${td} sec.`);
           this.socket.addListener('message', this.onSocketMessage);
         }
       }
@@ -105,31 +105,36 @@ export default class GolosChainProxy extends EventEmitter {
   // entry point is here since the queue init is a must
   onQueueConnect = async where => {
     const {host, port} = where;
-    console.log(`[x] queue connected on [${host}:${port}]`);
-    console.log(`[x] asserting tube named 'chain'`);
+    console.log(`[xxxxxxxx] queue connected on [${host}:${port}]`);
+    console.log(`[xxxxxxxx] asserting tube named 'chain'`);
     const exists = await this.queue.assertTube('chain');
     console.log(`[x] ${exists}`);
     // start listening to the chain pulse
     console.log(`[x] initializing golosD connection ...`);
-    const {rpcIn} = this;
-    this.socket = new PersistentWebSocket(rpcIn);
+    const {API_GOLOS_URL} = process.env;
+    this.socket = new PersistentWebSocket(API_GOLOS_URL);
     this.socket.addListener('open', this.onSocketOpen);
     this.socket.addListener('message', this.onSocketMessage);
   }
 
+
+
+
   //
-  constructor({
-                rpcIn = `ws://127.0.0.1:8091`,
-                rpcOut = {host: 'localhost', port: 3301}
-              } = {}) {
+  constructor(
+
+  //   {
+  //   rpcIn = `ws://127.0.0.1:8091`,
+  //   rpcOut = {host: 'localhost', port: 3301}
+  // } = {}
+  ) {
     super();
-    console.log('[x] sniffer initialization ...');
-    const {API_GOLOS_URL} = process.env;
-    // env should override parameter
-    this.rpcIn = API_GOLOS_URL || rpcIn;
-    this.rpcOut = rpcOut;
-    const {rpcOut: {host, port}} = this;
-    this.queue = new Queue({host, port});
+    console.log('[x] chain proxy initialization ...');
+    const {API_QUEUE_HOST} = process.env;
+    //
+    console.log('API_QUEUE_HOST : ', API_QUEUE_HOST);
+    //
+    this.queue = new Queue({host: API_QUEUE_HOST, port: 3301});
     this.queue.on('connect', this.onQueueConnect);
   }
 }
