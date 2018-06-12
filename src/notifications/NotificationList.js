@@ -22,9 +22,11 @@ export default class NotificationList extends GolosApi {
     // const opIndex = 0;
     //
     console.log('| ... total ops: ', this.list.length);
-    const composeBatch = this.list.map((notification, opIndex) => notification.compose({blockIndex, opIndex, timestamp})
-    );
+    const composeBatch = this.list.map((notification, opIndex) => notification.compose({blockIndex, opIndex, timestamp}));
     await Promise.all(composeBatch);
+    const saveBatch = this.list.map(notification => notification.save(tnt));
+    await Promise.all(saveBatch);
+
     //
     // not fast enough
     //

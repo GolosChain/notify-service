@@ -46,7 +46,7 @@
   },
   "main": "index.js",
   "scripts": {
-    "docker:dev": "docker-compose --file ./docker-compose-dev.yml down && docker-compose --file ./docker-compose-dev.yml up -d --build && docker attach golosio_push_1",
+    "docker:dev": "docker-compose --file ./docker-compose-dev.yml down && docker-compose --file ./docker-compose-dev.yml up -d --build",
     "docker:dev:down": "docker-compose --file ./docker-compose-dev.yml down",
     "dev:win": "./scripts/dev.bat",
     "dev:down": "docker-compose --file .\\docker-compose-dev.yml down",

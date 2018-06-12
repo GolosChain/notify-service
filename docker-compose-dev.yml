@@ -65,7 +65,8 @@ services:
 #      context: ./packages
 #      dockerfile: ./push.golos.io/Dockerfile.local
     ports:
-      - 8000:8000
+#      !!!!!!!!!!!!!!!!!!! certain interface on certain instance - remove ip
+      - 10.142.0.2:8000:8000
     volumes:
       - ./:/opt/node/golos.io
     working_dir: /opt/node/golos.io

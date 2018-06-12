@@ -39,7 +39,7 @@ export default class Pusher {
       console.log(`| -> (${target}) : (${list.length})`);
     }
     console.log('| >> totally sent : ', sentTotal);
-    console.log(`| --------------------------------------------------- ${index}`);
+    console.log(`| --------------------------------------------------- | ${index}`);
   }
   //
   constructor(exchange) {
