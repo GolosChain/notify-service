@@ -38,9 +38,9 @@ notifications_space:create_index(
     type = 'tree',
     unique = false,
     parts = {
-      notifications.targetId, 'string',
-      notifications.type, 'string' ,
-      notifications.timestamp, 'unsigned'
+      {notifications.targetId, 'string', is_nullable = true},
+      {notifications.type, 'string', is_nullable = true},
+      {notifications.touched, 'unsigned'}
       },
     if_not_exists = true
   })
@@ -56,17 +56,18 @@ notifications_space:create_index(
     if_not_exists = true
   })
 ---------------------------------------------------------------------------- totals
-local totals_space = box.schema.space.create(
-  totals.spaceName,
-  { if_not_exists = true })
 
-totals_space:create_index(
-  totals.indexPrimary,
-  {
-    type = 'tree',
-    parts = { totals.user_id, 'string' },
-    if_not_exists = true
-  })
+--local totals_space = box.schema.space.create(
+--  totals.spaceName,
+--  { if_not_exists = true })
+--
+--totals_space:create_index(
+--  totals.indexPrimary,
+--  {
+--    type = 'tree',
+--    parts = { totals.user_id, 'string' },
+--    if_not_exists = true
+--  })
 
 
 

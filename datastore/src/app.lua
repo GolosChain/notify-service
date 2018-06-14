@@ -24,16 +24,17 @@ dbapi = require('api')
 
 notifications = dbapi.notifications
 
-notification_add = notifications.create
+register = notifications.add
+totals_count_untouched  = dbapi.totals.count_untouched
+totals_reset_untouched  = dbapi.totals.reset_untouched
+
+
+
 notification_get_by_id = notifications.get_by_id
 notification_get_by_block = notifications.get_by_block
 notification_get_by_target = notifications.get_by_target
 get_untouched_count_by_target = notifications.get_untouched_count_by_target
 
-totals = dbapi.totals
-
-notification_get_totals = totals.get_by_id
-notification_update_totals = totals.update
 
 
 

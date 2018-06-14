@@ -14,8 +14,6 @@ import Tarantool from 'db/Tarantool';
 import Pusher from './pusher';
 
 
-
-
 const tnt = new Tarantool();
 
 //
@@ -53,9 +51,24 @@ class Worker extends SCWorker {
       // const {params: {id}} = req;
       // const resp = await tnt.call('notification_get_by_block', id);
       const {params: {targetId}} = req;
-      const [[count]] = await tnt.call('get_untouched_count_by_target', targetId);
-      console.log('------------------------------------- ', count);
-      res.json({count});
+      // const [[count]] = await tnt.call('totals_count_untouched', targetId);
+      const [[
+        ,
+        all = 0,
+        comment = 0,
+        transfer = 0,
+        upvote = 0,
+        downvote = 0
+      ]] = await tnt.call('totals_count_untouched', targetId);
+      //
+      console.log('------------------------------------- ', all);
+      // res.json({count});
+      res.json({
+        notifications: {
+          // untouched_count,
+          totals: {all, comment, transfer, upvote, downvote},
+        }
+      });
     });
     //
     router.get('/:targetId?/:type', async(req, res, next) => {

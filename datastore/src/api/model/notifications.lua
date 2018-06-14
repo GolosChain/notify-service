@@ -43,6 +43,21 @@ function model.get_by_target_type(targetId, type, timestamp)
 end
 
 
+--function model.get_totals_by_target(targetId)
+--  local mTotals = require('api.model.notifications_total')
+--
+--  return {
+--    [mTotals.]
+--  }
+--
+--  local result = {}
+--
+--
+--
+--  return model.get_space().index[model.indexTargetType]:count({targetId, type})
+--end
+
+
 function model.get_latest_by_target(targetId, type, limit)
   local currentTime = os.time()
   -- get all the records by notification type for user
@@ -76,8 +91,8 @@ end
 function model.get_untouched_count_by_target(targetId)
   return #model.get_space().index[model.indexTargetTouched]:select({targetId, 0})
 end
---
-function model.create(user_tuple)
+
+function model.add(user_tuple)
   local result = model.get_by_id(user_tuple[model.id])
   --
   if not result then

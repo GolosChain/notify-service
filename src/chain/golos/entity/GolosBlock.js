@@ -40,34 +40,45 @@ export default class GolosBlock extends GolosApi {
     //
     if (!transactions) {
       // incomplete block. fetch additional data
-      console.log('| ... getting transactions')
+      console.log('| ... getting transactions');
       const data = await this.chain.getBlock(index);
-      console.log('| ... ok')
+      console.log('| ... ok');
       //  fill
       Object.assign(this, {...data});
     }
     // now enough data to compose notifications
-    console.log('| ... composing NotificationList')
+    console.log('| ... composing NotificationList');
     this.notifications = await new NotificationList(this).compose();
-    console.log('| ... ok')
+    console.log('| ... ok');
     // start composing state diffs for target clients
     this.state = {};
     // all supported notifications for block are composed and saved
     // group the raw list by target user
-    console.log('| ... composed total : ', this.notifications.list.length)
-    console.log('| ... grouping by target')
+    console.log('| ... composed total : ', this.notifications.list.length);
+    console.log('| ... grouping by target');
     const targets = _.groupBy(this.notifications.list, notification => notification.target);
-    console.log('| ... ok')
+    console.log('| ... ok');
     // store state changes for each target user under 'state' key
     for (const target in targets) {
-      console.log('| ... getting count for ', target)
-      const [[untouched_count]] = await tnt.call('get_untouched_count_by_target', target);
+      // fixme do it in parallel!
+      // const [[untouched_count]] = await tnt.call('get_untouched_count_by_target', target);
+      const [[
+        ,
+        all = 0,
+        comment = 0,
+        transfer = 0,
+        upvote = 0,
+        downvote = 0
+      ]] = await tnt.call('totals_count_untouched', target);
+      //
       this.state[target] = {
         notifications: {
-          untouched_count,
+          // untouched_count,
+          totals: {all, comment, transfer, upvote, downvote},
           list: targets[target]
         }
       };
+      console.log(`| <- ${target} [${all}, ${comment}, ${transfer}, ${upvote}, ${downvote}]`);
     }
     // return composed block to the caller
     return this;

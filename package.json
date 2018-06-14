@@ -46,6 +46,8 @@
   },
   "main": "index.js",
   "scripts": {
+    "docker:dev:store": "docker-compose --file ./docker-compose-dev.yml down && docker-compose --file ./docker-compose-dev.yml up --build datastore",
+    "docker:dev": "docker-compose --file ./docker-compose-dev.yml down && docker-compose --file ./docker-compose-dev.yml up -d --build",
     "docker:dev": "docker-compose --file ./docker-compose-dev.yml down && docker-compose --file ./docker-compose-dev.yml up -d --build",
     "docker:dev:down": "docker-compose --file ./docker-compose-dev.yml down",
     "dev:win": "./scripts/dev.bat",
