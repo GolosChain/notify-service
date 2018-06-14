@@ -21,18 +21,20 @@ queue.start()
 box.queue = queue
 -- todo pass real config object
 dbapi = require('api')
---
+
 notifications = dbapi.notifications
---
+
 notification_add = notifications.create
---
 notification_get_by_id = notifications.get_by_id
---
 notification_get_by_block = notifications.get_by_block
---
 notification_get_by_target = notifications.get_by_target
---
 get_untouched_count_by_target = notifications.get_untouched_count_by_target
 
---
+totals = dbapi.totals
+
+notification_get_totals = totals.get_by_id
+notification_update_totals = totals.update
+
+
+
 require('console').start()
