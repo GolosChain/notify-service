@@ -1,6 +1,6 @@
 // TODO -
 
-class Push {
+class Push extends BasicService {
     async start() {
         // TODO -
     }
@@ -13,3 +13,5 @@ class Push {
         // TODO -
     }
 }
+
+module.exports = Push;

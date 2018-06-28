@@ -9,3 +9,5 @@ class Notify extends BasicService {
         // TODO -
     }
 }
+
+module.exports = Notify;
