@@ -42,6 +42,12 @@ module.exports = MongoDB.makeModel(
                     type: 1,
                 },
             ],
+            // Cleaner
+            [
+                {
+                    date: -1
+                }
+            ]
         ],
     }
 );

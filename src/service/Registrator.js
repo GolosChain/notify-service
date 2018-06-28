@@ -1,19 +1,19 @@
 // TODO -
 
 class Registrator extends BasicService {
-    start() {
+    async start() {
         // TODO -
     }
 
-    stop() {
+    async stop() {
         // TODO -
     }
 
-    restore() {
+    async restore() {
         // TODO -
     }
 
-    iteration() {
+    async iteration() {
         // TODO -
     }
 }

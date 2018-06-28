@@ -1,5 +1,5 @@
 const Registrator = require('./service/Registrator');
-const Gate = require('./service/Gate');
+const Notify = require('./service/Notify');
 const Push = require('./service/Push');
 const Cleaner = require('./service/Cleaner');
 // TODO -
@@ -8,10 +8,12 @@ class Main extends BasicService {
     constructor() {
         super();
 
+        const registratorService = new Registrator();
+
         this.addNested(
             new MongoDB(),
-            new Registrator(),
-            new Gate(),
+            registratorService,
+            new Notify(registratorService),
             new Push(),
             new Cleaner()
         );
