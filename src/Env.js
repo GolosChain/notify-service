@@ -2,5 +2,5 @@
 const env = process.env;
 
 module.exports = {
-    // TODO -
+    EXPIRATION: env.EXPIRATION,
 };
