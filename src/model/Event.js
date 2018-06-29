@@ -7,6 +7,10 @@ module.exports = MongoDB.makeModel(
             type: Date,
             default: Date.now,
         },
+        blockNum: {
+            type: Number,
+            required: true
+        },
         user: {
             type: String,
             required: true,
@@ -29,25 +33,31 @@ module.exports = MongoDB.makeModel(
     {
         index: [
             // Fresh count
-            [
-                {
+            {
+                fields: {
                     user: 1,
                     fresh: 1,
                 },
-            ],
+            },
             // History request
-            [
-                {
+            {
+                fields: {
                     user: 1,
                     type: 1,
                 },
-            ],
+            },
             // Cleaner
-            [
-                {
-                    date: -1
+            {
+                fields: {
+                    date: -1,
+                },
+            },
+            // Restorer
+            {
+                fields: {
+                    blockNum: -1
                 }
-            ]
+            }
         ],
     }
 );

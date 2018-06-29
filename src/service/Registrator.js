@@ -1,13 +1,7 @@
+const Event = require('../model/Event');
 // TODO -
 
 class Registrator extends BasicService {
-    constructor() {
-        super();
-
-        this._syncedBlockNum = 0;
-        this._syncStack = [];
-    }
-
     async start() {
         await this.restore();
 
@@ -16,7 +10,7 @@ class Registrator extends BasicService {
         this.addNested(subscribe);
 
         await subscribe.start(data => {
-            this._trySync(data);
+            this._restorer.trySync(data);
             this._handleBlock(data);
         });
     }
@@ -26,15 +20,24 @@ class Registrator extends BasicService {
     }
 
     async restore() {
-        // TODO -
-    }
+        const blockHandler = this._handleBlock.bind(this);
+        const blockErrorHandler = this._handleBlockError.bind(this);
 
-    _trySync(data) {
-        // TODO -
+        this._restorer = new BlockSubscribeRestore(Event, blockHandler, blockErrorHandler);
+
+        this.addNested(this._restorer);
+
+        this._restorer.start();
     }
 
     _handleBlock(data) {
         // TODO -
+    }
+
+    _handleBlockError(error) {
+        stats.increment('block_registration_error');
+        logger.error(`Load block error - ${error}`);
+        process.exit(1);
     }
 }
 
