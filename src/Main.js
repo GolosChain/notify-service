@@ -1,8 +1,11 @@
+const core = require('griboyedov');
+const logger = core.Logger;
+const stats = core.Stats.client;
+const BasicService = core.service.Basic;
 const Registrator = require('./service/Registrator');
 const Notify = require('./service/Notify');
 const Push = require('./service/Push');
 const Cleaner = require('./service/Cleaner');
-// TODO -
 
 class Main extends BasicService {
     constructor() {

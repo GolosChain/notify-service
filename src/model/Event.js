@@ -1,4 +1,5 @@
-// TODO -
+const core = require('griboyedov');
+const MongoDB = core.service.MongoDB;
 
 module.exports = MongoDB.makeModel(
     'Event',
@@ -9,7 +10,7 @@ module.exports = MongoDB.makeModel(
         },
         blockNum: {
             type: Number,
-            required: true
+            required: true,
         },
         user: {
             type: String,
@@ -55,9 +56,9 @@ module.exports = MongoDB.makeModel(
             // Restorer
             {
                 fields: {
-                    blockNum: -1
-                }
-            }
+                    blockNum: -1,
+                },
+            },
         ],
     }
 );

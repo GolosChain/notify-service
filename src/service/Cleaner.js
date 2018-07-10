@@ -1,6 +1,10 @@
+const core = require('griboyedov');
+const logger = core.Logger;
+const stats = core.Stats.client;
+const Moments = core.Moments;
+const BasicService = core.service.Basic;
 const env = require('../Env');
 const Event = require('../model/Event');
-// TODO core classes
 
 class Cleaner extends BasicService {
     async start() {
@@ -40,9 +44,11 @@ class Cleaner extends BasicService {
     }
 
     async _aggregateData() {
-        const expiration = Moments.ago(env.EXPIRATION);
+        const expiration = Moments.ago(env.EVENT_EXPIRATION);
 
-        return await Event.where('date').lte(expiration).cursor();
+        return await Event.where('date')
+            .lte(expiration)
+            .cursor();
     }
 }
 

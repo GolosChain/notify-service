@@ -24,5 +24,8 @@
     "homepage": "https://github.com/GolosChain/golos-notifications#readme",
     "devDependencies": {
         "prettier": "^1.13.6"
+    },
+    "dependencies": {
+        "griboyedov": "git+https://github.com/GolosChain/griboyedov.git"
     }
 }

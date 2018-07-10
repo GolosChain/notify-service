@@ -1,5 +1,8 @@
 const Event = require('../model/Event');
-// TODO -
+const core = require('griboyedov');
+const logger = core.Logger;
+const stats = core.Stats.client;
+const BasicService = core.service.Basic;
 
 class Registrator extends BasicService {
     async start() {
@@ -23,7 +26,11 @@ class Registrator extends BasicService {
         const blockHandler = this._handleBlock.bind(this);
         const blockErrorHandler = this._handleBlockError.bind(this);
 
-        this._restorer = new BlockSubscribeRestore(Event, blockHandler, blockErrorHandler);
+        this._restorer = new BlockSubscribeRestore(
+            Event,
+            blockHandler,
+            blockErrorHandler
+        );
 
         this.addNested(this._restorer);
 
