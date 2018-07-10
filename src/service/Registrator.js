@@ -3,6 +3,8 @@ const core = require('griboyedov');
 const logger = core.Logger;
 const stats = core.Stats.client;
 const BasicService = core.service.Basic;
+const BlockSubscribe = core.service.BlockSubscribe;
+const BlockSubscribeRestore = core.service.BlockSubscribeRestore;
 
 class Registrator extends BasicService {
     async start() {
@@ -23,22 +25,20 @@ class Registrator extends BasicService {
     }
 
     async restore() {
-        const blockHandler = this._handleBlock.bind(this);
-        const blockErrorHandler = this._handleBlockError.bind(this);
-
         this._restorer = new BlockSubscribeRestore(
             Event,
-            blockHandler,
-            blockErrorHandler
+            this._handleBlock.bind(this),
+            this._handleBlockError.bind(this)
         );
 
         this.addNested(this._restorer);
 
-        this._restorer.start();
+        await this._restorer.start();
     }
 
     _handleBlock(data) {
         // TODO -
+        // TODO emit newUserEvent
     }
 
     _handleBlockError(error) {
