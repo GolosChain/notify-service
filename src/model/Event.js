@@ -4,7 +4,11 @@ const MongoDB = core.service.MongoDB;
 module.exports = MongoDB.makeModel(
     'Event',
     {
-        date: {
+        createdAt: {
+            type: Date,
+            default: Date.now,
+        },
+        updatedAt: {
             type: Date,
             default: Date.now,
         },
@@ -16,7 +20,9 @@ module.exports = MongoDB.makeModel(
             type: String,
             required: true,
         },
-        type: {
+        eventType: {
+            // vote | flag | transfer | reply | subscribe | unsubscribe
+            // mention | repost | award | curatorAward | message
             type: String,
             required: true,
         },
@@ -24,22 +30,42 @@ module.exports = MongoDB.makeModel(
             type: Boolean,
             default: true,
         },
+        // not used for transfer
         counter: {
             type: Number,
             default: 1,
         },
-        // TODO type-specified fields for accumulation
-        // TODO -
+
+        /* Type-specified fields */
+
+        // vote | flag | reply | mention | repost | award | curatorAward
+        permlink: {
+            type: String,
+        },
+        // vote | flag | transfer | reply | subscribe | unsubscribe
+        // mention | repost | message
+        fromUsers: {
+            type: [String],
+        },
+        // transfer
+        amount: {
+            type: Number,
+        },
+        // award | curatorAward
+        award: {
+            golos: {
+                type: Number,
+            },
+            golosPower: {
+                type: Number,
+            },
+            gbg: {
+                type: Number,
+            },
+        },
     },
     {
         index: [
-            // Fresh count
-            {
-                fields: {
-                    user: 1,
-                    fresh: 1,
-                },
-            },
             // History request
             {
                 fields: {
