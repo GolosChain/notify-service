@@ -2,24 +2,21 @@ const core = require('griboyedov');
 const logger = core.Logger;
 const stats = core.Stats.client;
 const BasicService = core.service.Basic;
+const MongoDB = core.service.MongoDB;
 const Registrator = require('./service/Registrator');
-const Notify = require('./service/Notify');
-const Push = require('./service/Push');
+const Notifier = require('./service/Notifier');
 const Cleaner = require('./service/Cleaner');
 
 class Main extends BasicService {
     constructor() {
         super();
 
-        const registratorService = new Registrator();
+        const mongo = new MongoDB();
+        const registrator = new Registrator();
+        const notifier = new Notifier(registrator.getEmitter());
+        const cleaner = new Cleaner();
 
-        this.addNested(
-            new MongoDB(),
-            registratorService,
-            new Notify(registratorService),
-            new Push(),
-            new Cleaner()
-        );
+        this.addNested(mongo, registrator, notifier, cleaner);
         this.stopOnExit();
     }
 
