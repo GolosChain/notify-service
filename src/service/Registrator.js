@@ -15,7 +15,7 @@ class Registrator extends BasicService {
         this.addNested(subscribe);
 
         await subscribe.start(data => {
-            this._restorer.trySync(data);
+            //this._restorer.trySync(data); TODO enable and test sync
             this._handleBlock(data);
         });
     }
@@ -37,6 +37,30 @@ class Registrator extends BasicService {
     }
 
     _handleBlock(data) {
+        for (let transaction of data.transactions) {
+            for (let operation of transaction.operations) {
+                const [type, body] = operation;
+
+                // TODO reply | subscribe | unsubscribe | mention | repost | message
+                switch (type) {
+                    case 'vote':
+                        this._handleVote(body);
+                        this._handleFlag(body);
+                        break;
+                    case 'transfer':
+                        this._handleTransfer(body);
+                        break;
+                    case 'author_reward':
+                        this._handleAward(body);
+                        break;
+                    case 'curation_reward':
+                        this._handleCuratorAward(body);
+                        break;
+
+                }
+            }
+        }
+
         // TODO -
         // TODO emit newUserEvent
     }
@@ -45,6 +69,50 @@ class Registrator extends BasicService {
         stats.increment('block_registration_error');
         logger.error(`Load block error - ${error}`);
         process.exit(1);
+    }
+
+    _handleVote() {
+        // TODO -
+    }
+
+    _handleFlag() {
+        // TODO -
+    }
+
+    _handleTransfer() {
+        // TODO -
+    }
+
+    _handleReply() {
+        // TODO ---
+    }
+
+    _handleSubscribe() {
+        // TODO ---
+    }
+
+    _handleUnsubscribe() {
+        // TODO ---
+    }
+
+    _handleMention() {
+        // TODO ---
+    }
+
+    _handleRepost() {
+        // TODO ---
+    }
+
+    _handleAward() {
+        // TODO -
+    }
+
+    _handleCuratorAward() {
+        // TODO -
+    }
+
+    _handleMessage() {
+        // TODO ---
     }
 }
 
