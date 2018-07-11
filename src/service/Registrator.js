@@ -15,7 +15,7 @@ class Registrator extends BasicService {
         this.addNested(subscribe);
 
         await subscribe.start((data, blockNum) => {
-            //this._restorer.trySync(data); TODO enable and test sync
+            this._restorer.trySync(data, blockNum);
             this._handleBlock(data, blockNum);
         });
     }
@@ -56,7 +56,6 @@ class Registrator extends BasicService {
     }
 
     async _routeEventHandlers([type, body], blockNum) {
-        // TODO reply | subscribe | unsubscribe | mention | repost | message
         switch (type) {
             case 'vote':
                 await this._handleVoteAndFlag(body, blockNum);
@@ -65,13 +64,14 @@ class Registrator extends BasicService {
             case 'transfer':
                 await this._handleTransfer(body, blockNum);
                 break;
+
             case 'comment':
                 await this._handleReply(body, blockNum);
                 break;
         }
     }
 
-    async _handleVoteAndFlag({ voter, author, permlink, weight }, blockNum) {
+    async _handleVoteAndFlag({ voter, author: user, permlink, weight }, blockNum) {
         if (weight === 0) {
             return;
         }
@@ -84,34 +84,40 @@ class Registrator extends BasicService {
             type = 'flag';
         }
 
-        this.emit(type, voter, author, permlink, weight);
+        this.emit(type, user, voter, permlink);
 
-        let model = await Event.findOne({ eventType: type, permlink });
+        let model = await Event.findOne({ eventType: type, user, permlink });
 
         if (model) {
-            model.fromUsers.push(voter);
-            model.counter += 1;
-            model.fresh = true;
+            await Event.findOneAndUpdate(
+                { _id: model._id },
+                {
+                    $inc: { counter: 1 },
+                    $push: { fromUsers: voter },
+                    $set: { fresh: true },
+                }
+            );
         } else {
             model = new Event({
                 blockNum,
-                user: author,
-                eventType: 'vote',
+                user,
+                eventType: type,
                 counter: 1,
                 permlink: permlink,
                 fromUsers: [voter],
             });
+            await model.save();
         }
-
-        await model.save();
     }
 
-    async _handleTransfer({ from, to, amount }, blockNum) {
-        this.emit('transfer', from, to, amount);
+    async _handleTransfer({ to: user, from, amount }, blockNum) {
+        amount = parseFloat(amount);
+
+        this.emit('transfer', user, from, amount);
 
         const model = new Event({
             blockNum,
-            user: to,
+            user,
             eventType: 'transfer',
             fromUsers: [from],
             amount,
@@ -120,19 +126,32 @@ class Registrator extends BasicService {
         await model.save();
     }
 
-    async _handleReply({ parent_author: user, author, permlink }, blockNum) {
+    async _handleReply(
+        {
+            parent_author: user,
+            parent_permlink: parentPermlink,
+            author,
+            permlink,
+        },
+        blockNum
+    ) {
         if (!user) {
             return;
         }
 
         this.emit('reply', user, author, permlink);
 
-        let model = await Event.findOne({ eventType: 'reply', permlink });
+        let model = await Event.findOne({ eventType: 'reply', user, parentPermlink });
 
         if (model) {
-            model.fromUsers.push(user);
-            model.counter += 1;
-            model.fresh = true;
+            await Event.findOneAndUpdate(
+                { _id: model._id },
+                {
+                    $inc: { counter: 1 },
+                    $push: { fromUsers: author },
+                    $set: { fresh: true },
+                }
+            );
         } else {
             model = new Event({
                 blockNum,
@@ -140,7 +159,8 @@ class Registrator extends BasicService {
                 eventType: 'reply',
                 counter: 1,
                 permlink,
-                fromUsers: [user],
+                parentPermlink,
+                fromUsers: [author],
             });
         }
 

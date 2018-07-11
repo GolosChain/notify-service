@@ -34,6 +34,10 @@ module.exports = MongoDB.makeModel(
         permlink: {
             type: String,
         },
+        // reply
+        parentPermlink: {
+            type: String
+        },
         // vote | flag | transfer | reply | subscribe | unsubscribe
         // mention | repost | message
         fromUsers: {
@@ -63,7 +67,7 @@ module.exports = MongoDB.makeModel(
             {
                 fields: {
                     user: 1,
-                    type: 1,
+                    eventType: 1,
                 },
             },
             // Cleaner
