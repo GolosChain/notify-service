@@ -4,14 +4,6 @@ const MongoDB = core.service.MongoDB;
 module.exports = MongoDB.makeModel(
     'Event',
     {
-        createdAt: {
-            type: Date,
-            default: Date.now,
-        },
-        updatedAt: {
-            type: Date,
-            default: Date.now,
-        },
         blockNum: {
             type: Number,
             required: true,
@@ -65,6 +57,7 @@ module.exports = MongoDB.makeModel(
         },
     },
     {
+        // TODO custom indexes
         index: [
             // History request
             {

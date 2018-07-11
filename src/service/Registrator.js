@@ -14,9 +14,9 @@ class Registrator extends BasicService {
 
         this.addNested(subscribe);
 
-        await subscribe.start(data => {
+        await subscribe.start((data, blockNum) => {
             //this._restorer.trySync(data); TODO enable and test sync
-            this._handleBlock(data);
+            this._handleBlock(data, blockNum);
         });
     }
 
@@ -36,82 +36,115 @@ class Registrator extends BasicService {
         await this._restorer.start();
     }
 
-    _handleBlock(data) {
-        for (let transaction of data.transactions) {
-            for (let operation of transaction.operations) {
-                const [type, body] = operation;
-
-                // TODO reply | subscribe | unsubscribe | mention | repost | message
-                switch (type) {
-                    case 'vote':
-                        this._handleVote(body);
-                        this._handleFlag(body);
-                        break;
-                    case 'transfer':
-                        this._handleTransfer(body);
-                        break;
-                    case 'author_reward':
-                        this._handleAward(body);
-                        break;
-                    case 'curation_reward':
-                        this._handleCuratorAward(body);
-                        break;
-
-                }
-            }
-        }
-
-        // TODO -
-        // TODO emit newUserEvent
-    }
-
     _handleBlockError(error) {
         stats.increment('block_registration_error');
         logger.error(`Load block error - ${error}`);
         process.exit(1);
     }
 
-    _handleVote() {
+    _handleBlock(data, blockNum) {
+        for (let transaction of data.transactions) {
+            for (let operation of transaction.operations) {
+                this._routeEventHandlers(operation, blockNum).catch(error => {
+                    logger.error(`Event handler error - ${error}`);
+                    process.exit(1);
+                });
+            }
+        }
+
+        this.emit('blockDone');
+    }
+
+    async _routeEventHandlers([type, body], blockNum) {
+        // TODO reply | subscribe | unsubscribe | mention | repost | message
+        switch (type) {
+            case 'vote':
+                await this._handleVoteAndFlag(body, blockNum);
+                break;
+
+            case 'transfer':
+                await this._handleTransfer(body, blockNum);
+                break;
+
+            case 'author_reward':
+                await this._handleAward(body, blockNum);
+                break;
+
+            case 'curation_reward':
+                await this._handleCuratorAward(body, blockNum);
+                break;
+        }
+    }
+
+    async _handleVoteAndFlag({ voter, author, permlink, weight }, blockNum) {
+        if (weight === 0) {
+            return;
+        }
+
+        let type;
+
+        if (weight > 0) {
+            type = 'vote';
+        } else {
+            type = 'flag';
+        }
+
+        this.emit(type, voter, author, permlink, weight);
+
+        const model = await Event.findOne({ eventType: type, permlink });
+
+        if (model) {
+            model.fromUsers.push(voter);
+            model.counter += 1;
+            model.fresh = true;
+
+            await model.save();
+        } else {
+            new Event({
+                blockNum,
+                user: author,
+                eventType: 'vote',
+                fresh: true,
+                counter: 1,
+                permlink: permlink,
+                fromUsers: [voter],
+            });
+        }
+    }
+
+    async _handleTransfer(data, blockNum) {
         // TODO -
     }
 
-    _handleFlag() {
+    async _handleReply(data, blockNum) {
+        // TODO ---
+    }
+
+    async _handleSubscribe(data, blockNum) {
+        // TODO ---
+    }
+
+    async _handleUnsubscribe(data, blockNum) {
+        // TODO ---
+    }
+
+    async _handleMention(data, blockNum) {
+        // TODO ---
+    }
+
+    async _handleRepost(data, blockNum) {
+        // TODO ---
+    }
+
+    async _handleAward(data, blockNum) {
         // TODO -
     }
 
-    _handleTransfer() {
+    async _handleCuratorAward(data, blockNum) {
         // TODO -
     }
 
-    _handleReply() {
-        // TODO ---
-    }
-
-    _handleSubscribe() {
-        // TODO ---
-    }
-
-    _handleUnsubscribe() {
-        // TODO ---
-    }
-
-    _handleMention() {
-        // TODO ---
-    }
-
-    _handleRepost() {
-        // TODO ---
-    }
-
-    _handleAward() {
-        // TODO -
-    }
-
-    _handleCuratorAward() {
-        // TODO -
-    }
-
-    _handleMessage() {
+    async _handleMessage(data, blockNum) {
         // TODO ---
     }
 }
