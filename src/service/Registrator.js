@@ -91,16 +91,14 @@ class Registrator extends BasicService {
 
         this.emit(type, voter, author, permlink, weight);
 
-        const model = await Event.findOne({ eventType: type, permlink });
+        let model = await Event.findOne({ eventType: type, permlink });
 
         if (model) {
             model.fromUsers.push(voter);
             model.counter += 1;
             model.fresh = true;
-
-            await model.save();
         } else {
-            new Event({
+            model = new Event({
                 blockNum,
                 user: author,
                 eventType: 'vote',
@@ -110,10 +108,23 @@ class Registrator extends BasicService {
                 fromUsers: [voter],
             });
         }
+
+        await model.save();
     }
 
-    async _handleTransfer(data, blockNum) {
-        // TODO -
+    async _handleTransfer({from, to, amount}, blockNum) {
+        this.emit('transfer', from, to, amount);
+
+        const model = new Event({
+            blockNum,
+            user: to,
+            eventType: 'transfer',
+            fresh: true,
+            fromUsers: [from],
+            amount,
+        });
+
+        await model.save();
     }
 
     async _handleReply(data, blockNum) {
