@@ -65,13 +65,8 @@ class Registrator extends BasicService {
             case 'transfer':
                 await this._handleTransfer(body, blockNum);
                 break;
-
-            case 'author_reward':
-                await this._handleAward(body, blockNum);
-                break;
-
-            case 'curation_reward':
-                await this._handleCuratorAward(body, blockNum);
+            case 'comment':
+                await this._handleReply(body, blockNum);
                 break;
         }
     }
@@ -102,7 +97,6 @@ class Registrator extends BasicService {
                 blockNum,
                 user: author,
                 eventType: 'vote',
-                fresh: true,
                 counter: 1,
                 permlink: permlink,
                 fromUsers: [voter],
@@ -112,14 +106,13 @@ class Registrator extends BasicService {
         await model.save();
     }
 
-    async _handleTransfer({from, to, amount}, blockNum) {
+    async _handleTransfer({ from, to, amount }, blockNum) {
         this.emit('transfer', from, to, amount);
 
         const model = new Event({
             blockNum,
             user: to,
             eventType: 'transfer',
-            fresh: true,
             fromUsers: [from],
             amount,
         });
@@ -127,8 +120,31 @@ class Registrator extends BasicService {
         await model.save();
     }
 
-    async _handleReply(data, blockNum) {
-        // TODO ---
+    async _handleReply({ parent_author: user, author, permlink }, blockNum) {
+        if (!user) {
+            return;
+        }
+
+        this.emit('reply', user, author, permlink);
+
+        let model = await Event.findOne({ eventType: 'reply', permlink });
+
+        if (model) {
+            model.fromUsers.push(user);
+            model.counter += 1;
+            model.fresh = true;
+        } else {
+            model = new Event({
+                blockNum,
+                user,
+                eventType: 'reply',
+                counter: 1,
+                permlink,
+                fromUsers: [user],
+            });
+        }
+
+        await model.save();
     }
 
     async _handleSubscribe(data, blockNum) {
@@ -148,11 +164,11 @@ class Registrator extends BasicService {
     }
 
     async _handleAward(data, blockNum) {
-        // TODO -
+        // TODO ---
     }
 
     async _handleCuratorAward(data, blockNum) {
-        // TODO -
+        // TODO ---
     }
 
     async _handleMessage(data, blockNum) {
