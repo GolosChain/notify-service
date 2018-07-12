@@ -1,20 +1,31 @@
 const core = require('griboyedov');
 const BasicService = core.service.Basic;
+const Gate = core.service.Gate;
+const env = require('../Env');
 
 class Notifier extends BasicService {
     constructor(userEventEmitter) {
         super();
 
+        this._gate = new Gate();
         this._userEventEmitter = userEventEmitter;
-        this._userMapping = new Map();
-        this._accumulator = {};
+        this._userMapping = new Map(); // user -> channelId -> requestId
+        this._accumulator = new Map(); // user -> type -> [data]
     }
 
     async start() {
         const emitter = this._userEventEmitter;
         const online = this._filterOnline.bind(this);
 
-        // TODO gates
+        await this._gate.start({
+            serverRoutes: {
+                subscribe: this._registerSubscribe.bind(this),
+                unsubscribe: this._registerUnsubscribe.bind(this),
+            },
+            requiredClients: this._gate.makeDefaultRequiredClientsConfig(),
+        });
+
+        this.addNested(this._gate);
 
         emitter.on('vote', online(this._handleVote));
         emitter.on('flag', online(this._handleFlag));
@@ -25,7 +36,7 @@ class Notifier extends BasicService {
     }
 
     async stop() {
-        // TODO -
+        await this.stopNested();
     }
 
     _handleVote(user, voter, permlink) {
@@ -71,10 +82,17 @@ class Notifier extends BasicService {
     }
 
     _accumulatorBy(user, type) {
-        this._accumulator[user] = this._accumulator[user] || {};
-        this._accumulator[user][type] = this._accumulator[user][type] || [];
+        const acc = this._accumulator;
 
-        return this._accumulator[user][type];
+        if (!acc.get(user)) {
+            acc.set(user, new Map());
+        }
+
+        if (!acc.get(user).get(type)) {
+            acc.get(user).set(type, []);
+        }
+
+        return acc.get(user).get(type);
     }
 
     _cleanAccumulator() {
@@ -83,6 +101,32 @@ class Notifier extends BasicService {
 
     _broadcast() {
         // TODO -
+    }
+
+    _registerSubscribe(data) {
+        const map = this._userMapping;
+        const { user, channelId, requestId } = data;
+
+        if (!map.get(user)) {
+            map.set(user, new Map());
+        }
+
+        map.get(user).set(channelId, requestId);
+
+        return 'Ok';
+    }
+
+    _registerUnsubscribe(data) {
+        const map = this._userMapping;
+        const { user, channelId } = data;
+
+        map.get(user).delete(channelId);
+
+        if (!map.get(user).size) {
+            map.delete(user);
+        }
+
+        return 'Ok';
     }
 }
 
