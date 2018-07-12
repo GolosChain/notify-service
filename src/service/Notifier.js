@@ -123,11 +123,14 @@ class Notifier extends BasicService {
                         requestId,
                         result,
                     })
-                    .catch(() =>
+                    .catch(() => {
                         logger.log(
                             `Can not send data to ${user} by ${channelId}`
-                        )
-                    );
+                        );
+                        this._registerUnsubscribe({ user, channelId }).catch(
+                            () => {} // no catch
+                        );
+                    });
             }
         }
 
