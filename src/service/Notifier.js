@@ -1,6 +1,7 @@
 const core = require('griboyedov');
 const BasicService = core.service.Basic;
 const Gate = core.service.Gate;
+const logger = core.Logger;
 const env = require('../Env');
 
 class Notifier extends BasicService {
@@ -96,11 +97,41 @@ class Notifier extends BasicService {
     }
 
     _cleanAccumulator() {
-        this._accumulator = {};
+        this._accumulator = new Map();
     }
 
     _broadcast() {
-        // TODO -
+        const users = this._userMapping;
+        const acc = this._accumulator;
+
+        for (let [user, types] of acc) {
+            const userData = users.get(user);
+            const result = {};
+
+            if (!userData) {
+                continue;
+            }
+
+            for (let [type, events] of types) {
+                result[type] = events;
+            }
+
+            for (let [channelId, requestId] of userData) {
+                this._gate
+                    .sendTo('bulgakov', 'transfer', {
+                        channelId,
+                        requestId,
+                        result,
+                    })
+                    .catch(() =>
+                        logger.log(
+                            `Can not send data to ${user} by ${channelId}`
+                        )
+                    );
+            }
+        }
+
+        this._cleanAccumulator();
     }
 
     _registerSubscribe(data) {
