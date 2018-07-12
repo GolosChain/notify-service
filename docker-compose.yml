@@ -10,8 +10,8 @@ services:
       - 27017:27017
     networks:
       - services-tier
-  node:
-    container_name: node
+  node-notify:
+    container_name: node-notify
     restart: always
     depends_on:
       - mongo
@@ -20,8 +20,12 @@ services:
       dockerfile: Dockerfile
     networks:
       - services-tier
+    ports:
+      - 127.0.0.1:$GATE_LISTEN_PORT:$GATE_LISTEN_PORT
     environment:
-      - EXPIRATION
+      - GATE_LISTEN_PORT
+      - BULGAKOV_CONNECT_STRING
+      - EVENT_EXPIRATION
       - DAY_START
       - MONGO_CONNECT_STRING
       - BLOCKCHAIN_SUBSCRIBE_TIMEOUT
