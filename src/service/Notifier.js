@@ -134,7 +134,7 @@ class Notifier extends BasicService {
         this._cleanAccumulator();
     }
 
-    _registerSubscribe(data) {
+    async _registerSubscribe(data) {
         const map = this._userMapping;
         const { user, channelId, requestId } = data;
 
@@ -147,7 +147,7 @@ class Notifier extends BasicService {
         return 'Ok';
     }
 
-    _registerUnsubscribe(data) {
+    async _registerUnsubscribe(data) {
         const map = this._userMapping;
         const { user, channelId } = data;
 
