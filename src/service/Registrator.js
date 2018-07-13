@@ -67,6 +67,7 @@ class Registrator extends BasicService {
 
             case 'comment':
                 await this._handleReply(body, blockNum);
+                await this._handleMention(body, blockNum);
                 break;
 
             case 'custom_json':
@@ -180,7 +181,7 @@ class Registrator extends BasicService {
 
         this.emit(eventType, user, follower);
 
-        await this._saveSubscribe({eventType, user, follower}, blockNum);
+        await this._saveSubscribe({ eventType, user, follower }, blockNum);
     }
 
     _tryExtractSubscribe(rawData) {
@@ -212,7 +213,7 @@ class Registrator extends BasicService {
         }
     }
 
-    async _saveSubscribe({eventType, user, follower}, blockNum) {
+    async _saveSubscribe({ eventType, user, follower }, blockNum) {
         // TODO -
     }
 
@@ -225,7 +226,7 @@ class Registrator extends BasicService {
 
         this.emit('repost', user, reposter, permlink);
 
-        await this._saveRepost({user, reposter, permlink}, blockNum);
+        await this._saveRepost({ user, reposter, permlink }, blockNum);
     }
 
     _tryExtractRepost(rawData) {
@@ -240,21 +241,30 @@ class Registrator extends BasicService {
                 return {};
             }
 
-            const {author: user, permlink} = data[1];
+            const { author: user, permlink } = data[1];
 
-            return {user, reposter, permlink};
+            return { user, reposter, permlink };
         } catch (error) {
             logger.log(`Bad repost from - ${reposter}`);
             return {};
         }
     }
 
-    async _saveRepost({user, reposter, permlink}, blockNum) {
+    async _saveRepost({ user, reposter, permlink }, blockNum) {
         // TODO -
     }
 
-    async _handleMention(data, blockNum) {
-        // TODO ---
+    async _handleMention({ title, body, permlink }, blockNum) {
+        const re = /(@[a-z][-\.a-z\d]+[a-z\d])/gi;
+        const inTitle = title.match(re) || [];
+        const inBody = body.match(re) || [];
+        const users = inTitle.concat(inBody);
+
+        for (let user of users) {
+            this.emit('mention', user, permlink);
+
+            // TODO save mention
+        }
     }
 
     async _handleAward(data, blockNum) {
