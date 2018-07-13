@@ -2,6 +2,7 @@ const Event = require('../model/Event');
 const core = require('griboyedov');
 const logger = core.Logger;
 const stats = core.Stats.client;
+const Moments = core.Moments;
 const BasicService = core.service.Basic;
 const BlockSubscribe = core.service.BlockSubscribe;
 const BlockSubscribeRestore = core.service.BlockSubscribeRestore;
@@ -95,14 +96,7 @@ class Registrator extends BasicService {
         let model = await Event.findOne({ eventType: type, user, permlink });
 
         if (model) {
-            await Event.findOneAndUpdate(
-                { _id: model._id },
-                {
-                    $inc: { counter: 1 },
-                    $push: { fromUsers: voter },
-                    $set: { fresh: true },
-                }
-            );
+            await this._incrementModel(model, voter);
         } else {
             model = new Event({
                 blockNum,
@@ -148,14 +142,7 @@ class Registrator extends BasicService {
         });
 
         if (model) {
-            await Event.findOneAndUpdate(
-                { _id: model._id },
-                {
-                    $inc: { counter: 1 },
-                    $push: { fromUsers: author },
-                    $set: { fresh: true },
-                }
-            );
+            await this._incrementModel(model, author);
         } else {
             model = new Event({
                 blockNum,
@@ -212,7 +199,23 @@ class Registrator extends BasicService {
     }
 
     async _saveSubscribe({ eventType, user, follower }, blockNum) {
-        // TODO -
+        let model = await Event.findOne({
+            eventType,
+            user,
+            createdAt: { $gt: Moments.currentDayStart },
+        });
+
+        if (model) {
+            await this._incrementModel(model, follower);
+        } else {
+            model = new Event({
+                blockNum,
+                user,
+                eventType,
+                fromUsers: [follower],
+            });
+            await model.save();
+        }
     }
 
     async _handleRepost(rawData, blockNum) {
@@ -249,7 +252,20 @@ class Registrator extends BasicService {
     }
 
     async _saveRepost({ user, reposter, permlink }, blockNum) {
-        // TODO -
+        let model = await Event.findOne({ eventType: 'repost', user, permlink });
+
+        if (model) {
+            await this._incrementModel(model, reposter);
+        } else {
+            model = new Event({
+                blockNum,
+                user,
+                eventType: 'repost',
+                permlink,
+                fromUsers: [reposter],
+            });
+            await model.save();
+        }
     }
 
     async _handleMention(
@@ -264,14 +280,7 @@ class Registrator extends BasicService {
             let model = await Event.findOne({ eventType: 'mention', user, parentPermlink });
 
             if (model) {
-                await Event.findOneAndUpdate(
-                    { _id: model._id },
-                    {
-                        $inc: { counter: 1 },
-                        $push: { fromUsers: [author] },
-                        $set: { fresh: true },
-                    }
-                );
+                await this._incrementModel(model, author);
             } else {
                 model = new Event({
                     blockNum,
@@ -322,6 +331,17 @@ class Registrator extends BasicService {
         }
 
         return { type, user, data };
+    }
+
+    async _incrementModel(model, fromUser) {
+        await Event.findOneAndUpdate(
+            { _id: model._id },
+            {
+                $inc: { counter: 1 },
+                $push: { fromUser },
+                $set: { fresh: true },
+            }
+        );
     }
 }
 
