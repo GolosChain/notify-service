@@ -34,7 +34,7 @@ module.exports = MongoDB.makeModel(
         permlink: {
             type: String,
         },
-        // reply
+        // reply | mention
         parentPermlink: {
             type: String,
         },

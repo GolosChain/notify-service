@@ -34,6 +34,7 @@ class Notifier extends BasicService {
         emitter.on('subscribe', online(this._handleSubscribe));
         emitter.on('unsubscribe', online(this._handleUnsubscribe));
         emitter.on('repost', online(this._handleRepost));
+        emitter.on('mention', online(this._handleMention));
 
         emitter.on('transfer', online(this._handleTransfer));
 
@@ -66,6 +67,10 @@ class Notifier extends BasicService {
 
     _handleRepost(user, reposter, permlink) {
         this._accumulateWithIncrement(user, 'repost', { reposter, permlink });
+    }
+
+    _handleMention(user, permlink) {
+        this._accumulateWithIncrement(user, 'mention', { permlink });
     }
 
     _handleTransfer(user, from, amount) {
@@ -113,34 +118,34 @@ class Notifier extends BasicService {
         const acc = this._accumulator;
 
         for (let [user, types] of acc) {
-            const userData = users.get(user);
-            const result = {};
-
-            if (!userData) {
-                continue;
-            }
-
-            for (let [type, events] of types) {
-                result[type] = events;
-            }
-
-            for (let [channelId, requestId] of userData) {
-                this._gate
-                    .sendTo('bulgakov', 'transfer', {
-                        channelId,
-                        requestId,
-                        result,
-                    })
-                    .catch(() => {
-                        logger.log(`Can not send data to ${user} by ${channelId}`);
-                        this._registerUnsubscribe({ user, channelId }).catch(
-                            () => {} // no catch
-                        );
-                    });
-            }
+            this._notifyUser(user, users, types);
         }
 
         this._cleanAccumulator();
+    }
+
+    _notifyUser(user, users, types) {
+        const userData = users.get(user);
+        const result = {};
+
+        if (!userData) {
+            return;
+        }
+
+        for (let [type, events] of types) {
+            result[type] = events;
+        }
+
+        for (let [channelId, requestId] of userData) {
+            this._gate
+                .sendTo('bulgakov', 'transfer', { channelId, requestId, result })
+                .catch(() => {
+                    logger.log(`Can not send data to ${user} by ${channelId}`);
+                    this._registerUnsubscribe({ user, channelId }).catch(
+                        () => {} // no catch
+                    );
+                });
+        }
     }
 
     async _registerSubscribe(data) {

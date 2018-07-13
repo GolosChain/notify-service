@@ -108,7 +108,6 @@ class Registrator extends BasicService {
                 blockNum,
                 user,
                 eventType: type,
-                counter: 1,
                 permlink: permlink,
                 fromUsers: [voter],
             });
@@ -162,7 +161,6 @@ class Registrator extends BasicService {
                 blockNum,
                 user,
                 eventType: 'reply',
-                counter: 1,
                 permlink,
                 parentPermlink,
                 fromUsers: [author],
@@ -254,17 +252,48 @@ class Registrator extends BasicService {
         // TODO -
     }
 
-    async _handleMention({ title, body, permlink }, blockNum) {
-        const re = /(@[a-z][-\.a-z\d]+[a-z\d])/gi;
-        const inTitle = title.match(re) || [];
-        const inBody = body.match(re) || [];
-        const users = inTitle.concat(inBody);
+    async _handleMention(
+        { author, title, body, permlink, parent_permlink: parentPermlink },
+        blockNum
+    ) {
+        const users = this._extractMention(title, body);
 
         for (let user of users) {
             this.emit('mention', user, permlink);
 
-            // TODO save mention
+            let model = await Event.findOne({ eventType: 'mention', user, parentPermlink });
+
+            if (model) {
+                await Event.findOneAndUpdate(
+                    { _id: model._id },
+                    {
+                        $inc: { counter: 1 },
+                        $push: { fromUsers: [author] },
+                        $set: { fresh: true },
+                    }
+                );
+            } else {
+                model = new Event({
+                    blockNum,
+                    user,
+                    eventType: 'mention',
+                    permlink,
+                    parentPermlink,
+                    fromUsers: [author],
+                });
+                await model.save();
+            }
         }
+    }
+
+    _extractMention(title, body) {
+        const re = /(@[a-z][-\.a-z\d]+[a-z\d])/gi;
+        const inTitle = title.match(re) || [];
+        const inBody = body.match(re) || [];
+        const totalRaw = inTitle.concat(inBody);
+        const total = totalRaw.map(v => v.slice(1));
+
+        return new Set(total);
     }
 
     async _handleAward(data, blockNum) {
