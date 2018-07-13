@@ -32,6 +32,8 @@ class Notifier extends BasicService {
         emitter.on('flag', online(this._handleFlag));
         emitter.on('transfer', online(this._handleTransfer));
         emitter.on('reply', online(this._handleReply));
+        emitter.on('subscribe', online(this._handleSubscribe));
+        emitter.on('unsubscribe', online(this._handleUnsubscribe));
 
         emitter.on('blockDone', this._broadcast.bind(this));
     }
@@ -71,6 +73,26 @@ class Notifier extends BasicService {
             acc[0].counter++;
         } else {
             acc.push({ author, permlink, counter: 1 });
+        }
+    }
+
+    _handleSubscribe(user, follower) {
+        const acc = this._accumulatorBy(user, 'subscribe');
+
+        if (acc.length) {
+            acc[0].counter++;
+        } else {
+            acc.push({ follower, counter: 1 });
+        }
+    }
+
+    _handleUnsubscribe(user, follower) {
+        const acc = this._accumulatorBy(user, 'unsubscribe');
+
+        if (acc.length) {
+            acc[0].counter++;
+        } else {
+            acc.push({ follower, counter: 1 });
         }
     }
 
@@ -124,9 +146,7 @@ class Notifier extends BasicService {
                         result,
                     })
                     .catch(() => {
-                        logger.log(
-                            `Can not send data to ${user} by ${channelId}`
-                        );
+                        logger.log(`Can not send data to ${user} by ${channelId}`);
                         this._registerUnsubscribe({ user, channelId }).catch(
                             () => {} // no catch
                         );

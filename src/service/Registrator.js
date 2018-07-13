@@ -68,6 +68,11 @@ class Registrator extends BasicService {
             case 'comment':
                 await this._handleReply(body, blockNum);
                 break;
+
+            case 'custom_json':
+                await this._handleSubscribeOrUnsubscribe(body, blockNum);
+                await this._handleRepost(body, blockNum);
+                break;
         }
     }
 
@@ -127,12 +132,7 @@ class Registrator extends BasicService {
     }
 
     async _handleReply(
-        {
-            parent_author: user,
-            parent_permlink: parentPermlink,
-            author,
-            permlink,
-        },
+        { parent_author: user, parent_permlink: parentPermlink, author, permlink },
         blockNum
     ) {
         if (!user) {
@@ -141,7 +141,11 @@ class Registrator extends BasicService {
 
         this.emit('reply', user, author, permlink);
 
-        let model = await Event.findOne({ eventType: 'reply', user, parentPermlink });
+        let model = await Event.findOne({
+            eventType: 'reply',
+            user,
+            parentPermlink,
+        });
 
         if (model) {
             await Event.findOneAndUpdate(
@@ -167,11 +171,48 @@ class Registrator extends BasicService {
         await model.save();
     }
 
-    async _handleSubscribe(data, blockNum) {
-        // TODO ---
+    async _handleSubscribeOrUnsubscribe(rawData, blockNum) {
+        const { eventType, user, follower } = this._tryExtractSubscribe(rawData);
+
+        if (!user) {
+            return;
+        }
+
+        this.emit(eventType, user, follower);
+
+        await this._saveSubscribe({eventType, user, follower}, blockNum);
     }
 
-    async _handleUnsubscribe(data, blockNum) {
+    _tryExtractSubscribe(rawData) {
+        const { type, follower, data } = this._parseCustomJson(rawData);
+
+        if (type !== 'follow') {
+            return {};
+        }
+
+        try {
+            const actionTypes = data[1].what;
+            const user = data[1].following;
+            let eventType;
+
+            if (~actionTypes.indexOf('blog')) {
+                eventType = 'subscribe';
+            } else {
+                eventType = 'unsubscribe';
+            }
+
+            return { eventType, user, follower };
+        } catch (error) {
+            logger.log(`Bad follow from - ${follower}`);
+            return {};
+        }
+    }
+
+    async _saveSubscribe({eventType, user, follower}, blockNum) {
+        // TODO -
+    }
+
+    async _handleRepost(data, blockNum) {
         // TODO ---
     }
 
@@ -179,20 +220,32 @@ class Registrator extends BasicService {
         // TODO ---
     }
 
-    async _handleRepost(data, blockNum) {
-        // TODO ---
-    }
-
     async _handleAward(data, blockNum) {
-        // TODO ---
+        // TODO wait blockchain implementation
     }
 
     async _handleCuratorAward(data, blockNum) {
-        // TODO ---
+        // TODO wait blockchain implementation
     }
 
     async _handleMessage(data, blockNum) {
-        // TODO ---
+        // TODO wait blockchain implementation
+        // TODO filtrate from transactions
+    }
+
+    _parseCustomJson(rawData) {
+        const type = rawData.id;
+        const follower = rawData.required_posting_auths[0];
+        let data;
+
+        try {
+            data = JSON.parse(rawData.json);
+        } catch (error) {
+            logger.log(`Bad custom JSON from - ${follower}`);
+            return {};
+        }
+
+        return { type, follower, data };
     }
 }
 

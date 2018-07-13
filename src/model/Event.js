@@ -36,7 +36,7 @@ module.exports = MongoDB.makeModel(
         },
         // reply
         parentPermlink: {
-            type: String
+            type: String,
         },
         // vote | flag | transfer | reply | subscribe | unsubscribe
         // mention | repost | message
