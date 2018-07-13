@@ -184,13 +184,17 @@ class Registrator extends BasicService {
     }
 
     _tryExtractSubscribe(rawData) {
-        const { type, follower, data } = this._parseCustomJson(rawData);
+        const { type, user: follower, data } = this._parseCustomJson(rawData);
 
         if (type !== 'follow') {
             return {};
         }
 
         try {
+            if (data[0] !== 'follow') {
+                return {};
+            }
+
             const actionTypes = data[1].what;
             const user = data[1].following;
             let eventType;
@@ -212,8 +216,41 @@ class Registrator extends BasicService {
         // TODO -
     }
 
-    async _handleRepost(data, blockNum) {
-        // TODO ---
+    async _handleRepost(rawData, blockNum) {
+        const { user, reposter, permlink } = this._tryExtractRepost(rawData);
+
+        if (!user) {
+            return;
+        }
+
+        this.emit('repost', user, reposter, permlink);
+
+        await this._saveRepost({user, reposter, permlink}, blockNum);
+    }
+
+    _tryExtractRepost(rawData) {
+        const { type, user: reposter, data } = this._parseCustomJson(rawData);
+
+        if (type !== 'follow') {
+            return {};
+        }
+
+        try {
+            if (data[0] !== 'reblog') {
+                return {};
+            }
+
+            const {author: user, permlink} = data[1];
+
+            return {user, reposter, permlink};
+        } catch (error) {
+            logger.log(`Bad repost from - ${reposter}`);
+            return {};
+        }
+    }
+
+    async _saveRepost({user, reposter, permlink}, blockNum) {
+        // TODO -
     }
 
     async _handleMention(data, blockNum) {
@@ -235,17 +272,17 @@ class Registrator extends BasicService {
 
     _parseCustomJson(rawData) {
         const type = rawData.id;
-        const follower = rawData.required_posting_auths[0];
+        const user = rawData.required_posting_auths[0];
         let data;
 
         try {
             data = JSON.parse(rawData.json);
         } catch (error) {
-            logger.log(`Bad custom JSON from - ${follower}`);
+            logger.log(`Bad custom JSON from - ${user}`);
             return {};
         }
 
-        return { type, follower, data };
+        return { type, user, data };
     }
 }
 

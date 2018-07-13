@@ -30,10 +30,12 @@ class Notifier extends BasicService {
 
         emitter.on('vote', online(this._handleVote));
         emitter.on('flag', online(this._handleFlag));
-        emitter.on('transfer', online(this._handleTransfer));
         emitter.on('reply', online(this._handleReply));
         emitter.on('subscribe', online(this._handleSubscribe));
         emitter.on('unsubscribe', online(this._handleUnsubscribe));
+        emitter.on('repost', online(this._handleRepost));
+
+        emitter.on('transfer', online(this._handleTransfer));
 
         emitter.on('blockDone', this._broadcast.bind(this));
     }
@@ -43,56 +45,40 @@ class Notifier extends BasicService {
     }
 
     _handleVote(user, voter, permlink) {
-        const acc = this._accumulatorBy(user, 'vote');
-
-        if (acc.length) {
-            acc[0].counter++;
-        } else {
-            acc.push({ voter, permlink, counter: 1 });
-        }
+        this._accumulateWithIncrement(user, 'vote', { voter, permlink });
     }
 
     _handleFlag(user, voter, permlink) {
-        const acc = this._accumulatorBy(user, 'flag');
+        this._accumulateWithIncrement(user, 'flag', { voter, permlink });
+    }
 
-        if (acc.length) {
-            acc[0].counter++;
-        } else {
-            acc.push({ voter, permlink, counter: 1 });
-        }
+    _handleReply(user, author, permlink) {
+        this._accumulateWithIncrement(user, 'reply', { author, permlink });
+    }
+
+    _handleSubscribe(user, follower) {
+        this._accumulateWithIncrement(user, 'subscribe', { follower });
+    }
+
+    _handleUnsubscribe(user, follower) {
+        this._accumulateWithIncrement(user, 'unsubscribe', { follower });
+    }
+
+    _handleRepost(user, reposter, permlink) {
+        this._accumulateWithIncrement(user, 'repost', { reposter, permlink });
     }
 
     _handleTransfer(user, from, amount) {
         this._accumulatorBy(user, 'transfer').push({ from, amount });
     }
 
-    _handleReply(user, author, permlink) {
-        const acc = this._accumulatorBy(user, 'reply');
+    _accumulateWithIncrement(user, type, data) {
+        const acc = this._accumulatorBy(user, type);
 
         if (acc.length) {
             acc[0].counter++;
         } else {
-            acc.push({ author, permlink, counter: 1 });
-        }
-    }
-
-    _handleSubscribe(user, follower) {
-        const acc = this._accumulatorBy(user, 'subscribe');
-
-        if (acc.length) {
-            acc[0].counter++;
-        } else {
-            acc.push({ follower, counter: 1 });
-        }
-    }
-
-    _handleUnsubscribe(user, follower) {
-        const acc = this._accumulatorBy(user, 'unsubscribe');
-
-        if (acc.length) {
-            acc[0].counter++;
-        } else {
-            acc.push({ follower, counter: 1 });
+            acc.push({ counter: 1, ...data });
         }
     }
 
