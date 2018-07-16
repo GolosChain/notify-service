@@ -2,6 +2,7 @@ const core = require('griboyedov');
 const BasicService = core.service.Basic;
 const Gate = core.service.Gate;
 const logger = core.Logger;
+const serviceAliasEnv = core.ServiceAliasEnv;
 const env = require('../Env');
 
 class Notifier extends BasicService {
@@ -23,7 +24,7 @@ class Notifier extends BasicService {
                 subscribe: this._registerSubscribe.bind(this),
                 unsubscribe: this._registerUnsubscribe.bind(this),
             },
-            requiredClients: this._gate.makeDefaultRequiredClientsConfig(),
+            requiredClients: serviceAliasEnv,
         });
 
         this.addNested(this._gate);

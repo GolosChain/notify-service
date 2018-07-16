@@ -152,9 +152,9 @@ class Registrator extends BasicService {
                 parentPermlink,
                 fromUsers: [author],
             });
-        }
 
-        await model.save();
+            await model.save();
+        }
     }
 
     async _handleSubscribeOrUnsubscribe(rawData, blockNum) {
@@ -214,6 +214,7 @@ class Registrator extends BasicService {
                 eventType,
                 fromUsers: [follower],
             });
+
             await model.save();
         }
     }
@@ -264,6 +265,7 @@ class Registrator extends BasicService {
                 permlink,
                 fromUsers: [reposter],
             });
+
             await model.save();
         }
     }
@@ -290,6 +292,7 @@ class Registrator extends BasicService {
                     parentPermlink,
                     fromUsers: [author],
                 });
+
                 await model.save();
             }
         }
