@@ -25,30 +25,18 @@ class Cleaner extends BasicService {
         logger.info('Start cleaning...');
 
         const timer = new Date();
-        const eventsCursor = await this._aggregateData();
+        const expiration = Moments.ago(env.EVENT_EXPIRATION);
 
-        eventsCursor.on('data', document => {
-            document.remove();
-        });
+        try {
+            await Event.remove({ createdAt: { $lte: expiration } });
 
-        eventsCursor.on('close', () => {
-            logger.info('Cleaning done!');
             stats.timing('cleaning', new Date() - timer);
-        });
-
-        eventsCursor.on('error', error => {
+            logger.info('Cleaning done!');
+        } catch (error) {
             stats.increment('cleaning_error');
             logger.error(`Cleaning error - ${error}`);
             process.exit(1);
-        });
-    }
-
-    async _aggregateData() {
-        const expiration = Moments.ago(env.EVENT_EXPIRATION);
-
-        return await Event.where('date')
-            .lte(expiration)
-            .cursor();
+        }
     }
 }
 
