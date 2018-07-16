@@ -7,6 +7,19 @@ const env = require('../Env');
 const Event = require('../model/Event');
 
 const MAX_HISTORY_LIMIT = 100;
+const EVENT_TYPES = [
+    'vote',
+    'flag',
+    'transfer',
+    'reply',
+    'subscribe',
+    'unsubscribe',
+    'mention',
+    'repost',
+    'award',
+    'curatorAward',
+    'message',
+];
 
 class Notifier extends BasicService {
     constructor(userEventEmitter) {
@@ -179,7 +192,7 @@ class Notifier extends BasicService {
         return 'Ok';
     }
 
-    async _getHistory({ user, params: { skip = 0, limit = 10 } }) {
+    async _getHistory({ user, params: { skip = 0, limit = 10, type: eventType } }) {
         if (skip < 0) {
             throw { code: 400, message: 'Skip < 0' };
         }
@@ -192,8 +205,12 @@ class Notifier extends BasicService {
             throw { code: 400, message: `Limit > ${MAX_HISTORY_LIMIT}` };
         }
 
+        if (!~EVENT_TYPES.indexOf(eventType)) {
+            throw { code: 400, message: `Bad type - ${eventType || 'null'}` };
+        }
+
         return await Event.find(
-            { user },
+            { user, eventType },
             {
                 id: false,
                 _id: false,
@@ -201,7 +218,14 @@ class Notifier extends BasicService {
                 blockNum: false,
                 user: false,
             },
-            { skip, limit, lean: true }
+            {
+                skip,
+                limit,
+                lean: true,
+                sort: {
+                    updatedAt: -1,
+                },
+            }
         );
     }
 }

@@ -61,13 +61,20 @@ module.exports = MongoDB.makeModel(
         },
     },
     {
-        // TODO custom indexes
         index: [
+            // Registrator
+            {
+                fields: {
+                    eventType: 1,
+                    user: 1,
+                },
+            },
             // History request
             {
                 fields: {
                     user: 1,
                     eventType: 1,
+                    updatedAt: -1,
                 },
             },
             // Cleaner
