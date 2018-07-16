@@ -4,6 +4,9 @@ const Gate = core.service.Gate;
 const logger = core.Logger;
 const serviceAliasEnv = core.ServiceAliasEnv;
 const env = require('../Env');
+const Event = require('../model/Event');
+
+const MAX_HISTORY_LIMIT = 100;
 
 class Notifier extends BasicService {
     constructor(userEventEmitter) {
@@ -23,6 +26,7 @@ class Notifier extends BasicService {
             serverRoutes: {
                 subscribe: this._registerSubscribe.bind(this),
                 unsubscribe: this._registerUnsubscribe.bind(this),
+                history: this._getHistory.bind(this),
             },
             requiredClients: serviceAliasEnv,
         });
@@ -173,6 +177,32 @@ class Notifier extends BasicService {
         }
 
         return 'Ok';
+    }
+
+    async _getHistory({ user, params: { skip = 0, limit = 10 } }) {
+        if (skip < 0) {
+            throw { code: 400, message: 'Skip < 0' };
+        }
+
+        if (limit <= 0) {
+            throw { code: 400, message: 'Limit <= 0' };
+        }
+
+        if (limit > MAX_HISTORY_LIMIT) {
+            throw { code: 400, message: `Limit > ${MAX_HISTORY_LIMIT}` };
+        }
+
+        return await Event.find(
+            { user },
+            {
+                id: false,
+                _id: false,
+                __v: false,
+                blockNum: false,
+                user: false,
+            },
+            { skip, limit, lean: true }
+        );
     }
 }
 

@@ -336,12 +336,12 @@ class Registrator extends BasicService {
         return { type, user, data };
     }
 
-    async _incrementModel(model, fromUser) {
+    async _incrementModel(model, fromUsers) {
         await Event.findOneAndUpdate(
             { _id: model._id },
             {
                 $inc: { counter: 1 },
-                $push: { fromUser },
+                $push: { fromUsers },
                 $set: { fresh: true },
             }
         );
