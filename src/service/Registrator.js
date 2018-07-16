@@ -93,7 +93,12 @@ class Registrator extends BasicService {
 
         this.emit(type, user, voter, permlink);
 
-        let model = await Event.findOne({ eventType: type, user, permlink });
+        let model = await Event.findOne({
+            eventType: type,
+            user,
+            permlink,
+            createdAt: { $gt: Moments.currentDayStart },
+        });
 
         if (model) {
             await this._incrementModel(model, voter);
@@ -139,6 +144,7 @@ class Registrator extends BasicService {
             eventType: 'reply',
             user,
             parentPermlink,
+            createdAt: { $gt: Moments.currentDayStart },
         });
 
         if (model) {
@@ -253,7 +259,12 @@ class Registrator extends BasicService {
     }
 
     async _saveRepost({ user, reposter, permlink }, blockNum) {
-        let model = await Event.findOne({ eventType: 'repost', user, permlink });
+        let model = await Event.findOne({
+            eventType: 'repost',
+            user,
+            permlink,
+            createdAt: { $gt: Moments.currentDayStart },
+        });
 
         if (model) {
             await this._incrementModel(model, reposter);
@@ -279,7 +290,12 @@ class Registrator extends BasicService {
         for (let user of users) {
             this.emit('mention', user, permlink);
 
-            let model = await Event.findOne({ eventType: 'mention', user, parentPermlink });
+            let model = await Event.findOne({
+                eventType: 'mention',
+                user,
+                parentPermlink,
+                createdAt: { $gt: Moments.currentDayStart },
+            });
 
             if (model) {
                 await this._incrementModel(model, author);
