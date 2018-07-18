@@ -19,6 +19,8 @@ const EVENT_TYPES = [
     'award',
     'curatorAward',
     'message',
+    'witnessVote',
+    'witnessCancelVote',
 ];
 
 class Notifier extends BasicService {
@@ -53,6 +55,8 @@ class Notifier extends BasicService {
         emitter.on('unsubscribe', online(this._handleUnsubscribe));
         emitter.on('repost', online(this._handleRepost));
         emitter.on('mention', online(this._handleMention));
+        emitter.on('witnessVote', online(this._handleWitnessVote));
+        emitter.on('witnessCancelVote', online(this._handleWitnessCancelVote));
 
         emitter.on('transfer', online(this._handleTransfer));
 
@@ -89,6 +93,14 @@ class Notifier extends BasicService {
 
     _handleMention(user, permlink) {
         this._accumulateWithIncrement(user, 'mention', { permlink });
+    }
+
+    _handleWitnessVote(user, from) {
+        this._accumulateWithIncrement(user, 'witnessVote', { from });
+    }
+
+    _handleWitnessCancelVote(user, from) {
+        this._accumulateWithIncrement(user, 'witnessCancelVote', { from });
     }
 
     _handleTransfer(user, from, amount) {

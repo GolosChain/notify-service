@@ -15,6 +15,7 @@ module.exports = MongoDB.makeModel(
         eventType: {
             // vote | flag | transfer | reply | subscribe | unsubscribe
             // mention | repost | award | curatorAward | message
+            // witnessVote | witnessCancelVote
             type: String,
             required: true,
         },
@@ -39,7 +40,7 @@ module.exports = MongoDB.makeModel(
             type: String,
         },
         // vote | flag | transfer | reply | subscribe | unsubscribe
-        // mention | repost | message
+        // mention | repost | message | witnessVote | witnessCancelVote
         fromUsers: {
             type: [String],
         },

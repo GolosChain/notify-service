@@ -75,6 +75,10 @@ class Registrator extends BasicService {
                 await this._handleSubscribeOrUnsubscribe(body, blockNum);
                 await this._handleRepost(body, blockNum);
                 break;
+
+            case 'account_witness_vote':
+                await this._handleWitnessVote(body, blockNum);
+                break;
         }
     }
 
@@ -335,6 +339,36 @@ class Registrator extends BasicService {
     async _handleMessage(data, blockNum) {
         // TODO wait blockchain implementation
         // TODO filtrate from transactions
+    }
+
+    async _handleWitnessVote({ account: from, witness: user, approve }, blockNum) {
+        let eventType;
+
+        if (approve === 'true') { // not a bug
+            eventType = 'witnessVote';
+        } else {
+            eventType = 'witnessCancelVote';
+        }
+
+        this.emit(eventType, user, from);
+
+        let model = await Event.findOne({
+            eventType,
+            user,
+            createdAt: { $gt: Moments.currentDayStart },
+        });
+
+        if (model) {
+            await this._incrementModel(model, from);
+        } else {
+            model = new Event({
+                blockNum,
+                user,
+                eventType,
+                fromUsers: [from],
+            });
+            await model.save();
+        }
     }
 
     _parseCustomJson(rawData) {
