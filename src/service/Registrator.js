@@ -95,7 +95,7 @@ class Registrator extends BasicService {
             type = 'flag';
         }
 
-        this.emit(type, user, voter, permlink);
+        this.emit(type, user, {voter, permlink});
 
         let model = await Event.findOne({
             eventType: type,
@@ -121,7 +121,7 @@ class Registrator extends BasicService {
     async _handleTransfer({ to: user, from, amount }, blockNum) {
         amount = parseFloat(amount);
 
-        this.emit('transfer', user, from, amount);
+        this.emit('transfer', user, {from, amount});
 
         const model = new Event({
             blockNum,
@@ -142,7 +142,7 @@ class Registrator extends BasicService {
             return;
         }
 
-        this.emit('reply', user, author, permlink);
+        this.emit('reply', user, {author, permlink});
 
         let model = await Event.findOne({
             eventType: 'reply',
@@ -174,7 +174,7 @@ class Registrator extends BasicService {
             return;
         }
 
-        this.emit(eventType, user, follower);
+        this.emit(eventType, user, {follower});
 
         await this._saveSubscribe({ eventType, user, follower }, blockNum);
     }
@@ -236,7 +236,7 @@ class Registrator extends BasicService {
             return;
         }
 
-        this.emit('repost', user, reposter, permlink);
+        this.emit('repost', user, {reposter, permlink});
 
         await this._saveRepost({ user, reposter, permlink }, blockNum);
     }
@@ -292,7 +292,7 @@ class Registrator extends BasicService {
         const users = this._extractMention(title, body);
 
         for (let user of users) {
-            this.emit('mention', user, permlink);
+            this.emit('mention', user, {permlink});
 
             let model = await Event.findOne({
                 eventType: 'mention',
@@ -350,7 +350,7 @@ class Registrator extends BasicService {
             eventType = 'witnessCancelVote';
         }
 
-        this.emit(eventType, user, from);
+        this.emit(eventType, user, {from});
 
         let model = await Event.findOne({
             eventType,

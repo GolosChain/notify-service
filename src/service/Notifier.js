@@ -34,9 +34,6 @@ class Notifier extends BasicService {
     }
 
     async start() {
-        const emitter = this._userEventEmitter;
-        const online = this._filterOnline.bind(this);
-
         await this._gate.start({
             serverRoutes: {
                 subscribe: this._registerSubscribe.bind(this),
@@ -48,63 +45,35 @@ class Notifier extends BasicService {
 
         this.addNested(this._gate);
 
-        emitter.on('vote', online(this._handleVote));
-        emitter.on('flag', online(this._handleFlag));
-        emitter.on('reply', online(this._handleReply));
-        emitter.on('subscribe', online(this._handleSubscribe));
-        emitter.on('unsubscribe', online(this._handleUnsubscribe));
-        emitter.on('repost', online(this._handleRepost));
-        emitter.on('mention', online(this._handleMention));
-        emitter.on('witnessVote', online(this._handleWitnessVote));
-        emitter.on('witnessCancelVote', online(this._handleWitnessCancelVote));
-
-        emitter.on('transfer', online(this._handleTransfer));
-
-        emitter.on('blockDone', this._broadcast.bind(this));
+        this._generateListeners();
     }
 
     async stop() {
         await this.stopNested();
     }
 
-    _handleVote(user, voter, permlink) {
-        this._accumulateWithIncrement(user, 'vote', { voter, permlink });
+    _generateListeners() {
+        const emitter = this._userEventEmitter;
+        let fn;
+
+        for (let eventType of EVENT_TYPES) {
+            switch (eventType) {
+                case 'transfer':
+                    fn = (user, data) => this._accumulate(user, eventType, data);
+                    break;
+                default:
+                    fn = (user, data) => this._accumulateWithIncrement(user, eventType, data);
+                    break;
+            }
+
+            emitter.on(eventType, fn);
+        }
+
+        emitter.on('blockDone', this._broadcast.bind(this));
     }
 
-    _handleFlag(user, voter, permlink) {
-        this._accumulateWithIncrement(user, 'flag', { voter, permlink });
-    }
-
-    _handleReply(user, author, permlink) {
-        this._accumulateWithIncrement(user, 'reply', { author, permlink });
-    }
-
-    _handleSubscribe(user, follower) {
-        this._accumulateWithIncrement(user, 'subscribe', { follower });
-    }
-
-    _handleUnsubscribe(user, follower) {
-        this._accumulateWithIncrement(user, 'unsubscribe', { follower });
-    }
-
-    _handleRepost(user, reposter, permlink) {
-        this._accumulateWithIncrement(user, 'repost', { reposter, permlink });
-    }
-
-    _handleMention(user, permlink) {
-        this._accumulateWithIncrement(user, 'mention', { permlink });
-    }
-
-    _handleWitnessVote(user, from) {
-        this._accumulateWithIncrement(user, 'witnessVote', { from });
-    }
-
-    _handleWitnessCancelVote(user, from) {
-        this._accumulateWithIncrement(user, 'witnessCancelVote', { from });
-    }
-
-    _handleTransfer(user, from, amount) {
-        this._accumulatorBy(user, 'transfer').push({ from, amount });
+    _accumulate(user, type, data) {
+        this._accumulatorBy(user, type).push(data);
     }
 
     _accumulateWithIncrement(user, type, data) {
@@ -148,17 +117,18 @@ class Notifier extends BasicService {
         const acc = this._accumulator;
 
         for (let [user, types] of acc) {
-            this._notifyUser(user, users, types);
+            this._notifyByGate(user, users, types);
+            this._notifyByPush(user, types);
         }
 
         this._cleanAccumulator();
     }
 
-    _notifyUser(user, users, types) {
-        const userData = users.get(user);
+    _notifyByGate(user, users, types) {
+        const onlineUserData = users.get(user);
         const result = {};
 
-        if (!userData) {
+        if (!onlineUserData) {
             return;
         }
 
@@ -166,7 +136,7 @@ class Notifier extends BasicService {
             result[type] = events;
         }
 
-        for (let [channelId, requestId] of userData) {
+        for (let [channelId, requestId] of onlineUserData) {
             this._gate
                 .sendTo('bulgakov', 'transfer', { channelId, requestId, result })
                 .catch(() => {
@@ -176,6 +146,18 @@ class Notifier extends BasicService {
                     );
                 });
         }
+    }
+
+    _notifyByPush(user, types) {
+        const result = {};
+
+        for (let [type, events] of types) {
+            result[type] = events;
+        }
+
+        this._gate.sendTo('pushkin', 'transfer', result).catch(() => {
+            logger.log(`Can not send data to ${user} by push`);
+        });
     }
 
     async _registerSubscribe(data) {
