@@ -112,28 +112,36 @@ class Notifier extends BasicService {
         this._accumulator = new Map();
     }
 
-    _broadcast() {
-        const users = this._userMapping;
-        const acc = this._accumulator;
+    async _broadcast() {
+        try {
+            const users = this._userMapping;
+            const acc = this._accumulator;
+            const options = await this._extractNotifyOptions();
 
-        for (let [user, types] of acc) {
-            this._notifyByGate(user, users, types);
-            this._notifyByPush(user, types);
+            for (let [user, types] of acc) {
+                this._notifyByGate({ user, users, types, options });
+                this._notifyByPush({ user, types, options });
+            }
+
+            this._cleanAccumulator();
+        } catch (error) {
+            stats.increment('Broadcast error');
+            logger.error(`Broadcast error - ${error}`);
+            process.exit(1);
         }
-
-        this._cleanAccumulator();
     }
 
-    _notifyByGate(user, users, types) {
+    _notifyByGate({ user, users, types, options }) {
         const onlineUserData = users.get(user);
-        const result = {};
 
         if (!onlineUserData) {
             return;
         }
 
-        for (let [type, events] of types) {
-            result[type] = events;
+        const result = this._filtrateOnlineNotifyByOptions(user, types, options);
+
+        if (Object.keys(result).length === 0) {
+            return;
         }
 
         for (let [channelId, requestId] of onlineUserData) {
@@ -148,14 +156,83 @@ class Notifier extends BasicService {
         }
     }
 
-    _notifyByPush(user, types) {
+    _filtrateOnlineNotifyByOptions(user, types, options) {
         const result = {};
 
         for (let [type, events] of types) {
-            result[type] = events;
+            let notifyOn = true;
+
+            try {
+                notifyOn = options[user].notify[type];
+            } catch (error) {
+                // options not set, ok
+            }
+
+            if (notifyOn) {
+                result[type] = events;
+            }
         }
 
-        this._gate.sendTo('pushkin', 'transfer', result).catch(() => {
+        return result;
+    }
+
+    _notifyByPush({ user, types, options }) {
+        const result = this._filtratePushNotifyByOptions({ user, types, options });
+
+        if (result.byUser) {
+            this._sendPush(user, { user, data: result });
+        } else {
+            for (let key of Object.keys(result.byKey)) {
+                this._sendPush(user, { key, data: result.byKey[key] });
+            }
+        }
+    }
+
+    _filtratePushNotifyByOptions(user, types, options) {
+        const result = { byKey: {}, byUser: {} };
+
+        // not hell, just tree
+        for (let [type, events] of types) {
+            try {
+                let userOptions = options[user].push;
+
+                for (let device of Object.keys(userOptions)) {
+                    for (let key of Object.keys(userOptions[device])) {
+                        if (userOptions[device][key][type]) {
+                            result.byKey[key] = result.byKey[key] || {};
+                            result.byKey[key][type] = events;
+                        }
+                    }
+                }
+            } catch (error) {
+                // options not set, send to all
+                result.byUser[type] = events;
+            }
+        }
+
+        return result;
+    }
+
+    async _extractNotifyOptions(usersMap) {
+        const request = [];
+        const result = {};
+        const users = usersMap.keys();
+
+        for (let user of users) {
+            request.push({ user, service: 'tolstoy', path: 'notify' });
+        }
+
+        const response = await this._gate.sendTo('solzhenitsyn', 'get', request);
+
+        for (let i = 0; i < response.length; i++) {
+            result[users[i]] = response[i];
+        }
+
+        return result;
+    }
+
+    _sendPush(user, data) {
+        this._gate.sendTo('pushkin', 'transfer', data).catch(() => {
             logger.log(`Can not send data to ${user} by push`);
         });
     }
