@@ -2,6 +2,6 @@
 const env = process.env;
 
 module.exports = {
-    EVENT_EXPIRATION: env.EVENT_EXPIRATION || 1000 * 60 * 60 * 24 * 30, // month
-    BULGAKOV_CONNECT_STRING: env.BULGAKOV_CONNECT_STRING,
+    GLS_EVENT_EXPIRATION: env.GLS_EVENT_EXPIRATION || 1000 * 60 * 60 * 24 * 30, // month
+    GLS_FRONTEND_GATE_CONNECT: env.GLS_FRONTEND_GATE_CONNECT,
 };
