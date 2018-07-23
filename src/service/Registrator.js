@@ -1,5 +1,5 @@
 const Event = require('../model/Event');
-const core = require('griboyedov');
+const core = require('gls-core-service');
 const logger = core.Logger;
 const stats = core.Stats.client;
 const BasicService = core.service.Basic;
