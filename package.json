@@ -1,6 +1,6 @@
 {
-    "name": "golos-notifications",
-    "version": "0.1.0",
+    "name": "notify-service",
+    "version": "0.2.0",
     "description": "",
     "main": "./scr/Main.js",
     "scripts": {
@@ -27,6 +27,6 @@
         "prettier": "^1.13.6"
     },
     "dependencies": {
-        "griboyedov": "git+https://github.com/GolosChain/griboyedov.git"
+        "gls-core-service": "git+https://github.com/GolosChain/core-service.git"
     }
 }

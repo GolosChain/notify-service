@@ -1,8 +1,7 @@
-const core = require('griboyedov');
+const core = require('gls-core-service');
 const BasicService = core.service.Basic;
 const Gate = core.service.Gate;
 const logger = core.Logger;
-const serviceAliasEnv = core.ServiceAliasEnv;
 const env = require('../Env');
 const Event = require('../model/Event');
 
@@ -43,7 +42,9 @@ class Notifier extends BasicService {
                 unsubscribe: this._registerUnsubscribe.bind(this),
                 history: this._getHistory.bind(this),
             },
-            requiredClients: serviceAliasEnv,
+            requiredClients: {
+                frontend: env.GLS_FRONTEND_GATE_CONNECT
+            },
         });
 
         this.addNested(this._gate);
@@ -168,7 +169,7 @@ class Notifier extends BasicService {
 
         for (let [channelId, requestId] of userData) {
             this._gate
-                .sendTo('bulgakov', 'transfer', { channelId, requestId, result })
+                .sendTo('frontend', 'transfer', { channelId, requestId, result })
                 .catch(() => {
                     logger.log(`Can not send data to ${user} by ${channelId}`);
                     this._registerUnsubscribe({ user, channelId }).catch(

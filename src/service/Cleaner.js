@@ -1,4 +1,4 @@
-const core = require('griboyedov');
+const core = require('gls-core-service');
 const logger = core.Logger;
 const stats = core.Stats.client;
 const Moments = core.Moments;
@@ -25,7 +25,7 @@ class Cleaner extends BasicService {
         logger.info('Start cleaning...');
 
         const timer = new Date();
-        const expiration = Moments.ago(env.EVENT_EXPIRATION);
+        const expiration = Moments.ago(env.GLS_EVENT_EXPIRATION);
 
         try {
             await Event.remove({ createdAt: { $lte: expiration } });
