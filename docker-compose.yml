@@ -33,6 +33,8 @@ services:
       - GLS_METRICS_PORT
       - GLS_GATE_HOST
       - GLS_GATE_PORT
+      - GLS_BLOCKCHAIN_CONNECT
+      - GLS_BLOCKCHAIN_SUBSCRIBE_TIMEOUT
 
 volumes:
   mongodb_vol:
