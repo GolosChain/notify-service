@@ -3,6 +3,7 @@ const BasicService = core.service.Basic;
 const Gate = core.service.Gate;
 const logger = core.Logger;
 const serviceAliasEnv = core.ServiceAliasEnv;
+const stats = core.Stats.client;
 const env = require('../Env');
 const Event = require('../model/Event');
 
