@@ -43,7 +43,7 @@ class Notifier extends BasicService {
                 history: this._getHistory.bind(this),
             },
             requiredClients: {
-                frontend: env.GLS_FRONTEND_GATE_CONNECT
+                frontend: env.GLS_FRONTEND_GATE_CONNECT,
             },
         });
 
@@ -205,25 +205,17 @@ class Notifier extends BasicService {
         return 'Ok';
     }
 
-    async _getHistory({ user, params: { skip = 0, limit = 10, type: eventType } }) {
-        if (skip < 0) {
-            throw { code: 400, message: 'Skip < 0' };
-        }
+    async _getHistory({ user, params: { skip = 0, limit = 10, types } }) {
+        this._validateHistoryRequest(types, skip, limit);
 
-        if (limit <= 0) {
-            throw { code: 400, message: 'Limit <= 0' };
-        }
+        let query = { user, eventType: types };
 
-        if (limit > MAX_HISTORY_LIMIT) {
-            throw { code: 400, message: `Limit > ${MAX_HISTORY_LIMIT}` };
-        }
-
-        if (!~EVENT_TYPES.indexOf(eventType)) {
-            throw { code: 400, message: `Bad type - ${eventType || 'null'}` };
+        if (types === 'all') {
+            delete query.eventType;
         }
 
         return await Event.find(
-            { user, eventType },
+            query,
             {
                 id: false,
                 _id: false,
@@ -240,6 +232,38 @@ class Notifier extends BasicService {
                 },
             }
         );
+    }
+
+    _validateHistoryRequest(types, skip, limit) {
+        if (skip < 0) {
+            throw { code: 400, message: 'Skip < 0' };
+        }
+
+        if (limit <= 0) {
+            throw { code: 400, message: 'Limit <= 0' };
+        }
+
+        if (limit > MAX_HISTORY_LIMIT) {
+            throw { code: 400, message: `Limit > ${MAX_HISTORY_LIMIT}` };
+        }
+
+        if (!types) {
+            throw { code: 400, message: 'Empty types param' };
+        }
+
+        if (types !== 'all' && !Array.isArray(types)) {
+            throw { code: 400, message: 'Invalid types param' };
+        }
+
+        if (types === 'all') {
+            return;
+        }
+
+        for (let type of types) {
+            if (!~EVENT_TYPES.indexOf(type)) {
+                throw { code: 400, message: `Bad type - ${type || 'null'}` };
+            }
+        }
     }
 }
 
