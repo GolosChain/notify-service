@@ -1,4 +1,4 @@
-const core = require('griboyedov');
+const core = require('gls-core-service');
 const Moments = core.Moments;
 const Abstract = require('./Abstract');
 const Event = require('../../model/Event');

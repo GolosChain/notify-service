@@ -1,5 +1,5 @@
 const EventEmitter = require('events');
-const core = require('griboyedov');
+const core = require('gls-core-service');
 const logger = core.Logger;
 const Event = require('../../model/Event');
 
