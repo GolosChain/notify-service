@@ -14,7 +14,7 @@ class Main extends BasicService {
 
         const mongo = new MongoDB();
         const registrator = new Registrator();
-        const notifier = new Notifier(registrator.getEmitter());
+        const notifier = new Notifier(registrator);
         const cleaner = new Cleaner();
 
         this.printEnvBasedConfig(env);

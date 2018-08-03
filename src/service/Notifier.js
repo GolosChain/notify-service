@@ -2,7 +2,6 @@ const core = require('gls-core-service');
 const BasicService = core.service.Basic;
 const Gate = core.service.Gate;
 const logger = core.Logger;
-const serviceAliasEnv = core.ServiceAliasEnv;
 const stats = core.Stats.client;
 const env = require('../Env');
 const Event = require('../model/Event');
@@ -25,23 +24,23 @@ const EVENT_TYPES = [
 ];
 
 class Notifier extends BasicService {
-    constructor(userEventEmitter) {
+    constructor(registrator) {
         super();
 
         this._gate = new Gate();
-        this._userEventEmitter = userEventEmitter;
-        this._userMapping = new Map(); // user -> channelId -> requestId
+        this._registrator = registrator;
         this._accumulator = new Map(); // user -> type -> [data]
     }
 
     async start() {
         await this._gate.start({
             serverRoutes: {
-                subscribe: this._registerSubscribe.bind(this),
-                unsubscribe: this._registerUnsubscribe.bind(this),
                 history: this._getHistory.bind(this),
             },
-            requiredClients: serviceAliasEnv,
+            requiredClients: {
+                notifyOnline: env.GLS_ONLINE_NOTIFY_CONNECT,
+                push: env.GLS_PUSH_CONNECT,
+            },
         });
 
         this.addNested(this._gate);
@@ -54,7 +53,6 @@ class Notifier extends BasicService {
     }
 
     _generateListeners() {
-        const emitter = this._userEventEmitter;
         let fn;
 
         for (let eventType of EVENT_TYPES) {
@@ -67,10 +65,10 @@ class Notifier extends BasicService {
                     break;
             }
 
-            emitter.on(eventType, fn);
+            this._registrator.on(eventType, fn);
         }
 
-        emitter.on('blockDone', this._broadcast.bind(this));
+        this._registrator.on('blockDone', this._broadcast.bind(this));
     }
 
     _accumulate(user, type, data) {
@@ -87,14 +85,6 @@ class Notifier extends BasicService {
         }
     }
 
-    _filterOnline(fn) {
-        return (user, ...args) => {
-            if (this._userMapping.get(user)) {
-                fn.call(this, user, ...args);
-            }
-        };
-    }
-
     _accumulatorBy(user, type) {
         const acc = this._accumulator;
 
@@ -103,7 +93,7 @@ class Notifier extends BasicService {
         }
 
         if (!acc.get(user).get(type)) {
-            acc.get(user).set(type, []);
+            acc.get(user).set(type, new Set());
         }
 
         return acc.get(user).get(type);
@@ -114,178 +104,25 @@ class Notifier extends BasicService {
     }
 
     async _broadcast() {
-        try {
-            const users = this._userMapping;
-            const acc = this._accumulator;
-            const options = await this._extractNotifyOptions();
-
-            for (let [user, types] of acc) {
-                this._notifyByGate({ user, users, types, options });
-                this._notifyByPush({ user, types, options });
-            }
-
-            this._cleanAccumulator();
-        } catch (error) {
-            stats.increment('Broadcast error');
-            logger.error(`Broadcast error - ${error}`);
-            process.exit(1);
-        }
+        // TODO -
     }
 
-    _notifyByGate({ user, users, types, options }) {
-        const onlineUserData = users.get(user);
+    async _getHistory({ user, skip = 0, limit = 10, types = 'all' }) {
+        this._validateHistoryRequest(skip, limit, types);
 
-        if (!onlineUserData) {
-            return;
+        const allQuery = { user };
+        const freshQuery = { user, fresh: true };
+        let historyQuery = { user, eventType: types };
+
+        if (types === 'all') {
+            historyQuery = allQuery;
         }
 
-        const result = this._filtrateOnlineNotifyByOptions(user, types, options);
-
-        if (Object.keys(result).length === 0) {
-            return;
-        }
-
-        for (let [channelId, requestId] of onlineUserData) {
-            this._gate
-                .sendTo('bulgakov', 'transfer', { channelId, requestId, result })
-                .catch(() => {
-                    logger.log(`Can not send data to ${user} by ${channelId}`);
-                    this._registerUnsubscribe({ user, channelId }).catch(
-                        () => {} // no catch
-                    );
-                });
-        }
-    }
-
-    _filtrateOnlineNotifyByOptions(user, types, options) {
-        const result = {};
-
-        for (let [type, events] of types) {
-            let notifyOn = true;
-
-            try {
-                notifyOn = options[user].notify[type];
-            } catch (error) {
-                // options not set, ok
-            }
-
-            if (notifyOn) {
-                result[type] = events;
-            }
-        }
-
-        return result;
-    }
-
-    _notifyByPush({ user, types, options }) {
-        const result = this._filtratePushNotifyByOptions({ user, types, options });
-
-        if (result.byUser) {
-            this._sendPush(user, { user, data: result });
-        } else {
-            for (let key of Object.keys(result.byKey)) {
-                this._sendPush(user, { key, data: result.byKey[key] });
-            }
-        }
-    }
-
-    _filtratePushNotifyByOptions(user, types, options) {
-        const result = { byKey: {}, byUser: {} };
-
-        // not hell, just tree
-        for (let [type, events] of types) {
-            try {
-                let userOptions = options[user].push;
-
-                for (let device of Object.keys(userOptions)) {
-                    for (let key of Object.keys(userOptions[device])) {
-                        if (userOptions[device][key][type]) {
-                            result.byKey[key] = result.byKey[key] || {};
-                            result.byKey[key][type] = events;
-                        }
-                    }
-                }
-            } catch (error) {
-                // options not set, send to all
-                result.byUser[type] = events;
-            }
-        }
-
-        return result;
-    }
-
-    async _extractNotifyOptions(usersMap) {
-        const request = [];
-        const result = {};
-        const users = usersMap.keys();
-
-        for (let user of users) {
-            request.push({ user, service: 'tolstoy', path: 'notify' });
-        }
-
-        const response = await this._gate.sendTo('solzhenitsyn', 'get', request);
-
-        for (let i = 0; i < response.length; i++) {
-            result[users[i]] = response[i];
-        }
-
-        return result;
-    }
-
-    _sendPush(user, data) {
-        this._gate.sendTo('pushkin', 'transfer', data).catch(() => {
-            logger.log(`Can not send data to ${user} by push`);
-        });
-    }
-
-    async _registerSubscribe(data) {
-        const map = this._userMapping;
-        const { user, channelId, requestId } = data;
-
-        if (!map.get(user)) {
-            map.set(user, new Map());
-        }
-
-        map.get(user).set(channelId, requestId);
-
-        return 'Ok';
-    }
-
-    async _registerUnsubscribe(data) {
-        const map = this._userMapping;
-        const { user, channelId } = data;
-
-        map.get(user).delete(channelId);
-
-        if (!map.get(user).size) {
-            map.delete(user);
-        }
-
-        return 'Ok';
-    }
-
-    async _getHistory({ user, params: { skip = 0, limit = 10, type: eventType } }) {
-        if (skip < 0) {
-            throw { code: 400, message: 'Skip < 0' };
-        }
-
-        if (limit <= 0) {
-            throw { code: 400, message: 'Limit <= 0' };
-        }
-
-        if (limit > MAX_HISTORY_LIMIT) {
-            throw { code: 400, message: `Limit > ${MAX_HISTORY_LIMIT}` };
-        }
-
-        if (!~EVENT_TYPES.indexOf(eventType)) {
-            throw { code: 400, message: `Bad type - ${eventType || 'null'}` };
-        }
-
-        return await Event.find(
-            { user, eventType },
+        const total = await Event.find(allQuery).countDocuments();
+        const fresh = await Event.find(freshQuery).countDocuments();
+        const data = await Event.find(
+            historyQuery,
             {
-                id: false,
-                _id: false,
                 __v: false,
                 blockNum: false,
                 user: false,
@@ -299,6 +136,38 @@ class Notifier extends BasicService {
                 },
             }
         );
+
+        return {
+            total,
+            fresh,
+            data,
+        };
+    }
+
+    _validateHistoryRequest(skip, limit, types) {
+        if (skip < 0) {
+            throw { code: 400, message: 'Skip < 0' };
+        }
+
+        if (limit <= 0) {
+            throw { code: 400, message: 'Limit <= 0' };
+        }
+
+        if (limit > MAX_HISTORY_LIMIT) {
+            throw { code: 400, message: `Limit > ${MAX_HISTORY_LIMIT}` };
+        }
+
+        if (!Array.isArray(types) && types !== 'all') {
+            throw { code: 400, message: 'Bad types' };
+        }
+
+        if (types !== 'all') {
+            for (let type of types) {
+                if (!EVENT_TYPES.includes(type)) {
+                    throw { code: 400, message: `Bad type - ${type || 'null'}` };
+                }
+            }
+        }
     }
 }
 
