@@ -164,24 +164,22 @@ class Notifier extends BasicService {
             {
                 skip,
                 limit,
+                lean: true,
                 sort: {
                     updatedAt: -1,
                 },
             }
         );
 
-        try {
-            return {
-                total,
-                fresh,
-                data,
-            };
-        } finally {
-            for (let event of data) {
-                event.fresh = false;
-                await event.save();
-            }
+        for (let event of data) {
+            await this._freshOff(event._id);
         }
+
+        return {
+            total,
+            fresh,
+            data,
+        };
     }
 
     _validateHistoryRequest(skip, limit, types) {
@@ -208,6 +206,10 @@ class Notifier extends BasicService {
                 }
             }
         }
+    }
+
+    async _freshOff(_id) {
+        await Event.update({ _id }, { $set: { fresh: false } });
     }
 }
 
