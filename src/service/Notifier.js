@@ -81,7 +81,7 @@ class Notifier extends BasicService {
         if (acc.length) {
             acc[0].counter++;
         } else {
-            acc.push({ counter: 1, ...data });
+            acc.add({ counter: 1, ...data });
         }
     }
 
@@ -104,7 +104,41 @@ class Notifier extends BasicService {
     }
 
     async _broadcast() {
-        // TODO -
+        const time = new Date();
+        const result = this._prepareBroadcastData();
+
+        try {
+            await this._gate.sendTo('notifyOnline', 'transfer', result)
+        } catch (error) {
+            stats.increment('broadcast_to_online_notifier_error');
+            logger.error(`On send to online notifier - ${error}`);
+        }
+
+        try {
+            await this._gate.sendTo('push', 'transfer', result)
+        } catch (error) {
+            stats.increment('broadcast_to_push_error');
+            logger.error(`On send to push - ${error}`);
+        }
+
+        stats.timing('broadcast_notify', new Date() - time);
+    }
+
+    _prepareBroadcastData() {
+        const acc = this._accumulator;
+        const result = {};
+
+        this._cleanAccumulator();
+
+        for (let [user, events] of acc) {
+            result[user] = result[user] || {};
+
+            for (let [event, data] of events) {
+                result[user][event] = data.values();
+            }
+        }
+
+        return result;
     }
 
     async _getHistory({ user, skip = 0, limit = 10, types = 'all' }) {
