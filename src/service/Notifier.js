@@ -108,14 +108,14 @@ class Notifier extends BasicService {
         const result = this._prepareBroadcastData();
 
         try {
-            await this._gate.sendTo('notifyOnline', 'transfer', result)
+            await this._gate.sendTo('notifyOnline', 'transfer', result);
         } catch (error) {
             stats.increment('broadcast_to_online_notifier_error');
             logger.error(`On send to online notifier - ${error}`);
         }
 
         try {
-            await this._gate.sendTo('push', 'transfer', result)
+            await this._gate.sendTo('push', 'transfer', result);
         } catch (error) {
             stats.increment('broadcast_to_push_error');
             logger.error(`On send to push - ${error}`);
@@ -164,18 +164,24 @@ class Notifier extends BasicService {
             {
                 skip,
                 limit,
-                lean: true,
                 sort: {
                     updatedAt: -1,
                 },
             }
         );
 
-        return {
-            total,
-            fresh,
-            data,
-        };
+        try {
+            return {
+                total,
+                fresh,
+                data,
+            };
+        } finally {
+            for (let event of data) {
+                event.fresh = false;
+                await event.save();
+            }
+        }
     }
 
     _validateHistoryRequest(skip, limit, types) {
