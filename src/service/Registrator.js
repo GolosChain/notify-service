@@ -2,12 +2,37 @@ const Event = require('../model/Event');
 const core = require('gls-core-service');
 const logger = core.Logger;
 const stats = core.Stats.client;
-const Moments = core.Moments;
 const BasicService = core.service.Basic;
 const BlockSubscribe = core.service.BlockSubscribe;
 const BlockSubscribeRestore = core.service.BlockSubscribeRestore;
 
+const Award = require('./registratorHandler/Award');
+const CuratorAward = require('./registratorHandler/CuratorAward');
+const Mention = require('./registratorHandler/Mention');
+const Message = require('./registratorHandler/Message');
+const Reply = require('./registratorHandler/Reply');
+const Repost = require('./registratorHandler/Repost');
+const Subscribe = require('./registratorHandler/Subscribe');
+const Transfer = require('./registratorHandler/Transfer');
+const Vote = require('./registratorHandler/Vote');
+const WitnessVote = require('./registratorHandler/WitnessVote');
+
 class Registrator extends BasicService {
+    constructor() {
+        super();
+
+        this.translateEmit(Award, 'award');
+        this.translateEmit(CuratorAward, 'curatorAward');
+        this.translateEmit(Mention, 'mention');
+        this.translateEmit(Message, 'message');
+        this.translateEmit(Reply, 'reply');
+        this.translateEmit(Repost, 'repost');
+        this.translateEmit(Subscribe, 'subscribe', 'unsubscribe');
+        this.translateEmit(Transfer, 'transfer');
+        this.translateEmit(Vote, 'vote', 'flag');
+        this.translateEmit(WitnessVote, 'witnessVote', 'witnessCancelVote');
+    }
+
     async start() {
         await this.restore();
 
@@ -59,342 +84,27 @@ class Registrator extends BasicService {
     async _routeEventHandlers([type, body], blockNum) {
         switch (type) {
             case 'vote':
-                await this._handleVoteAndFlag(body, blockNum);
+                await Vote.handle(body, blockNum);
                 break;
 
             case 'transfer':
-                await this._handleTransfer(body, blockNum);
+                await Transfer.handle(body, blockNum);
                 break;
 
             case 'comment':
-                await this._handleReply(body, blockNum);
-                await this._handleMention(body, blockNum);
+                await Reply.handle(body, blockNum);
+                await Mention.handle(body, blockNum);
                 break;
 
             case 'custom_json':
-                await this._handleSubscribeOrUnsubscribe(body, blockNum);
-                await this._handleRepost(body, blockNum);
+                await Subscribe.handle(body, blockNum);
+                await Repost.handle(body, blockNum);
                 break;
 
             case 'account_witness_vote':
-                await this._handleWitnessVote(body, blockNum);
+                await WitnessVote.handle(body, blockNum);
                 break;
         }
-    }
-
-    async _handleVoteAndFlag({ voter, author: user, permlink, weight }, blockNum) {
-        if (weight === 0) {
-            return;
-        }
-
-        let type;
-
-        if (weight > 0) {
-            type = 'vote';
-        } else {
-            type = 'flag';
-        }
-
-        this.emit(type, user, voter, permlink);
-
-        let model = await Event.findOne({
-            eventType: type,
-            user,
-            permlink,
-            createdAt: { $gt: Moments.currentDayStart },
-        });
-
-        if (model) {
-            await this._incrementModel(model, voter);
-        } else {
-            model = new Event({
-                blockNum,
-                user,
-                eventType: type,
-                permlink: permlink,
-                fromUsers: [voter],
-            });
-            await model.save();
-        }
-    }
-
-    async _handleTransfer({ to: user, from, amount }, blockNum) {
-        amount = parseFloat(amount);
-
-        this.emit('transfer', user, from, amount);
-
-        const model = new Event({
-            blockNum,
-            user,
-            eventType: 'transfer',
-            fromUsers: [from],
-            amount,
-        });
-
-        await model.save();
-    }
-
-    async _handleReply(
-        { parent_author: user, parent_permlink: parentPermlink, author, permlink },
-        blockNum
-    ) {
-        if (!user) {
-            return;
-        }
-
-        this.emit('reply', user, author, permlink);
-
-        let model = await Event.findOne({
-            eventType: 'reply',
-            user,
-            parentPermlink,
-            createdAt: { $gt: Moments.currentDayStart },
-        });
-
-        if (model) {
-            await this._incrementModel(model, author);
-        } else {
-            model = new Event({
-                blockNum,
-                user,
-                eventType: 'reply',
-                permlink,
-                parentPermlink,
-                fromUsers: [author],
-            });
-
-            await model.save();
-        }
-    }
-
-    async _handleSubscribeOrUnsubscribe(rawData, blockNum) {
-        const { eventType, user, follower } = this._tryExtractSubscribe(rawData);
-
-        if (!user) {
-            return;
-        }
-
-        this.emit(eventType, user, follower);
-
-        await this._saveSubscribe({ eventType, user, follower }, blockNum);
-    }
-
-    _tryExtractSubscribe(rawData) {
-        const { type, user: follower, data } = this._parseCustomJson(rawData);
-
-        if (type !== 'follow') {
-            return {};
-        }
-
-        try {
-            if (data[0] !== 'follow') {
-                return {};
-            }
-
-            const actionTypes = data[1].what;
-            const user = data[1].following;
-            let eventType;
-
-            if (~actionTypes.indexOf('blog')) {
-                eventType = 'subscribe';
-            } else {
-                eventType = 'unsubscribe';
-            }
-
-            return { eventType, user, follower };
-        } catch (error) {
-            logger.log(`Bad follow from - ${follower}`);
-            return {};
-        }
-    }
-
-    async _saveSubscribe({ eventType, user, follower }, blockNum) {
-        let model = await Event.findOne({
-            eventType,
-            user,
-            createdAt: { $gt: Moments.currentDayStart },
-        });
-
-        if (model) {
-            await this._incrementModel(model, follower);
-        } else {
-            model = new Event({
-                blockNum,
-                user,
-                eventType,
-                fromUsers: [follower],
-            });
-
-            await model.save();
-        }
-    }
-
-    async _handleRepost(rawData, blockNum) {
-        const { user, reposter, permlink } = this._tryExtractRepost(rawData);
-
-        if (!user) {
-            return;
-        }
-
-        this.emit('repost', user, reposter, permlink);
-
-        await this._saveRepost({ user, reposter, permlink }, blockNum);
-    }
-
-    _tryExtractRepost(rawData) {
-        const { type, user: reposter, data } = this._parseCustomJson(rawData);
-
-        if (type !== 'follow') {
-            return {};
-        }
-
-        try {
-            if (data[0] !== 'reblog') {
-                return {};
-            }
-
-            const { author: user, permlink } = data[1];
-
-            return { user, reposter, permlink };
-        } catch (error) {
-            logger.log(`Bad repost from - ${reposter}`);
-            return {};
-        }
-    }
-
-    async _saveRepost({ user, reposter, permlink }, blockNum) {
-        let model = await Event.findOne({
-            eventType: 'repost',
-            user,
-            permlink,
-            createdAt: { $gt: Moments.currentDayStart },
-        });
-
-        if (model) {
-            await this._incrementModel(model, reposter);
-        } else {
-            model = new Event({
-                blockNum,
-                user,
-                eventType: 'repost',
-                permlink,
-                fromUsers: [reposter],
-            });
-
-            await model.save();
-        }
-    }
-
-    async _handleMention(
-        { author, title, body, permlink, parent_permlink: parentPermlink },
-        blockNum
-    ) {
-        const users = this._extractMention(title, body);
-
-        for (let user of users) {
-            this.emit('mention', user, permlink);
-
-            let model = await Event.findOne({
-                eventType: 'mention',
-                user,
-                parentPermlink,
-                createdAt: { $gt: Moments.currentDayStart },
-            });
-
-            if (model) {
-                await this._incrementModel(model, author);
-            } else {
-                model = new Event({
-                    blockNum,
-                    user,
-                    eventType: 'mention',
-                    permlink,
-                    parentPermlink,
-                    fromUsers: [author],
-                });
-
-                await model.save();
-            }
-        }
-    }
-
-    _extractMention(title, body) {
-        const re = /(@[a-z][-\.a-z\d]+[a-z\d])/gi;
-        const inTitle = title.match(re) || [];
-        const inBody = body.match(re) || [];
-        const totalRaw = inTitle.concat(inBody);
-        const total = totalRaw.map(v => v.slice(1));
-
-        return new Set(total);
-    }
-
-    async _handleAward(data, blockNum) {
-        // TODO wait blockchain implementation
-    }
-
-    async _handleCuratorAward(data, blockNum) {
-        // TODO wait blockchain implementation
-    }
-
-    async _handleMessage(data, blockNum) {
-        // TODO wait blockchain implementation
-        // TODO filtrate from transactions
-    }
-
-    async _handleWitnessVote({ account: from, witness: user, approve }, blockNum) {
-        let eventType;
-
-        if (approve === 'true') { // not a bug
-            eventType = 'witnessVote';
-        } else {
-            eventType = 'witnessCancelVote';
-        }
-
-        this.emit(eventType, user, from);
-
-        let model = await Event.findOne({
-            eventType,
-            user,
-            createdAt: { $gt: Moments.currentDayStart },
-        });
-
-        if (model) {
-            await this._incrementModel(model, from);
-        } else {
-            model = new Event({
-                blockNum,
-                user,
-                eventType,
-                fromUsers: [from],
-            });
-            await model.save();
-        }
-    }
-
-    _parseCustomJson(rawData) {
-        const type = rawData.id;
-        const user = rawData.required_posting_auths[0];
-        let data;
-
-        try {
-            data = JSON.parse(rawData.json);
-        } catch (error) {
-            logger.log(`Bad custom JSON from - ${user}`);
-            return {};
-        }
-
-        return { type, user, data };
-    }
-
-    async _incrementModel(model, fromUsers) {
-        await Event.findOneAndUpdate(
-            { _id: model._id },
-            {
-                $inc: { counter: 1 },
-                $push: { fromUsers },
-                $set: { fresh: true },
-            }
-        );
     }
 }
 

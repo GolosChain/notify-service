@@ -2,6 +2,7 @@ const core = require('gls-core-service');
 const BasicService = core.service.Basic;
 const Gate = core.service.Gate;
 const logger = core.Logger;
+const stats = core.Stats.client;
 const env = require('../Env');
 const Event = require('../model/Event');
 
@@ -23,89 +24,55 @@ const EVENT_TYPES = [
 ];
 
 class Notifier extends BasicService {
-    constructor(userEventEmitter) {
+    constructor(registrator) {
         super();
 
         this._gate = new Gate();
-        this._userEventEmitter = userEventEmitter;
-        this._userMapping = new Map(); // user -> channelId -> requestId
+        this._registrator = registrator;
         this._accumulator = new Map(); // user -> type -> [data]
     }
 
     async start() {
-        const emitter = this._userEventEmitter;
-        const online = this._filterOnline.bind(this);
-
         await this._gate.start({
             serverRoutes: {
-                subscribe: this._registerSubscribe.bind(this),
-                unsubscribe: this._registerUnsubscribe.bind(this),
                 history: this._getHistory.bind(this),
             },
             requiredClients: {
-                frontend: env.GLS_FRONTEND_GATE_CONNECT,
+                onlineNotify: env.GLS_ONLINE_NOTIFY_CONNECT,
+                push: env.GLS_PUSH_CONNECT,
             },
         });
 
         this.addNested(this._gate);
 
-        emitter.on('vote', online(this._handleVote));
-        emitter.on('flag', online(this._handleFlag));
-        emitter.on('reply', online(this._handleReply));
-        emitter.on('subscribe', online(this._handleSubscribe));
-        emitter.on('unsubscribe', online(this._handleUnsubscribe));
-        emitter.on('repost', online(this._handleRepost));
-        emitter.on('mention', online(this._handleMention));
-        emitter.on('witnessVote', online(this._handleWitnessVote));
-        emitter.on('witnessCancelVote', online(this._handleWitnessCancelVote));
-
-        emitter.on('transfer', online(this._handleTransfer));
-
-        emitter.on('blockDone', this._broadcast.bind(this));
+        this._generateListeners();
     }
 
     async stop() {
         await this.stopNested();
     }
 
-    _handleVote(user, voter, permlink) {
-        this._accumulateWithIncrement(user, 'vote', { voter, permlink });
+    _generateListeners() {
+        let fn;
+
+        for (let eventType of EVENT_TYPES) {
+            switch (eventType) {
+                case 'transfer':
+                    fn = (user, data) => this._accumulate(user, eventType, data);
+                    break;
+                default:
+                    fn = (user, data) => this._accumulateWithIncrement(user, eventType, data);
+                    break;
+            }
+
+            this._registrator.on(eventType, fn);
+        }
+
+        this._registrator.on('blockDone', this._broadcast.bind(this));
     }
 
-    _handleFlag(user, voter, permlink) {
-        this._accumulateWithIncrement(user, 'flag', { voter, permlink });
-    }
-
-    _handleReply(user, author, permlink) {
-        this._accumulateWithIncrement(user, 'reply', { author, permlink });
-    }
-
-    _handleSubscribe(user, follower) {
-        this._accumulateWithIncrement(user, 'subscribe', { follower });
-    }
-
-    _handleUnsubscribe(user, follower) {
-        this._accumulateWithIncrement(user, 'unsubscribe', { follower });
-    }
-
-    _handleRepost(user, reposter, permlink) {
-        this._accumulateWithIncrement(user, 'repost', { reposter, permlink });
-    }
-
-    _handleMention(user, permlink) {
-        this._accumulateWithIncrement(user, 'mention', { permlink });
-    }
-
-    _handleWitnessVote(user, from) {
-        this._accumulateWithIncrement(user, 'witnessVote', { from });
-    }
-
-    _handleWitnessCancelVote(user, from) {
-        this._accumulateWithIncrement(user, 'witnessCancelVote', { from });
-    }
-
-    _handleTransfer(user, from, amount) {
-        this._accumulatorBy(user, 'transfer').push({ from, amount });
+    _accumulate(user, type, data) {
+        this._accumulatorBy(user, type).add(data);
     }
 
     _accumulateWithIncrement(user, type, data) {
@@ -114,16 +81,8 @@ class Notifier extends BasicService {
         if (acc.length) {
             acc[0].counter++;
         } else {
-            acc.push({ counter: 1, ...data });
+            acc.add({ counter: 1, ...data });
         }
-    }
-
-    _filterOnline(fn) {
-        return (user, ...args) => {
-            if (this._userMapping.get(user)) {
-                fn.call(this, user, ...args);
-            }
-        };
     }
 
     _accumulatorBy(user, type) {
@@ -134,7 +93,7 @@ class Notifier extends BasicService {
         }
 
         if (!acc.get(user).get(type)) {
-            acc.get(user).set(type, []);
+            acc.get(user).set(type, new Set());
         }
 
         return acc.get(user).get(type);
@@ -144,87 +103,70 @@ class Notifier extends BasicService {
         this._accumulator = new Map();
     }
 
-    _broadcast() {
-        const users = this._userMapping;
-        const acc = this._accumulator;
+    async _broadcast() {
+        const time = new Date();
+        const result = this._prepareBroadcastData();
 
-        for (let [user, types] of acc) {
-            this._notifyUser(user, users, types);
+        try {
+            await this._gate.sendTo('onlineNotify', 'transfer', result);
+        } catch (error) {
+            stats.increment('broadcast_to_online_notifier_error');
+            logger.error(`On send to online notifier - ${error}`);
         }
 
-        this._cleanAccumulator();
+        try {
+            await this._gate.sendTo('push', 'transfer', result);
+        } catch (error) {
+            stats.increment('broadcast_to_push_error');
+            logger.error(`On send to push - ${error}`);
+        }
+
+        stats.timing('broadcast_notify', new Date() - time);
     }
 
-    _notifyUser(user, users, types) {
-        const userData = users.get(user);
+    _prepareBroadcastData() {
+        const acc = this._accumulator;
         const result = {};
 
-        if (!userData) {
-            return;
+        this._cleanAccumulator();
+
+        for (let [user, events] of acc) {
+            result[user] = result[user] || {};
+
+            for (let [event, data] of events) {
+                result[user][event] = Array.from(data.values());
+            }
         }
 
-        for (let [type, events] of types) {
-            result[type] = events;
-        }
-
-        for (let [channelId, requestId] of userData) {
-            this._gate
-                .sendTo('frontend', 'transfer', { channelId, requestId, result })
-                .catch(() => {
-                    logger.log(`Can not send data to ${user} by ${channelId}`);
-                    this._registerUnsubscribe({ user, channelId }).catch(
-                        () => {} // no catch
-                    );
-                });
-        }
+        return result;
     }
 
-    async _registerSubscribe(data) {
-        const map = this._userMapping;
-        const { user, channelId, requestId } = data;
+    async _getHistory({ user, fromId = null, limit = 10, types = 'all' }) {
+        this._validateHistoryRequest(limit, types);
 
-        if (!map.get(user)) {
-            map.set(user, new Map());
-        }
-
-        map.get(user).set(channelId, requestId);
-
-        return 'Ok';
-    }
-
-    async _registerUnsubscribe(data) {
-        const map = this._userMapping;
-        const { user, channelId } = data;
-
-        map.get(user).delete(channelId);
-
-        if (!map.get(user).size) {
-            map.delete(user);
-        }
-
-        return 'Ok';
-    }
-
-    async _getHistory({ user, params: { skip = 0, limit = 10, types } }) {
-        this._validateHistoryRequest(types, skip, limit);
-
-        let query = { user, eventType: types };
+        const allQuery = { user };
+        const freshQuery = { user, fresh: true };
+        let historyQuery = { user, eventType: types };
 
         if (types === 'all') {
-            delete query.eventType;
+            historyQuery = allQuery;
         }
 
-        return await Event.find(
-            query,
+        const total = await Event.find(allQuery).countDocuments();
+        const fresh = await Event.find(freshQuery).countDocuments();
+
+        if (fromId) {
+            historyQuery._id = { $gt: fromId };
+        }
+
+        const data = await Event.find(
+            historyQuery,
             {
-                id: false,
-                _id: false,
                 __v: false,
                 blockNum: false,
                 user: false,
             },
             {
-                skip,
                 limit,
                 lean: true,
                 sort: {
@@ -232,6 +174,42 @@ class Notifier extends BasicService {
                 },
             }
         );
+
+        for (let event of data) {
+            await this._freshOff(event._id);
+        }
+
+        return {
+            total,
+            fresh,
+            data,
+        };
+    }
+
+    _validateHistoryRequest(limit, types) {
+        if (limit <= 0) {
+            throw { code: 400, message: 'Limit <= 0' };
+        }
+
+        if (limit > MAX_HISTORY_LIMIT) {
+            throw { code: 400, message: `Limit > ${MAX_HISTORY_LIMIT}` };
+        }
+
+        if (!Array.isArray(types) && types !== 'all') {
+            throw { code: 400, message: 'Bad types' };
+        }
+
+        if (types !== 'all') {
+            for (let type of types) {
+                if (!EVENT_TYPES.includes(type)) {
+                    throw { code: 400, message: `Bad type - ${type || 'null'}` };
+                }
+            }
+        }
+    }
+
+    async _freshOff(_id) {
+        await Event.update({ _id }, { $set: { fresh: false } });
     }
 
     _validateHistoryRequest(types, skip, limit) {

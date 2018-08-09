@@ -26,7 +26,7 @@ services:
       - $GLS_METRICS_HOST:$GLS_METRICS_PORT:$GLS_METRICS_PORT
     environment:
       - GLS_EVENT_EXPIRATION
-      - GLS_FRONTEND_GATE_CONNECT
+      - GLS_ONLINE_NOTIFY_CONNECT
       - GLS_DAY_START
       - GLS_MONGO_CONNECT
       - GLS_METRICS_HOST
@@ -35,6 +35,7 @@ services:
       - GLS_GATE_PORT
       - GLS_BLOCKCHAIN_CONNECT
       - GLS_BLOCKCHAIN_SUBSCRIBE_TIMEOUT
+      - GLS_PUSH_CONNECT
 
 volumes:
   mongodb_vol:
