@@ -13,11 +13,23 @@ module.exports = MongoDB.makeModel(
             required: true,
         },
         eventType: {
-            // vote | flag | transfer | reply | subscribe | unsubscribe
-            // mention | repost | award | curatorAward | message
-            // witnessVote | witnessCancelVote
             type: String,
             required: true,
+            enum: [
+                'vote',
+                'flag',
+                'transfer',
+                'reply',
+                'subscribe',
+                'unsubscribe',
+                'mention',
+                'repost',
+                'award',
+                'curatorAward',
+                'message',
+                'witnessVote',
+                'witnessCancelVote',
+            ],
         },
         fresh: {
             type: Boolean,

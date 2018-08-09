@@ -38,7 +38,7 @@ class Notifier extends BasicService {
                 history: this._getHistory.bind(this),
             },
             requiredClients: {
-                notifyOnline: env.GLS_ONLINE_NOTIFY_CONNECT,
+                onlineNotify: env.GLS_ONLINE_NOTIFY_CONNECT,
                 push: env.GLS_PUSH_CONNECT,
             },
         });
@@ -72,7 +72,7 @@ class Notifier extends BasicService {
     }
 
     _accumulate(user, type, data) {
-        this._accumulatorBy(user, type).push(data);
+        this._accumulatorBy(user, type).add(data);
     }
 
     _accumulateWithIncrement(user, type, data) {
@@ -108,7 +108,7 @@ class Notifier extends BasicService {
         const result = this._prepareBroadcastData();
 
         try {
-            await this._gate.sendTo('notifyOnline', 'transfer', result);
+            await this._gate.sendTo('onlineNotify', 'transfer', result);
         } catch (error) {
             stats.increment('broadcast_to_online_notifier_error');
             logger.error(`On send to online notifier - ${error}`);
@@ -134,15 +134,15 @@ class Notifier extends BasicService {
             result[user] = result[user] || {};
 
             for (let [event, data] of events) {
-                result[user][event] = data.values();
+                result[user][event] = Array.from(data.values());
             }
         }
 
         return result;
     }
 
-    async _getHistory({ user, skip = 0, limit = 10, types = 'all' }) {
-        this._validateHistoryRequest(skip, limit, types);
+    async _getHistory({ user, fromId = null, limit = 10, types = 'all' }) {
+        this._validateHistoryRequest(limit, types);
 
         const allQuery = { user };
         const freshQuery = { user, fresh: true };
@@ -154,6 +154,11 @@ class Notifier extends BasicService {
 
         const total = await Event.find(allQuery).countDocuments();
         const fresh = await Event.find(freshQuery).countDocuments();
+
+        if (fromId) {
+            historyQuery._id = { $gt: fromId };
+        }
+
         const data = await Event.find(
             historyQuery,
             {
@@ -162,7 +167,6 @@ class Notifier extends BasicService {
                 user: false,
             },
             {
-                skip,
                 limit,
                 lean: true,
                 sort: {
@@ -182,11 +186,7 @@ class Notifier extends BasicService {
         };
     }
 
-    _validateHistoryRequest(skip, limit, types) {
-        if (skip < 0) {
-            throw { code: 400, message: 'Skip < 0' };
-        }
-
+    _validateHistoryRequest(limit, types) {
         if (limit <= 0) {
             throw { code: 400, message: 'Limit <= 0' };
         }
