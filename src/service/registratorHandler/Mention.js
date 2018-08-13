@@ -1,5 +1,3 @@
-const core = require('gls-core-service');
-const Moments = core.Moments;
 const Abstract = require('./Abstract');
 const Event = require('../../model/Event');
 
@@ -13,7 +11,7 @@ class Mention extends Abstract {
         for (let user of users) {
             this.emit('mention', user, { permlink });
 
-            let model = new Event({
+            const model = new Event({
                 blockNum,
                 user,
                 eventType: 'mention',

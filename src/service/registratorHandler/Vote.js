@@ -1,5 +1,3 @@
-const core = require('gls-core-service');
-const Moments = core.Moments;
 const Abstract = require('./Abstract');
 const Event = require('../../model/Event');
 
@@ -19,7 +17,7 @@ class Vote extends Abstract {
 
         this.emit(type, user, { voter, permlink });
 
-        let model = new Event({
+        const model = new Event({
             blockNum,
             user,
             eventType: type,

@@ -1,5 +1,3 @@
-const core = require('gls-core-service');
-const Moments = core.Moments;
 const Abstract = require('./Abstract');
 const Event = require('../../model/Event');
 
@@ -46,7 +44,7 @@ class Subscribe extends Abstract {
     }
 
     static async _saveSubscribe({ eventType, user, follower }, blockNum) {
-        let model = new Event({
+        const model = new Event({
             blockNum,
             user,
             eventType,

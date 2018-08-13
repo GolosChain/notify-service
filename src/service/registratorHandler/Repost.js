@@ -1,5 +1,3 @@
-const core = require('gls-core-service');
-const Moments = core.Moments;
 const Abstract = require('./Abstract');
 const Event = require('../../model/Event');
 
@@ -38,7 +36,7 @@ class Repost extends Abstract {
     }
 
     static async _saveRepost({ user, reposter, permlink }, blockNum) {
-        let model = new Event({
+        const model = new Event({
             blockNum,
             user,
             eventType: 'repost',
