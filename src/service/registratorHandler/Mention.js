@@ -9,7 +9,7 @@ class Mention extends Abstract {
         const users = this._extractMention(title, body);
 
         for (let user of users) {
-            this.emit('mention', user, { permlink });
+            this.emit('mention', user, { author, permlink });
 
             const model = new Event({
                 blockNum,
