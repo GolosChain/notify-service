@@ -58,7 +58,7 @@ module.exports = MongoDB.makeModel(
         },
         // transfer
         amount: {
-            type: Number,
+            type: String,
         },
         // award | curatorAward
         award: {
