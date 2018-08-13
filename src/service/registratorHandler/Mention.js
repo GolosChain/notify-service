@@ -3,12 +3,23 @@ const Event = require('../../model/Event');
 
 class Mention extends Abstract {
     static async handle(
-        { author, title, body, permlink, parent_permlink: parentPermlink },
+        {
+            author,
+            title,
+            body,
+            permlink,
+            parent_permlink: parentPermlink,
+            parent_author: parentAuthor,
+        },
         blockNum
     ) {
         const users = this._extractMention(title, body);
 
         for (let user of users) {
+            if (user === author || user === parentAuthor) {
+                continue;
+            }
+
             this.emit('mention', user, { author, permlink });
 
             const model = new Event({
