@@ -46,24 +46,14 @@ class Subscribe extends Abstract {
     }
 
     static async _saveSubscribe({ eventType, user, follower }, blockNum) {
-        let model = await Event.findOne({
-            eventType,
+        let model = new Event({
+            blockNum,
             user,
-            createdAt: { $gt: Moments.currentDayStart },
+            eventType,
+            fromUsers: [follower],
         });
 
-        if (model) {
-            await this._incrementModel(model, follower);
-        } else {
-            model = new Event({
-                blockNum,
-                user,
-                eventType,
-                fromUsers: [follower],
-            });
-
-            await model.save();
-        }
+        await model.save();
     }
 }
 

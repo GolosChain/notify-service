@@ -25,17 +25,6 @@ class Abstract {
         return { type, user, data };
     }
 
-    static async _incrementModel(model, fromUsers) {
-        await Event.findOneAndUpdate(
-            { _id: model._id },
-            {
-                $inc: { counter: 1 },
-                $push: { fromUsers },
-                $set: { fresh: true },
-            }
-        );
-    }
-
     static emit(name, ...data) {
         emitter.emit(name, ...data);
     }

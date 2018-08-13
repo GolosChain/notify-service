@@ -13,27 +13,16 @@ class Mention extends Abstract {
         for (let user of users) {
             this.emit('mention', user, { permlink });
 
-            let model = await Event.findOne({
-                eventType: 'mention',
+            let model = new Event({
+                blockNum,
                 user,
+                eventType: 'mention',
+                permlink,
                 parentPermlink,
-                createdAt: { $gt: Moments.currentDayStart },
+                fromUsers: [author],
             });
 
-            if (model) {
-                await this._incrementModel(model, author);
-            } else {
-                model = new Event({
-                    blockNum,
-                    user,
-                    eventType: 'mention',
-                    permlink,
-                    parentPermlink,
-                    fromUsers: [author],
-                });
-
-                await model.save();
-            }
+            await model.save();
         }
     }
 

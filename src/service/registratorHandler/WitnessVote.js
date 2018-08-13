@@ -16,23 +16,14 @@ class WitnessVote extends Abstract {
 
         this.emit(eventType, user, { from });
 
-        let model = await Event.findOne({
-            eventType,
+        let model = new Event({
+            blockNum,
             user,
-            createdAt: { $gt: Moments.currentDayStart },
+            eventType,
+            fromUsers: [from],
         });
-
-        if (model) {
-            await this._incrementModel(model, from);
-        } else {
-            model = new Event({
-                blockNum,
-                user,
-                eventType,
-                fromUsers: [from],
-            });
-            await model.save();
-        }
+        
+        await model.save();
     }
 }
 

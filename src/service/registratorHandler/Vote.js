@@ -19,25 +19,14 @@ class Vote extends Abstract {
 
         this.emit(type, user, { voter, permlink });
 
-        let model = await Event.findOne({
-            eventType: type,
+        let model = new Event({
+            blockNum,
             user,
-            permlink,
-            createdAt: { $gt: Moments.currentDayStart },
+            eventType: type,
+            permlink: permlink,
+            fromUsers: [voter],
         });
-
-        if (model) {
-            await this._incrementModel(model, voter);
-        } else {
-            model = new Event({
-                blockNum,
-                user,
-                eventType: type,
-                permlink: permlink,
-                fromUsers: [voter],
-            });
-            await model.save();
-        }
+        await model.save();
     }
 }
 

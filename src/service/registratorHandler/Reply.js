@@ -14,27 +14,16 @@ class Reply extends Abstract {
 
         this.emit('reply', user, { author, permlink });
 
-        let model = await Event.findOne({
-            eventType: 'reply',
+        let model = model = new Event({
+            blockNum,
             user,
+            eventType: 'reply',
+            permlink,
             parentPermlink,
-            createdAt: { $gt: Moments.currentDayStart },
+            fromUsers: [author],
         });
 
-        if (model) {
-            await this._incrementModel(model, author);
-        } else {
-            model = new Event({
-                blockNum,
-                user,
-                eventType: 'reply',
-                permlink,
-                parentPermlink,
-                fromUsers: [author],
-            });
-
-            await model.save();
-        }
+        await model.save();
     }
 }
 

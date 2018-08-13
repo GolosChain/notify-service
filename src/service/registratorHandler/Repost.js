@@ -38,26 +38,15 @@ class Repost extends Abstract {
     }
 
     static async _saveRepost({ user, reposter, permlink }, blockNum) {
-        let model = await Event.findOne({
-            eventType: 'repost',
+        let model = new Event({
+            blockNum,
             user,
+            eventType: 'repost',
             permlink,
-            createdAt: { $gt: Moments.currentDayStart },
+            fromUsers: [reposter],
         });
 
-        if (model) {
-            await this._incrementModel(model, reposter);
-        } else {
-            model = new Event({
-                blockNum,
-                user,
-                eventType: 'repost',
-                permlink,
-                fromUsers: [reposter],
-            });
-
-            await model.save();
-        }
+        await model.save();
     }
 }
 
