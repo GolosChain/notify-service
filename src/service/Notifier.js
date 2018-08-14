@@ -211,38 +211,6 @@ class Notifier extends BasicService {
     async _freshOff(_id) {
         await Event.update({ _id }, { $set: { fresh: false } });
     }
-
-    _validateHistoryRequest(types, skip, limit) {
-        if (skip < 0) {
-            throw { code: 400, message: 'Skip < 0' };
-        }
-
-        if (limit <= 0) {
-            throw { code: 400, message: 'Limit <= 0' };
-        }
-
-        if (limit > MAX_HISTORY_LIMIT) {
-            throw { code: 400, message: `Limit > ${MAX_HISTORY_LIMIT}` };
-        }
-
-        if (!types) {
-            throw { code: 400, message: 'Empty types param' };
-        }
-
-        if (types !== 'all' && !Array.isArray(types)) {
-            throw { code: 400, message: 'Invalid types param' };
-        }
-
-        if (types === 'all') {
-            return;
-        }
-
-        for (let type of types) {
-            if (!~EVENT_TYPES.indexOf(type)) {
-                throw { code: 400, message: `Bad type - ${type || 'null'}` };
-            }
-        }
-    }
 }
 
 module.exports = Notifier;
