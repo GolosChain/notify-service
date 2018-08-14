@@ -78,8 +78,8 @@ class Notifier extends BasicService {
     _accumulateWithIncrement(user, type, data) {
         const acc = this._accumulatorBy(user, type);
 
-        if (acc.length) {
-            acc[0].counter++;
+        if (acc.size) {
+            acc.values().next().value.counter++;
         } else {
             acc.add({ counter: 1, ...data });
         }
