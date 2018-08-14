@@ -1,39 +1,37 @@
-const core = require('gls-core-service');
-const Moments = core.Moments;
 const Abstract = require('./Abstract');
 const Event = require('../../model/Event');
 
 class Mention extends Abstract {
     static async handle(
-        { author, title, body, permlink, parent_permlink: parentPermlink },
+        {
+            author,
+            title,
+            body,
+            permlink,
+            parent_permlink: parentPermlink,
+            parent_author: parentAuthor,
+        },
         blockNum
     ) {
         const users = this._extractMention(title, body);
 
         for (let user of users) {
-            this.emit('mention', user, { permlink });
+            if (user === author || user === parentAuthor) {
+                continue;
+            }
 
-            let model = await Event.findOne({
-                eventType: 'mention',
+            this.emit('mention', user, { author, permlink });
+
+            const model = new Event({
+                blockNum,
                 user,
+                eventType: 'mention',
+                permlink,
                 parentPermlink,
-                createdAt: { $gt: Moments.currentDayStart },
+                fromUsers: [author],
             });
 
-            if (model) {
-                await this._incrementModel(model, author);
-            } else {
-                model = new Event({
-                    blockNum,
-                    user,
-                    eventType: 'mention',
-                    permlink,
-                    parentPermlink,
-                    fromUsers: [author],
-                });
-
-                await model.save();
-            }
+            await model.save();
         }
     }
 

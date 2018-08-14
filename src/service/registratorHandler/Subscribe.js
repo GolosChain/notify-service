@@ -1,5 +1,3 @@
-const core = require('gls-core-service');
-const Moments = core.Moments;
 const Abstract = require('./Abstract');
 const Event = require('../../model/Event');
 
@@ -46,24 +44,14 @@ class Subscribe extends Abstract {
     }
 
     static async _saveSubscribe({ eventType, user, follower }, blockNum) {
-        let model = await Event.findOne({
-            eventType,
+        const model = new Event({
+            blockNum,
             user,
-            createdAt: { $gt: Moments.currentDayStart },
+            eventType,
+            fromUsers: [follower],
         });
 
-        if (model) {
-            await this._incrementModel(model, follower);
-        } else {
-            model = new Event({
-                blockNum,
-                user,
-                eventType,
-                fromUsers: [follower],
-            });
-
-            await model.save();
-        }
+        await model.save();
     }
 }
 

@@ -1,7 +1,6 @@
 const EventEmitter = require('events');
 const core = require('gls-core-service');
 const logger = core.Logger;
-const Event = require('../../model/Event');
 
 const emitter = new EventEmitter();
 
@@ -23,17 +22,6 @@ class Abstract {
         }
 
         return { type, user, data };
-    }
-
-    static async _incrementModel(model, fromUsers) {
-        await Event.findOneAndUpdate(
-            { _id: model._id },
-            {
-                $inc: { counter: 1 },
-                $push: { fromUsers },
-                $set: { fresh: true },
-            }
-        );
     }
 
     static emit(name, ...data) {

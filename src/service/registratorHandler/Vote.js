@@ -1,5 +1,3 @@
-const core = require('gls-core-service');
-const Moments = core.Moments;
 const Abstract = require('./Abstract');
 const Event = require('../../model/Event');
 
@@ -19,25 +17,14 @@ class Vote extends Abstract {
 
         this.emit(type, user, { voter, permlink });
 
-        let model = await Event.findOne({
-            eventType: type,
+        const model = new Event({
+            blockNum,
             user,
-            permlink,
-            createdAt: { $gt: Moments.currentDayStart },
+            eventType: type,
+            permlink: permlink,
+            fromUsers: [voter],
         });
-
-        if (model) {
-            await this._incrementModel(model, voter);
-        } else {
-            model = new Event({
-                blockNum,
-                user,
-                eventType: type,
-                permlink: permlink,
-                fromUsers: [voter],
-            });
-            await model.save();
-        }
+        await model.save();
     }
 }
 
