@@ -36,6 +36,7 @@ class Notifier extends BasicService {
         await this._gate.start({
             serverRoutes: {
                 history: this._getHistory.bind(this),
+                historyFresh: this._getHistoryFresh.bind(this),
             },
             requiredClients: {
                 onlineNotify: env.GLS_ONLINE_NOTIFY_CONNECT,
@@ -183,6 +184,12 @@ class Notifier extends BasicService {
             total,
             fresh,
             data,
+        };
+    }
+
+    async _getHistoryFresh({ user }) {
+        return {
+            fresh: await Event.find({ user, fresh: true }).countDocuments(),
         };
     }
 
