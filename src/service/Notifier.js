@@ -169,6 +169,9 @@ class Notifier extends BasicService {
             {
                 limit,
                 lean: true,
+                sort: {
+                    createdAt: -1,
+                },
             }
         );
 
