@@ -5,8 +5,7 @@ class WitnessVote extends Abstract {
     static async handle({ account: from, witness: user, approve }, blockNum) {
         let eventType;
 
-        // not a bug
-        if (approve === 'true') {
+        if (approve) {
             eventType = 'witnessVote';
         } else {
             eventType = 'witnessCancelVote';
