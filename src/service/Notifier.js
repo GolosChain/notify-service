@@ -156,7 +156,7 @@ class Notifier extends BasicService {
         const fresh = await Event.find(freshQuery).countDocuments();
 
         if (fromId) {
-            historyQuery._id = { $gt: fromId };
+            historyQuery._id = { $lt: fromId };
         }
 
         const data = await Event.find(
@@ -170,7 +170,7 @@ class Notifier extends BasicService {
                 limit,
                 lean: true,
                 sort: {
-                    createdAt: -1,
+                    _id: -1,
                 },
             }
         );

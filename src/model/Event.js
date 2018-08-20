@@ -87,7 +87,7 @@ module.exports = MongoDB.makeModel(
                 fields: {
                     user: 1,
                     eventType: 1,
-                    createdAt: -1,
+                    _id: -1,
                 },
             },
             // Cleaner
