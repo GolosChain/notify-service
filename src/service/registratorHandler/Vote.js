@@ -7,6 +7,10 @@ class Vote extends Abstract {
             return;
         }
 
+        if (voter === user) {
+            return;
+        }
+
         let type;
 
         if (weight > 0) {
