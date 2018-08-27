@@ -78,6 +78,15 @@ class Registrator extends BasicService {
             }
         }
 
+        for (let virtual of data._virtual_operations || []) {
+            for (let operation of virtual.op) {
+                this._routeVirtualEventHandlers(operation, blockNum).catch(error => {
+                    logger.error(`Virtual event handler error - ${error}`);
+                    process.exit(1);
+                });
+            }
+        }
+
         this.emit('blockDone');
     }
 
@@ -105,6 +114,10 @@ class Registrator extends BasicService {
                 await WitnessVote.handle(body, blockNum);
                 break;
         }
+    }
+
+    async _routeVirtualEventHandlers() {
+        // TODO -
     }
 }
 
