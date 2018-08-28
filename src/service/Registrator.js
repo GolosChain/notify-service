@@ -6,8 +6,8 @@ const BasicService = core.service.Basic;
 const BlockSubscribe = core.service.BlockSubscribe;
 const BlockSubscribeRestore = core.service.BlockSubscribeRestore;
 
-const Award = require('./registratorHandler/Award');
-const CuratorAward = require('./registratorHandler/CuratorAward');
+const Reward = require('./registratorHandler/Reward');
+const CuratorReward = require('./registratorHandler/CuratorReward');
 const Mention = require('./registratorHandler/Mention');
 const Message = require('./registratorHandler/Message');
 const Reply = require('./registratorHandler/Reply');
@@ -21,8 +21,8 @@ class Registrator extends BasicService {
     constructor() {
         super();
 
-        this.translateEmit(Award, 'award');
-        this.translateEmit(CuratorAward, 'curatorAward');
+        this.translateEmit(Reward, 'reward');
+        this.translateEmit(CuratorReward, 'curatorReward');
         this.translateEmit(Mention, 'mention');
         this.translateEmit(Message, 'message');
         this.translateEmit(Reply, 'reply');

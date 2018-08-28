@@ -1,10 +1,10 @@
 const Abstract = require('./Abstract');
 const Event = require('../../model/Event');
 
-class Award extends Abstract {
+class CuratorReward extends Abstract {
     static async handle(data, blockNum) {
         // TODO wait blockchain implementation
     }
 }
 
-module.exports = Award;
+module.exports = CuratorReward;

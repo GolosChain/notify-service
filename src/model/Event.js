@@ -24,8 +24,8 @@ module.exports = MongoDB.makeModel(
                 'unsubscribe',
                 'mention',
                 'repost',
-                'award',
-                'curatorAward',
+                'reward',
+                'curatorReward',
                 'message',
                 'witnessVote',
                 'witnessCancelVote',
@@ -43,7 +43,7 @@ module.exports = MongoDB.makeModel(
 
         /* Type-specified fields */
 
-        // vote | flag | reply | mention | repost | award | curatorAward
+        // vote | flag | reply | mention | repost | reward | curatorReward
         permlink: {
             type: String,
         },
@@ -60,8 +60,8 @@ module.exports = MongoDB.makeModel(
         amount: {
             type: String,
         },
-        // award | curatorAward
-        award: {
+        // reward | curatorReward
+        reward: {
             golos: {
                 type: Number,
             },
