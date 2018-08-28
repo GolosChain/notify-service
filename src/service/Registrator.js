@@ -71,28 +71,51 @@ class Registrator extends BasicService {
     }
 
     _handleBlock(data, blockNum) {
-        for (let transaction of data.transactions) {
-            for (let operation of transaction.operations) {
-                this._routeEventHandlers(operation, blockNum).catch(error => {
-                    logger.error(`Event handler error - ${error}`);
-                    process.exit(1);
-                });
-            }
-        }
+        this._eachRealOperation(data, operation => {
+            this._routeRealEventHandlers(operation, blockNum).catch(error => {
+                logger.error(`Event handler error - ${error}`);
+                process.exit(1);
+            });
+        });
 
-        for (let virtual of data._virtual_operations || []) {
-            for (let operation of virtual.op) {
-                this._routeVirtualEventHandlers(operation, blockNum).catch(error => {
-                    logger.error(`Virtual event handler error - ${error}`);
-                    process.exit(1);
-                });
-            }
-        }
+        this._eachVirtualOperation(data, operation => {
+            this._routeVirtualEventHandlers(operation, blockNum).catch(error => {
+                logger.error(`Virtual event handler error - ${error}`);
+                process.exit(1);
+            });
+        });
 
         this.emit('blockDone');
     }
 
-    async _routeEventHandlers([type, body], blockNum) {
+    _eachRealOperation(data, fn) {
+        for (let transaction of data.transactions) {
+            for (let operation of transaction.operations) {
+                fn(operation);
+            }
+        }
+    }
+
+    _eachVirtualOperation(data, fn) {
+        if (!data._virtual_operations) {
+            return;
+        }
+
+        for (let virtual of data._virtual_operations) {
+            const operations = virtual.op;
+            let type = null;
+
+            for (let i = 0; i < operations.length; i++) {
+                if (i % 2) {
+                    fn([type, operations[i]]);
+                } else {
+                    type = operations[i];
+                }
+            }
+        }
+    }
+
+    async _routeRealEventHandlers([type, body], blockNum) {
         switch (type) {
             case 'vote':
                 await Vote.handle(body, blockNum);
@@ -122,8 +145,16 @@ class Registrator extends BasicService {
         }
     }
 
-    async _routeVirtualEventHandlers() {
-        // TODO -
+    async _routeVirtualEventHandlers([type, body], blockNum) {
+        switch (type) {
+            case 'author_reward':
+                await Reward.handle(body, blockNum);
+                break;
+
+            case 'curation_reward':
+                await CuratorReward.handle(body, blockNum);
+                break;
+        }
     }
 }
 

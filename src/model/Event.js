@@ -60,7 +60,7 @@ module.exports = MongoDB.makeModel(
         amount: {
             type: String,
         },
-        // reward | curatorReward
+        // reward
         reward: {
             golos: {
                 type: Number,
@@ -72,6 +72,14 @@ module.exports = MongoDB.makeModel(
                 type: Number,
             },
         },
+        // curatorReward
+        curatorReward: {
+            type: String
+        },
+        // curatorReward
+        curatorTargetAuthor: {
+            type: String
+        }
     },
     {
         index: [
