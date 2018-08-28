@@ -16,6 +16,7 @@ const Subscribe = require('./registratorHandler/Subscribe');
 const Transfer = require('./registratorHandler/Transfer');
 const Vote = require('./registratorHandler/Vote');
 const WitnessVote = require('./registratorHandler/WitnessVote');
+const DeleteComment = require('./registratorHandler/DeleteComment');
 
 class Registrator extends BasicService {
     constructor() {
@@ -31,6 +32,7 @@ class Registrator extends BasicService {
         this.translateEmit(Transfer, 'transfer');
         this.translateEmit(Vote, 'vote', 'flag');
         this.translateEmit(WitnessVote, 'witnessVote', 'witnessCancelVote');
+        /* no translate for DeleteComment handler */
     }
 
     async start() {
@@ -112,6 +114,10 @@ class Registrator extends BasicService {
 
             case 'account_witness_vote':
                 await WitnessVote.handle(body, blockNum);
+                break;
+
+            case 'delete_comment':
+                await DeleteComment.handle(body);
                 break;
         }
     }
