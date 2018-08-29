@@ -6,8 +6,8 @@ const BasicService = core.service.Basic;
 const BlockSubscribe = core.service.BlockSubscribe;
 const BlockSubscribeRestore = core.service.BlockSubscribeRestore;
 
-const Award = require('./registratorHandler/Award');
-const CuratorAward = require('./registratorHandler/CuratorAward');
+const Reward = require('./registratorHandler/Reward');
+const CuratorReward = require('./registratorHandler/CuratorReward');
 const Mention = require('./registratorHandler/Mention');
 const Message = require('./registratorHandler/Message');
 const Reply = require('./registratorHandler/Reply');
@@ -16,13 +16,14 @@ const Subscribe = require('./registratorHandler/Subscribe');
 const Transfer = require('./registratorHandler/Transfer');
 const Vote = require('./registratorHandler/Vote');
 const WitnessVote = require('./registratorHandler/WitnessVote');
+const DeleteComment = require('./registratorHandler/DeleteComment');
 
 class Registrator extends BasicService {
     constructor() {
         super();
 
-        this.translateEmit(Award, 'award');
-        this.translateEmit(CuratorAward, 'curatorAward');
+        this.translateEmit(Reward, 'reward');
+        this.translateEmit(CuratorReward, 'curatorReward');
         this.translateEmit(Mention, 'mention');
         this.translateEmit(Message, 'message');
         this.translateEmit(Reply, 'reply');
@@ -31,6 +32,7 @@ class Registrator extends BasicService {
         this.translateEmit(Transfer, 'transfer');
         this.translateEmit(Vote, 'vote', 'flag');
         this.translateEmit(WitnessVote, 'witnessVote', 'witnessCancelVote');
+        /* no translate for DeleteComment handler */
     }
 
     async start() {
@@ -69,19 +71,51 @@ class Registrator extends BasicService {
     }
 
     _handleBlock(data, blockNum) {
-        for (let transaction of data.transactions) {
-            for (let operation of transaction.operations) {
-                this._routeEventHandlers(operation, blockNum).catch(error => {
-                    logger.error(`Event handler error - ${error}`);
-                    process.exit(1);
-                });
-            }
-        }
+        this._eachRealOperation(data, operation => {
+            this._routeRealEventHandlers(operation, blockNum).catch(error => {
+                logger.error(`Event handler error - ${error}`);
+                process.exit(1);
+            });
+        });
+
+        this._eachVirtualOperation(data, operation => {
+            this._routeVirtualEventHandlers(operation, blockNum).catch(error => {
+                logger.error(`Virtual event handler error - ${error}`);
+                process.exit(1);
+            });
+        });
 
         this.emit('blockDone');
     }
 
-    async _routeEventHandlers([type, body], blockNum) {
+    _eachRealOperation(data, fn) {
+        for (let transaction of data.transactions) {
+            for (let operation of transaction.operations) {
+                fn(operation);
+            }
+        }
+    }
+
+    _eachVirtualOperation(data, fn) {
+        if (!data._virtual_operations) {
+            return;
+        }
+
+        for (let virtual of data._virtual_operations) {
+            const operations = virtual.op;
+            let type = null;
+
+            for (let i = 0; i < operations.length; i++) {
+                if (i % 2) {
+                    fn([type, operations[i]]);
+                } else {
+                    type = operations[i];
+                }
+            }
+        }
+    }
+
+    async _routeRealEventHandlers([type, body], blockNum) {
         switch (type) {
             case 'vote':
                 await Vote.handle(body, blockNum);
@@ -103,6 +137,22 @@ class Registrator extends BasicService {
 
             case 'account_witness_vote':
                 await WitnessVote.handle(body, blockNum);
+                break;
+
+            case 'delete_comment':
+                await DeleteComment.handle(body);
+                break;
+        }
+    }
+
+    async _routeVirtualEventHandlers([type, body], blockNum) {
+        switch (type) {
+            case 'author_reward':
+                await Reward.handle(body, blockNum);
+                break;
+
+            case 'curation_reward':
+                await CuratorReward.handle(body, blockNum);
                 break;
         }
     }
