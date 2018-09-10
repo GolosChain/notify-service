@@ -101,7 +101,7 @@ module.exports = MongoDB.makeModel(
             // Cleaner
             {
                 fields: {
-                    date: -1,
+                    createdAt: -1,
                 },
             },
             // Restorer
