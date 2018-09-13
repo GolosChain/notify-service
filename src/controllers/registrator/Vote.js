@@ -1,5 +1,5 @@
 const Abstract = require('./Abstract');
-const Event = require('../../model/Event');
+const Event = require('../../models/Event');
 
 class Vote extends Abstract {
     static async handle({ voter, author: user, permlink, weight }, blockNum) {

@@ -1,5 +1,5 @@
 const Abstract = require('./Abstract');
-const Event = require('../../model/Event');
+const Event = require('../../models/Event');
 
 class Transfer extends Abstract {
     static async handle({ to: user, from, amount }, blockNum) {

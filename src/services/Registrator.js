@@ -1,22 +1,22 @@
-const Event = require('../model/Event');
+const Event = require('../models/Event');
 const core = require('gls-core-service');
-const logger = core.Logger;
-const stats = core.Stats.client;
-const BasicService = core.service.Basic;
-const BlockSubscribe = core.service.BlockSubscribe;
-const BlockSubscribeRestore = core.service.BlockSubscribeRestore;
+const Logger = core.utils.Logger;
+const stats = core.statsClient;
+const BasicService = core.services.Basic;
+const BlockSubscribe = core.services.BlockSubscribe;
+const BlockSubscribeRestore = core.services.BlockSubscribeRestore;
 
-const Reward = require('./registratorHandler/Reward');
-const CuratorReward = require('./registratorHandler/CuratorReward');
-const Mention = require('./registratorHandler/Mention');
-const Message = require('./registratorHandler/Message');
-const Reply = require('./registratorHandler/Reply');
-const Repost = require('./registratorHandler/Repost');
-const Subscribe = require('./registratorHandler/Subscribe');
-const Transfer = require('./registratorHandler/Transfer');
-const Vote = require('./registratorHandler/Vote');
-const WitnessVote = require('./registratorHandler/WitnessVote');
-const DeleteComment = require('./registratorHandler/DeleteComment');
+const Reward = require('../controllers/registrator/Reward');
+const CuratorReward = require('../controllers/registrator/CuratorReward');
+const Mention = require('../controllers/registrator/Mention');
+const Message = require('../controllers/registrator/Message');
+const Reply = require('../controllers/registrator/Reply');
+const Repost = require('../controllers/registrator/Repost');
+const Subscribe = require('../controllers/registrator/Subscribe');
+const Transfer = require('../controllers/registrator/Transfer');
+const Vote = require('../controllers/registrator/Vote');
+const WitnessVote = require('../controllers/registrator/WitnessVote');
+const DeleteComment = require('../controllers/registrator/DeleteComment');
 
 class Registrator extends BasicService {
     constructor() {
@@ -66,21 +66,21 @@ class Registrator extends BasicService {
 
     _handleBlockError(error) {
         stats.increment('block_registration_error');
-        logger.error(`Load block error - ${error}`);
+        Logger.error(`Load block error - ${error}`);
         process.exit(1);
     }
 
     _handleBlock(data, blockNum) {
         this._eachRealOperation(data, operation => {
             this._routeRealEventHandlers(operation, blockNum).catch(error => {
-                logger.error(`Event handler error - ${error}`);
+                Logger.error(`Event handler error - ${error}`);
                 process.exit(1);
             });
         });
 
         this._eachVirtualOperation(data, operation => {
             this._routeVirtualEventHandlers(operation, blockNum).catch(error => {
-                logger.error(`Virtual event handler error - ${error}`);
+                Logger.error(`Virtual event handler error - ${error}`);
                 process.exit(1);
             });
         });

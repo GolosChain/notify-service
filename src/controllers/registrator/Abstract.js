@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const core = require('gls-core-service');
-const logger = core.Logger;
+const Logger = core.utils.Logger;
 
 const emitter = new EventEmitter();
 
@@ -17,7 +17,7 @@ class Abstract {
         try {
             data = JSON.parse(rawData.json);
         } catch (error) {
-            logger.log(`Bad custom JSON from - ${user}`);
+            Logger.log(`Bad custom JSON from - ${user}`);
             return {};
         }
 

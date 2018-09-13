@@ -1,45 +1,26 @@
 const core = require('gls-core-service');
-const logger = core.Logger;
 const stats = core.Stats.client;
-const BasicService = core.service.Basic;
+const BasicMain = core.services.BasicMain;
 const MongoDB = core.service.MongoDB;
-const env = require('./Env');
-const Registrator = require('./service/Registrator');
-const Notifier = require('./service/Notifier');
-const Cleaner = require('./service/Cleaner');
+const env = require('./env');
+const Registrator = require('./services/Registrator');
+const Notifier = require('./services/Notifier');
+const Cleaner = require('./services/Cleaner');
+const Connector = require('./services/Connector');
 
-class Main extends BasicService {
+class Main extends BasicMain {
     constructor() {
-        super();
+        super(stats);
 
         const mongo = new MongoDB();
         const registrator = new Registrator();
-        const notifier = new Notifier(registrator);
+        const connector = new Connector();
+        const notifier = new Notifier(registrator, connector);
         const cleaner = new Cleaner();
 
         this.printEnvBasedConfig(env);
-        this.addNested(mongo, registrator, notifier, cleaner);
-        this.stopOnExit();
-    }
-
-    async start() {
-        await this.startNested();
-        stats.increment('main_service_start');
-    }
-
-    async stop() {
-        await this.stopNested();
-        stats.increment('main_service_stop');
-        process.exit(0);
+        this.addNested(mongo, registrator, notifier, connector, cleaner);
     }
 }
 
-new Main().start().then(
-    () => {
-        logger.info('Main service started!');
-    },
-    error => {
-        logger.error(`Main service failed - ${error}`);
-        process.exit(1);
-    }
-);
+module.exports = Main;

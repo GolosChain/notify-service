@@ -1,5 +1,7 @@
 const Abstract = require('./Abstract');
-const Event = require('../../model/Event');
+const Event = require('../../models/Event');
+const core = require('gls-core-service');
+const Logger = core.utils.Logger;
 
 class Subscribe extends Abstract {
     static async handle(rawData, blockNum) {
@@ -38,7 +40,7 @@ class Subscribe extends Abstract {
 
             return { eventType, user, follower };
         } catch (error) {
-            logger.log(`Bad follow from - ${follower}`);
+            Logger.log(`Bad follow from - ${follower}`);
             return {};
         }
     }
