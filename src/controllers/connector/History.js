@@ -106,4 +106,4 @@ class History {
     }
 }
 
-module.exports = Histrory;
+module.exports = History;
