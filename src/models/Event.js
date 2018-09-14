@@ -1,5 +1,6 @@
 const core = require('gls-core-service');
 const MongoDB = core.services.MongoDB;
+const eventTypes = require('../data/eventTypes');
 
 module.exports = MongoDB.makeModel(
     'Event',
@@ -15,21 +16,7 @@ module.exports = MongoDB.makeModel(
         eventType: {
             type: String,
             required: true,
-            enum: [
-                'vote',
-                'flag',
-                'transfer',
-                'reply',
-                'subscribe',
-                'unsubscribe',
-                'mention',
-                'repost',
-                'reward',
-                'curatorReward',
-                'message',
-                'witnessVote',
-                'witnessCancelVote',
-            ],
+            enum: eventTypes,
         },
         fresh: {
             type: Boolean,

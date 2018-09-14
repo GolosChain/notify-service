@@ -2,22 +2,7 @@ const core = require('gls-core-service');
 const BasicService = core.services.Basic;
 const Logger = core.utils.Logger;
 const stats = core.statsClient;
-
-const EVENT_TYPES = [
-    'vote',
-    'flag',
-    'transfer',
-    'reply',
-    'subscribe',
-    'unsubscribe',
-    'mention',
-    'repost',
-    'reward',
-    'curatorReward',
-    'message',
-    'witnessVote',
-    'witnessCancelVote',
-];
+const eventTypes = require('../data/eventTypes');
 
 class Notifier extends BasicService {
     constructor(registrator, connector) {
@@ -39,7 +24,7 @@ class Notifier extends BasicService {
     _generateListeners() {
         let fn;
 
-        for (let eventType of EVENT_TYPES) {
+        for (let eventType of eventTypes) {
             switch (eventType) {
                 case 'transfer':
                     fn = (user, data) => this._accumulate(user, eventType, data);

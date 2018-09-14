@@ -1,4 +1,5 @@
 const Event = require('../../models/Event');
+const eventTypes = require('../../data/eventTypes');
 
 const MAX_HISTORY_LIMIT = 100;
 const FRESH_OFF_ACTION = { $set: { fresh: false } };
@@ -82,7 +83,7 @@ class History {
 
         if (types !== 'all') {
             for (let type of types) {
-                if (!EVENT_TYPES.includes(type)) {
+                if (!eventTypes.includes(type)) {
                     throw { code: 400, message: `Bad type - ${type || 'null'}` };
                 }
             }

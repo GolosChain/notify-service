@@ -1,0 +1,15 @@
+module.exports = [
+    'vote',
+    'flag',
+    'transfer',
+    'reply',
+    'subscribe',
+    'unsubscribe',
+    'mention',
+    'repost',
+    'reward',
+    'curatorReward',
+    'message',
+    'witnessVote',
+    'witnessCancelVote',
+];
