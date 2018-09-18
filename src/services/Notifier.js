@@ -11,6 +11,10 @@ class Notifier extends BasicService {
         this._connector = connector;
         this._registrator = registrator;
         this._accumulator = new Map(); // user -> type -> [data]
+
+        this._broadcastDebugCounter = 0;
+
+        setInterval(() => Logger.info('Broadcast debug counter ' + this._broadcastDebugCounter), 60 * 1000 * 60);
     }
 
     async start() {
@@ -41,16 +45,24 @@ class Notifier extends BasicService {
     }
 
     _accumulate(user, type, data) {
-        this._accumulatorBy(user, type).add(data);
+        try {
+            this._accumulatorBy(user, type).add(data);
+        } catch (error) {
+            Logger.error(`Accumulate error - ${error}`)
+        }
     }
 
     _accumulateWithIncrement(user, type, data) {
-        const acc = this._accumulatorBy(user, type);
+        try {
+            const acc = this._accumulatorBy(user, type);
 
-        if (acc.size) {
-            acc.values().next().value.counter++;
-        } else {
-            acc.add({ counter: 1, ...data });
+            if (acc.size) {
+                acc.values().next().value.counter++;
+            } else {
+                acc.add({ counter: 1, ...data });
+            }
+        } catch (error) {
+            Logger.error(`Accumulate inc error - ${error}`)
         }
     }
 
@@ -73,24 +85,31 @@ class Notifier extends BasicService {
     }
 
     async _broadcast() {
-        const time = new Date();
-        const result = this._prepareBroadcastData();
+        this._broadcastDebugCounter++;
 
         try {
-            await this._connector.sendTo('onlineNotify', 'transfer', result);
-        } catch (error) {
-            stats.increment('broadcast_to_online_notifier_error');
-            Logger.error(`On send to online notifier - ${error}`);
-        }
+            const time = new Date();
+            const result = this._prepareBroadcastData();
 
-        try {
-            await this._connector.sendTo('push', 'transfer', result);
-        } catch (error) {
-            stats.increment('broadcast_to_push_error');
-            Logger.error(`On send to push - ${error}`);
-        }
+            try {
+                await this._connector.sendTo('onlineNotify', 'transfer', result);
+            } catch (error) {
+                stats.increment('broadcast_to_online_notifier_error');
+                Logger.error(`On send to online notifier - ${error}`);
+            }
 
-        stats.timing('broadcast_notify', new Date() - time);
+            try {
+                await this._connector.sendTo('push', 'transfer', result);
+            } catch (error) {
+                stats.increment('broadcast_to_push_error');
+                Logger.error(`On send to push - ${error}`);
+            }
+
+            stats.timing('broadcast_notify', new Date() - time);
+            this._broadcastDebugCounter--;
+        } catch (e) {
+            Logger.error('BROADCAST WTF ' + e);
+        }
     }
 
     _prepareBroadcastData() {

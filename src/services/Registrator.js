@@ -33,6 +33,8 @@ class Registrator extends BasicService {
         this.translateEmit(Vote, 'vote', 'flag');
         this.translateEmit(WitnessVote, 'witnessVote', 'witnessCancelVote');
         /* no translate for DeleteComment handler */
+
+        this._debugBlockCounter = 0;
     }
 
     async start() {
@@ -43,8 +45,19 @@ class Registrator extends BasicService {
         this.addNested(subscribe);
 
         await subscribe.start((data, blockNum) => {
-            this._restorer.trySync(data, blockNum);
-            this._handleBlock(data, blockNum);
+            this._debugBlockCounter++;
+
+            if (this._debugBlockCounter === 2000) {
+                Logger.info(`Register ${this._debugBlockCounter} blocks`);
+                this._debugBlockCounter = 0;
+            }
+
+            try {
+                this._restorer.trySync(data, blockNum);
+                this._handleBlock(data, blockNum);
+            } catch (error) {
+                Logger.error(`WTF in block subscribe - ${error}`);
+            }
         });
     }
 
@@ -106,6 +119,10 @@ class Registrator extends BasicService {
             let type = null;
 
             for (let i = 0; i < operations.length; i++) {
+                if (i > 100) {
+                    Logger.error('Virtual operation cycle > 100');
+                }
+
                 if (i % 2) {
                     fn([type, operations[i]]);
                 } else {
