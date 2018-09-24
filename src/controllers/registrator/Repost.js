@@ -7,7 +7,7 @@ class Repost extends Abstract {
     static async handle(rawData, blockNum) {
         const { user, reposter, permlink } = this._tryExtractRepost(rawData);
 
-        if (!user) {
+        if (!user || user === reposter) {
             return;
         }
 

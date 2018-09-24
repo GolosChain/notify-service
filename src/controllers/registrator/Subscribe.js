@@ -7,7 +7,7 @@ class Subscribe extends Abstract {
     static async handle(rawData, blockNum) {
         const { eventType, user, follower } = this._tryExtractSubscribe(rawData);
 
-        if (!user) {
+        if (!user || user === follower) {
             return;
         }
 
