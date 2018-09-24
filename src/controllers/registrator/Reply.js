@@ -6,7 +6,7 @@ class Reply extends Abstract {
         { parent_author: user, parent_permlink: parentPermlink, author, permlink },
         blockNum
     ) {
-        if (!user) {
+        if (!user || user === author) {
             return;
         }
 
