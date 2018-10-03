@@ -5,19 +5,15 @@ const MAX_HISTORY_LIMIT = 100;
 const FRESH_OFF_ACTION = { $set: { fresh: false } };
 
 class History {
-    async _getHistory({ user, fromId = null, limit = 10, types = 'all', markAsViewed = true }) {
+    async getHistory({ user, fromId = null, limit = 10, types = 'all', markAsViewed = true }) {
         this._validateHistoryRequest(limit, types);
 
         const allQuery = { user };
-        const freshQuery = { user, fresh: true };
         let historyQuery = { user, eventType: types };
 
         if (types === 'all') {
             historyQuery = allQuery;
         }
-
-        const total = await Event.find(allQuery).countDocuments();
-        const fresh = await Event.find(freshQuery).countDocuments();
 
         if (fromId) {
             historyQuery._id = { $lt: fromId };
@@ -46,25 +42,42 @@ class History {
         }
 
         return {
-            total,
-            fresh,
+            total: await Event.find(allQuery).countDocuments(),
+            fresh: await this._getHistoryFreshByTypes(user, types),
             data,
         };
     }
 
-    async _getHistoryFresh({ user }) {
+    async getHistoryFresh({ user, types = 'all' }) {
+        this._validateTypes(types);
+
         return {
-            fresh: await Event.find({ user, fresh: true }).countDocuments(),
+            fresh: await this._getHistoryFreshByTypes(user, types),
         };
     }
 
-    async _markAsViewed({ ids = [], user }) {
+    async _getHistoryFreshByTypes(user, types) {
+        const result = {};
+        let requiredTypes = types;
+
+        if (types === 'all') {
+            requiredTypes = eventTypes;
+        }
+
+        for (let eventType of requiredTypes) {
+            result[eventType] = await Event.find({ user, fresh: true, eventType }).countDocuments();
+        }
+
+        return result;
+    }
+
+    async markAsViewed({ ids = [], user }) {
         for (let id of ids) {
             await this._freshOffWithUser(id, user);
         }
     }
 
-    async _markAllAsViewed({ user }) {
+    async markAllAsViewed({ user }) {
         await this._allFreshOffForUser(user);
     }
 
@@ -81,11 +94,17 @@ class History {
             throw { code: 400, message: 'Bad types' };
         }
 
-        if (types !== 'all') {
-            for (let type of types) {
-                if (!eventTypes.includes(type)) {
-                    throw { code: 400, message: `Bad type - ${type || 'null'}` };
-                }
+        this._validateTypes(types);
+    }
+
+    _validateTypes(types) {
+        if (types === 'all') {
+            return;
+        }
+
+        for (let type of types) {
+            if (!eventTypes.includes(type)) {
+                throw { code: 400, message: `Bad type - ${type || 'null'}` };
             }
         }
     }

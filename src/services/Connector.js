@@ -15,10 +15,10 @@ class Connector extends BasicConnector {
 
         await super.start({
             serverRoutes: {
-                history: history._getHistory.bind(history),
-                historyFresh: history._getHistoryFresh.bind(history),
-                markAsViewed: history._markAsViewed.bind(history),
-                markAllAsViewed: history._markAllAsViewed.bind(history),
+                history: history.getHistory.bind(history),
+                historyFresh: history.getHistoryFresh.bind(history),
+                markAsViewed: history.markAsViewed.bind(history),
+                markAllAsViewed: history.markAllAsViewed.bind(history),
             },
             requiredClients: {
                 onlineNotify: env.GLS_ONLINE_NOTIFY_CONNECT,
