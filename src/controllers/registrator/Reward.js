@@ -16,8 +16,6 @@ class Reward extends Abstract {
         golosPower = parseFloat(golosPower);
         gbg = parseFloat(gbg);
 
-        this.emit('reward', user, { permlink, golos, golosPower, gbg });
-
         const model = new Event({
             blockNum,
             user,
@@ -27,6 +25,8 @@ class Reward extends Abstract {
         });
 
         await model.save();
+
+        this.emit('registerEvent', user, model.toObject());
     }
 }
 

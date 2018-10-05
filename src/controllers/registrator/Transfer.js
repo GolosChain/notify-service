@@ -3,8 +3,6 @@ const Event = require('../../models/Event');
 
 class Transfer extends Abstract {
     static async handle({ to: user, from, amount }, blockNum) {
-        this.emit('transfer', user, { from, amount });
-
         const model = new Event({
             blockNum,
             user,
@@ -14,6 +12,8 @@ class Transfer extends Abstract {
         });
 
         await model.save();
+
+        this.emit('registerEvent', user, model.toObject());
     }
 }
 

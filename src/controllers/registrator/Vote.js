@@ -19,8 +19,6 @@ class Vote extends Abstract {
             type = 'flag';
         }
 
-        this.emit(type, user, { voter, permlink });
-
         const model = new Event({
             blockNum,
             user,
@@ -29,6 +27,8 @@ class Vote extends Abstract {
             fromUsers: [voter],
         });
         await model.save();
+
+        this.emit('registerEvent', user, model.toObject());
     }
 }
 

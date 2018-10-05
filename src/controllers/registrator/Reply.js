@@ -10,8 +10,6 @@ class Reply extends Abstract {
             return;
         }
 
-        this.emit('reply', user, { author, permlink });
-
         const model = new Event({
             blockNum,
             user,
@@ -22,6 +20,8 @@ class Reply extends Abstract {
         });
 
         await model.save();
+
+        this.emit('registerEvent', user, model.toObject());
     }
 }
 

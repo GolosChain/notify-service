@@ -11,9 +11,9 @@ class Repost extends Abstract {
             return;
         }
 
-        this.emit('repost', user, { reposter, permlink });
+        const model = await this._saveRepost({ user, reposter, permlink }, blockNum);
 
-        await this._saveRepost({ user, reposter, permlink }, blockNum);
+        this.emit('registerEvent', user, model.toObject());
     }
 
     static _tryExtractRepost(rawData) {
@@ -47,6 +47,8 @@ class Repost extends Abstract {
         });
 
         await model.save();
+
+        return model;
     }
 }
 
