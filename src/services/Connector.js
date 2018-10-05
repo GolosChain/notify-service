@@ -1,6 +1,6 @@
 const core = require('gls-core-service');
 const BasicConnector = core.services.Connector;
-const env = require('../env');
+const env = require('../data/env');
 const History = require('../controllers/connector/History');
 
 class Connector extends BasicConnector {

@@ -1,8 +1,7 @@
 const core = require('gls-core-service');
 const BasicService = core.services.Basic;
 const Logger = core.utils.Logger;
-const stats = core.statsClient;
-const eventTypes = require('../data/eventTypes');
+const stats = core.utils.statsClient;
 
 class Notifier extends BasicService {
     constructor(registrator, connector) {
@@ -89,25 +88,6 @@ class Notifier extends BasicService {
             stats.increment('broadcast_to_push_error');
             Logger.error(`On send to push - ${error}`);
         }
-
-        stats.timing('broadcast_notify', new Date() - time);
-    }
-
-    _prepareBroadcastData() {
-        const acc = this._accumulator;
-        const result = {};
-
-        this._cleanAccumulator();
-
-        for (let [user, events] of acc) {
-            result[user] = result[user] || {};
-
-            for (let [event, data] of events) {
-                result[user][event] = Array.from(data.values());
-            }
-        }
-
-        return result;
     }
 }
 

@@ -1,9 +1,9 @@
 const core = require('gls-core-service');
 const Logger = core.utils.Logger;
-const stats = core.statsClient;
+const stats = core.utils.statsClient;
 const Moments = core.utils.Moments;
 const BasicService = core.services.Basic;
-const env = require('../env');
+const env = require('../data/env');
 const Event = require('../models/Event');
 
 class Cleaner extends BasicService {
