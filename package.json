@@ -1,6 +1,6 @@
 {
     "name": "notify-service",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "",
     "main": "./scr/index.js",
     "scripts": {
@@ -24,9 +24,9 @@
     },
     "homepage": "https://github.com/GolosChain/golos-notifications#readme",
     "devDependencies": {
-        "prettier": "^1.13.6"
+        "prettier": "^1.14.3"
     },
     "dependencies": {
-        "gls-core-service": "git+https://github.com/GolosChain/core-service.git"
+        "gls-core-service": "^2.2.1"
     }
 }
