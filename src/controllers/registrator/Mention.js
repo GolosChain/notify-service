@@ -20,8 +20,6 @@ class Mention extends Abstract {
                 continue;
             }
 
-            this.emit('mention', user, { author, permlink });
-
             const model = new Event({
                 blockNum,
                 user,
@@ -32,6 +30,8 @@ class Mention extends Abstract {
             });
 
             await model.save();
+
+            this.emit('registerEvent', user, model.toObject());
         }
     }
 

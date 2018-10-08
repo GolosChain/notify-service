@@ -22,11 +22,6 @@ module.exports = MongoDB.makeModel(
             type: Boolean,
             default: true,
         },
-        // not used for transfer
-        counter: {
-            type: Number,
-            default: 1,
-        },
 
         /* Type-specified fields */
 

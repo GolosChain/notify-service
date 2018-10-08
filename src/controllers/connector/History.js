@@ -2,29 +2,23 @@ const Event = require('../../models/Event');
 const eventTypes = require('../../data/eventTypes');
 
 const MAX_HISTORY_LIMIT = 100;
-const FRESH_OFF_ACTION = { $set: { fresh: false } };
 
 class History {
-    async _getHistory({ user, fromId = null, limit = 10, types = 'all', markAsViewed = true }) {
+    async getHistory({ user, fromId = null, limit = 10, types = 'all', markAsViewed = true }) {
         this._validateHistoryRequest(limit, types);
 
-        const allQuery = { user };
-        const freshQuery = { user, fresh: true };
-        let historyQuery = { user, eventType: types };
+        const query = { user };
 
-        if (types === 'all') {
-            historyQuery = allQuery;
+        if (types !== 'all') {
+            query.eventType = types;
         }
 
-        const total = await Event.find(allQuery).countDocuments();
-        const fresh = await Event.find(freshQuery).countDocuments();
-
         if (fromId) {
-            historyQuery._id = { $lt: fromId };
+            query._id = { $lt: fromId };
         }
 
         const data = await Event.find(
-            historyQuery,
+            query,
             {
                 __v: false,
                 blockNum: false,
@@ -46,25 +40,72 @@ class History {
         }
 
         return {
-            total,
-            fresh,
+            total: await this._getTotal(user),
+            totalByTypes: await this._getTotalByTypes(user, types),
+            fresh: await this._getFresh(user),
+            freshByTypes: await this._getFreshByTypes(user, types),
             data,
         };
     }
 
-    async _getHistoryFresh({ user }) {
+    async getHistoryFresh({ user, types = 'all' }) {
+        this._validateTypes(types);
+
         return {
-            fresh: await Event.find({ user, fresh: true }).countDocuments(),
+            fresh: await this._getFresh(user),
+            freshByTypes: await this._getFreshByTypes(user, types),
         };
     }
 
-    async _markAsViewed({ ids = [], user }) {
+    async _getTotal(user) {
+        return await this._getCountBy({ user });
+    }
+
+    async _getTotalByTypes(user, types) {
+        const result = {};
+
+        for (let eventType of this._eachType(types)) {
+            result[eventType] = await this._getCountBy({ user, eventType });
+        }
+
+        return result;
+    }
+
+    async _getFresh(user) {
+        return await this._getCountBy({ user, fresh: true });
+    }
+
+    async _getFreshByTypes(user, types) {
+        const result = {};
+
+        for (let eventType of this._eachType(types)) {
+            result[eventType] = await this._getCountBy({ user, eventType, fresh: true });
+        }
+
+        return result;
+    }
+
+    *_eachType(types) {
+        if (types === 'all') {
+            types = eventTypes;
+        }
+
+        for (let eventType of types) {
+            yield eventType;
+        }
+    }
+
+    async _getCountBy(query) {
+        return await Event.find(query).countDocuments();
+    }
+
+    async markAsViewed({ ids = [], user }) {
         for (let id of ids) {
             await this._freshOffWithUser(id, user);
         }
     }
 
-    async _markAllAsViewed({ user }) {
+    async markAllAsViewed({ user }) {
         await this._allFreshOffForUser(user);
     }
 
@@ -81,11 +122,17 @@ class History {
             throw { code: 400, message: 'Bad types' };
         }
 
-        if (types !== 'all') {
-            for (let type of types) {
-                if (!eventTypes.includes(type)) {
-                    throw { code: 400, message: `Bad type - ${type || 'null'}` };
-                }
+        this._validateTypes(types);
+    }
+
+    _validateTypes(types) {
+        if (types === 'all') {
+            return;
+        }
+
+        for (let type of types) {
+            if (!eventTypes.includes(type)) {
+                throw { code: 400, message: `Bad type - ${type || 'null'}` };
             }
         }
     }
@@ -99,11 +146,11 @@ class History {
     }
 
     async _freshOffByQuery(query) {
-        await Event.update(query, FRESH_OFF_ACTION);
+        await Event.update(query, { $set: { fresh: false } });
     }
 
     async _allFreshOffForUser(user) {
-        await Event.updateMany({ user }, FRESH_OFF_ACTION);
+        await Event.updateMany({ user }, { $set: { fresh: false } });
     }
 }
 

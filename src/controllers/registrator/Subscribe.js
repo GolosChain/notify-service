@@ -11,9 +11,9 @@ class Subscribe extends Abstract {
             return;
         }
 
-        this.emit(eventType, user, { follower });
+        const model = await this._saveSubscribe({ eventType, user, follower }, blockNum);
 
-        await this._saveSubscribe({ eventType, user, follower }, blockNum);
+        this.emit('registerEvent', user, model.toObject());
     }
 
     static _tryExtractSubscribe(rawData) {
@@ -54,6 +54,8 @@ class Subscribe extends Abstract {
         });
 
         await model.save();
+
+        return model;
     }
 }
 

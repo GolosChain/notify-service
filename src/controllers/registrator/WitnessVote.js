@@ -11,16 +11,16 @@ class WitnessVote extends Abstract {
             eventType = 'witnessCancelVote';
         }
 
-        this.emit(eventType, user, { from });
-
         const model = new Event({
             blockNum,
             user,
             eventType,
             fromUsers: [from],
         });
-        
+
         await model.save();
+
+        this.emit('registerEvent', user, model.toObject());
     }
 }
 

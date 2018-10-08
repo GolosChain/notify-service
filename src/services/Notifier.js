@@ -1,8 +1,7 @@
 const core = require('gls-core-service');
 const BasicService = core.services.Basic;
 const Logger = core.utils.Logger;
-const stats = core.statsClient;
-const eventTypes = require('../data/eventTypes');
+const stats = core.utils.statsClient;
 
 class Notifier extends BasicService {
     constructor(registrator, connector) {
@@ -10,104 +9,57 @@ class Notifier extends BasicService {
 
         this._connector = connector;
         this._registrator = registrator;
-        this._accumulator = new Map(); // user -> type -> [data]
+        this._accumulator = {};
     }
 
     async start() {
-        this._generateListeners();
+        this._registrator.on('registerEvent', this._accumulateEvent.bind(this));
+        this._registrator.on('blockDone', this._broadcast.bind(this));
     }
 
     async stop() {
         await this.stopNested();
     }
 
-    _generateListeners() {
-        let fn;
+    async _accumulateEvent(user, data) {
+        data = Object.assign({}, data);
 
-        for (let eventType of eventTypes) {
-            switch (eventType) {
-                case 'transfer':
-                    fn = (user, data) => this._accumulate(user, eventType, data);
-                    break;
-                default:
-                    fn = (user, data) => this._accumulateWithIncrement(user, eventType, data);
-                    break;
-            }
+        delete data.__v;
+        delete data.blockNum;
+        delete data.user;
 
-            this._registrator.on(eventType, fn);
-        }
-
-        this._registrator.on('blockDone', this._broadcast.bind(this));
-    }
-
-    _accumulate(user, type, data) {
-        this._accumulatorBy(user, type).add(data);
-    }
-
-    _accumulateWithIncrement(user, type, data) {
-        const acc = this._accumulatorBy(user, type);
-
-        if (acc.size) {
-            acc.values().next().value.counter++;
-        } else {
-            acc.add({ counter: 1, ...data });
-        }
-    }
-
-    _accumulatorBy(user, type) {
-        const acc = this._accumulator;
-
-        if (!acc.get(user)) {
-            acc.set(user, new Map());
-        }
-
-        if (!acc.get(user).get(type)) {
-            acc.get(user).set(type, new Set());
-        }
-
-        return acc.get(user).get(type);
-    }
-
-    _cleanAccumulator() {
-        this._accumulator = new Map();
+        this._accumulator[user] = this._accumulator[user] || [];
+        this._accumulator[user].push(data);
     }
 
     async _broadcast() {
         const time = new Date();
-        const result = this._prepareBroadcastData();
+        const accumulator = this._accumulator;
 
-        try {
-            await this._connector.sendTo('onlineNotify', 'transfer', result);
-        } catch (error) {
-            stats.increment('broadcast_to_online_notifier_error');
-            Logger.error(`On send to online notifier - ${error}`);
-        }
+        this._accumulator = {};
 
-        try {
-            await this._connector.sendTo('push', 'transfer', result);
-        } catch (error) {
-            stats.increment('broadcast_to_push_error');
-            Logger.error(`On send to push - ${error}`);
-        }
+        await this._sendToOnlineNotify(accumulator);
+        await this._sendToPush(accumulator);
 
         stats.timing('broadcast_notify', new Date() - time);
     }
 
-    _prepareBroadcastData() {
-        const acc = this._accumulator;
-        const result = {};
-
-        this._cleanAccumulator();
-
-        for (let [user, events] of acc) {
-            result[user] = result[user] || {};
-
-            for (let [event, data] of events) {
-                result[user][event] = Array.from(data.values());
-            }
+    async _sendToOnlineNotify(accumulator) {
+        try {
+            await this._connector.sendTo('onlineNotify', 'transfer', accumulator);
+        } catch (error) {
+            stats.increment('broadcast_to_online_notifier_error');
+            Logger.error(`On send to online notifier - ${error}`);
         }
+    }
 
-        return result;
+    async _sendToPush(accumulator) {
+        try {
+            await this._connector.sendTo('push', 'transfer', accumulator);
+        } catch (error) {
+            stats.increment('broadcast_to_push_error');
+            Logger.error(`On send to push - ${error}`);
+        }
     }
 }
 

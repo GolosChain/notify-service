@@ -8,8 +8,6 @@ class CuratorReward extends Abstract {
     ) {
         reward = parseFloat(reward);
 
-        this.emit('curatorReward', user, { author, permlink, reward });
-
         const model = new Event({
             blockNum,
             user,
@@ -20,6 +18,8 @@ class CuratorReward extends Abstract {
         });
 
         await model.save();
+
+        this.emit('registerEvent', user, model.toObject());
     }
 }
 
