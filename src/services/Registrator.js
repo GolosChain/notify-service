@@ -22,16 +22,33 @@ class Registrator extends BasicService {
     constructor() {
         super();
 
-        this.translateEmit(Reward, 'reward');
-        this.translateEmit(CuratorReward, 'curatorReward');
-        this.translateEmit(Mention, 'mention');
-        this.translateEmit(Message, 'message');
-        this.translateEmit(Reply, 'reply');
-        this.translateEmit(Repost, 'repost');
-        this.translateEmit(Subscribe, 'subscribe', 'unsubscribe');
-        this.translateEmit(Transfer, 'transfer');
-        this.translateEmit(Vote, 'vote', 'flag');
-        this.translateEmit(WitnessVote, 'witnessVote', 'witnessCancelVote');
+        this._reward = new Reward();
+        this._curatorReward = new CuratorReward();
+        this._mention = new Mention();
+        this._message = new Message();
+        this._reply = new Reply();
+        this._repost = new Repost();
+        this._subscribe = new Subscribe();
+        this._transfer = new Transfer();
+        this._vote = new Vote();
+        this._witnessVote = new WitnessVote();
+        this._deleteComment = new DeleteComment();
+
+        this.translateEmit(
+            [
+                this._reward,
+                this._curatorReward,
+                this._mention,
+                this._message,
+                this._reply,
+                this._repost,
+                this._subscribe,
+                this._transfer,
+                this._vote,
+                this._witnessVote,
+            ],
+            'registerEvent'
+        );
         /* no translate for DeleteComment handler */
     }
 
@@ -118,29 +135,29 @@ class Registrator extends BasicService {
     async _routeRealEventHandlers([type, body], blockNum) {
         switch (type) {
             case 'vote':
-                await Vote.handle(body, blockNum);
+                await this._vote.handle(body, blockNum);
                 break;
 
             case 'transfer':
-                await Transfer.handle(body, blockNum);
+                await this._transfer.handle(body, blockNum);
                 break;
 
             case 'comment':
-                await Reply.handle(body, blockNum);
-                await Mention.handle(body, blockNum);
+                await this._reply.handle(body, blockNum);
+                await this._mention.handle(body, blockNum);
                 break;
 
             case 'custom_json':
-                await Subscribe.handle(body, blockNum);
-                await Repost.handle(body, blockNum);
+                await this._subscribe.handle(body, blockNum);
+                await this._repost.handle(body, blockNum);
                 break;
 
             case 'account_witness_vote':
-                await WitnessVote.handle(body, blockNum);
+                await this._witnessVote.handle(body, blockNum);
                 break;
 
             case 'delete_comment':
-                await DeleteComment.handle(body);
+                await this._deleteComment.handle(body);
                 break;
         }
     }
@@ -148,11 +165,11 @@ class Registrator extends BasicService {
     async _routeVirtualEventHandlers([type, body], blockNum) {
         switch (type) {
             case 'author_reward':
-                await Reward.handle(body, blockNum);
+                await this._reward.handle(body, blockNum);
                 break;
 
             case 'curation_reward':
-                await CuratorReward.handle(body, blockNum);
+                await this._curatorReward.handle(body, blockNum);
                 break;
         }
     }

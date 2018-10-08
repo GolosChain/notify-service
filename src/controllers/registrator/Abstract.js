@@ -2,14 +2,16 @@ const EventEmitter = require('events');
 const core = require('gls-core-service');
 const Logger = core.utils.Logger;
 
-const emitter = new EventEmitter();
-
 class Abstract {
-    static async handle(data, blockNum) {
+    constructor() {
+        this._emitter = new EventEmitter();
+    }
+
+    async handle(data, blockNum) {
         throw 'Handler not implemented';
     }
 
-    static _parseCustomJson(rawData) {
+    _parseCustomJson(rawData) {
         const type = rawData.id;
         const user = rawData.required_posting_auths[0];
         let data;
@@ -24,12 +26,12 @@ class Abstract {
         return { type, user, data };
     }
 
-    static emit(name, ...data) {
-        emitter.emit(name, ...data);
+    emit(name, ...data) {
+        this._emitter.emit(name, ...data);
     }
 
-    static on(name, callback) {
-        emitter.on(name, callback);
+    on(name, callback) {
+        this._emitter.on(name, callback);
     }
 }
 

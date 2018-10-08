@@ -2,7 +2,7 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Mention extends Abstract {
-    static async handle(
+    async handle(
         {
             author,
             title,
@@ -35,7 +35,7 @@ class Mention extends Abstract {
         }
     }
 
-    static _extractMention(title, body) {
+    _extractMention(title, body) {
         const re = /(@[a-z][-\.a-z\d]+[a-z\d])/gi;
         const inTitle = title.match(re) || [];
         const inBody = body.match(re) || [];
