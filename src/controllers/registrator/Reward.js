@@ -2,7 +2,7 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Reward extends Abstract {
-    static async handle(
+    async handle(
         {
             author: user,
             permlink,

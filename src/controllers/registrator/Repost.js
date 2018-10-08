@@ -4,7 +4,7 @@ const core = require('gls-core-service');
 const Logger = core.utils.Logger;
 
 class Repost extends Abstract {
-    static async handle(rawData, blockNum) {
+    async handle(rawData, blockNum) {
         const { user, reposter, permlink } = this._tryExtractRepost(rawData);
 
         if (!user || user === reposter) {
@@ -16,7 +16,7 @@ class Repost extends Abstract {
         this.emit('registerEvent', user, model.toObject());
     }
 
-    static _tryExtractRepost(rawData) {
+    _tryExtractRepost(rawData) {
         const { type, user: reposter, data } = this._parseCustomJson(rawData);
 
         if (type !== 'follow') {
@@ -37,7 +37,7 @@ class Repost extends Abstract {
         }
     }
 
-    static async _saveRepost({ user, reposter, permlink }, blockNum) {
+    async _saveRepost({ user, reposter, permlink }, blockNum) {
         const model = new Event({
             blockNum,
             user,

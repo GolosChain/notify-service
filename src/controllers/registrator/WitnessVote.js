@@ -2,7 +2,7 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class WitnessVote extends Abstract {
-    static async handle({ account: from, witness: user, approve }, blockNum) {
+    async handle({ account: from, witness: user, approve }, blockNum) {
         let eventType;
 
         if (approve) {

@@ -4,7 +4,14 @@ const eventTypes = require('../../data/eventTypes');
 const MAX_HISTORY_LIMIT = 100;
 
 class History {
-    async getHistory({ user, fromId = null, limit = 10, types = 'all', markAsViewed = true }) {
+    async getHistory({
+        user,
+        fromId = null,
+        limit = 10,
+        types = 'all',
+        markAsViewed = true,
+        freshOnly = false,
+    }) {
         this._validateHistoryRequest(limit, types);
 
         const query = { user };
@@ -17,21 +24,11 @@ class History {
             query._id = { $lt: fromId };
         }
 
-        const data = await Event.find(
-            query,
-            {
-                __v: false,
-                blockNum: false,
-                user: false,
-            },
-            {
-                limit,
-                lean: true,
-                sort: {
-                    _id: -1,
-                },
-            }
-        );
+        if (freshOnly) {
+            query.fresh = true;
+        }
+
+        const data = await this._getEventsHistoryBy(query, limit);
 
         if (markAsViewed) {
             for (let event of data) {
@@ -48,6 +45,24 @@ class History {
         };
     }
 
+    async _getEventsHistoryBy(query, limit) {
+        return await Event.find(
+            query,
+            {
+                __v: false,
+                blockNum: false,
+                user: false,
+            },
+            {
+                limit,
+                lean: true,
+                sort: {
+                    _id: -1,
+                },
+            }
+        );
+    }
+
     async getHistoryFresh({ user, types = 'all' }) {
         this._validateTypes(types);
 
@@ -62,10 +77,11 @@ class History {
     }
 
     async _getTotalByTypes(user, types) {
-        const result = {};
+        const result = { summary: 0 };
 
         for (let eventType of this._eachType(types)) {
             result[eventType] = await this._getCountBy({ user, eventType });
+            result.summary += result[eventType];
         }
 
         return result;
@@ -76,10 +92,11 @@ class History {
     }
 
     async _getFreshByTypes(user, types) {
-        const result = {};
+        const result = { summary: 0 };
 
         for (let eventType of this._eachType(types)) {
             result[eventType] = await this._getCountBy({ user, eventType, fresh: true });
+            result.summary += result[eventType];
         }
 
         return result;

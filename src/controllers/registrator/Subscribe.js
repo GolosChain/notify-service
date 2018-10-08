@@ -4,7 +4,7 @@ const core = require('gls-core-service');
 const Logger = core.utils.Logger;
 
 class Subscribe extends Abstract {
-    static async handle(rawData, blockNum) {
+    async handle(rawData, blockNum) {
         const { eventType, user, follower } = this._tryExtractSubscribe(rawData);
 
         if (!user || user === follower) {
@@ -16,7 +16,7 @@ class Subscribe extends Abstract {
         this.emit('registerEvent', user, model.toObject());
     }
 
-    static _tryExtractSubscribe(rawData) {
+    _tryExtractSubscribe(rawData) {
         const { type, user: follower, data } = this._parseCustomJson(rawData);
 
         if (type !== 'follow') {
@@ -45,7 +45,7 @@ class Subscribe extends Abstract {
         }
     }
 
-    static async _saveSubscribe({ eventType, user, follower }, blockNum) {
+    async _saveSubscribe({ eventType, user, follower }, blockNum) {
         const model = new Event({
             blockNum,
             user,

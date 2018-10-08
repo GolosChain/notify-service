@@ -2,7 +2,7 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Transfer extends Abstract {
-    static async handle({ to: user, from, amount }, blockNum) {
+    async handle({ to: user, from, amount }, blockNum) {
         const model = new Event({
             blockNum,
             user,

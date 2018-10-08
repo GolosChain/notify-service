@@ -2,7 +2,7 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Reply extends Abstract {
-    static async handle(
+    async handle(
         { parent_author: user, parent_permlink: parentPermlink, author, permlink },
         blockNum
     ) {

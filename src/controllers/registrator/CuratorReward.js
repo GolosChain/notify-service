@@ -2,7 +2,7 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class CuratorReward extends Abstract {
-    static async handle(
+    async handle(
         { curator: user, reward, comment_author: author, comment_permlink: permlink },
         blockNum
     ) {
