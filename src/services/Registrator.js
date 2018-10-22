@@ -3,7 +3,7 @@ const core = require('gls-core-service');
 const Logger = core.utils.Logger;
 const stats = core.utils.statsClient;
 const BasicService = core.services.Basic;
-const BlockSubscribe = core.services.BlockSubscribe;
+const BlockSubscribe = core.services.BlockSubscribeDirect;
 const BlockSubscribeRestore = core.services.BlockSubscribeRestore;
 
 const Reward = require('../controllers/registrator/Reward');
