@@ -27,6 +27,6 @@
         "prettier": "^1.14.3"
     },
     "dependencies": {
-        "gls-core-service": "^2.3.0"
+        "gls-core-service": "^2.3.1"
     }
 }
