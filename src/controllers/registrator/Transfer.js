@@ -3,6 +3,10 @@ const Event = require('../../models/Event');
 
 class Transfer extends Abstract {
     async handle({ to: user, from, amount }, blockNum) {
+        if (await this._isInBlackList(from, user)) {
+            return;
+        }
+
         const model = new Event({
             blockNum,
             user,

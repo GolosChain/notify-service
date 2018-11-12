@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const core = require('gls-core-service');
 const Logger = core.utils.Logger;
+const User = require('../../models/User');
 
 class Abstract {
     constructor() {
@@ -32,6 +33,24 @@ class Abstract {
 
     on(name, callback) {
         this._emitter.on(name, callback);
+    }
+
+    async _isInBlackList(nameFrom, nameTo) {
+        await this._initUser(nameTo);
+
+        const count = await User.countDocuments({ name: nameTo, blackList: nameFrom });
+
+        return count !== 0;
+    }
+
+    async _initUser(name) {
+        let userModel = await User.find({ name });
+
+        if (!userModel) {
+            userModel = new User({ name });
+
+            await userModel.save();
+        }
     }
 }
 

@@ -11,6 +11,10 @@ class Subscribe extends Abstract {
             return;
         }
 
+        if (await this._isInBlackList(follower, user)) {
+            return;
+        }
+
         const model = await this._saveSubscribe({ eventType, user, follower }, blockNum);
 
         this.emit('registerEvent', user, model.toObject());

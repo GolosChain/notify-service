@@ -20,6 +20,10 @@ class Mention extends Abstract {
                 continue;
             }
 
+            if (await this._isInBlackList(author, user)) {
+                continue;
+            }
+
             const model = new Event({
                 blockNum,
                 user,

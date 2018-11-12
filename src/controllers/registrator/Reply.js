@@ -10,6 +10,10 @@ class Reply extends Abstract {
             return;
         }
 
+        if (await this._isInBlackList(author, user)) {
+            return;
+        }
+
         const model = new Event({
             blockNum,
             user,

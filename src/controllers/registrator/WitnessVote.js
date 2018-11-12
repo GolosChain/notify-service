@@ -3,6 +3,10 @@ const Event = require('../../models/Event');
 
 class WitnessVote extends Abstract {
     async handle({ account: from, witness: user, approve }, blockNum) {
+        if (await this._isInBlackList(from, user)) {
+            return;
+        }
+
         let eventType;
 
         if (approve) {
