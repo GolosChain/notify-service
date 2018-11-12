@@ -4,9 +4,9 @@ class BlackList {
     async get({ owner }) {
         await this._initUser(owner);
 
-        const model = await User.find({ name: owner }, { blackList: true });
+        const model = await User.findOne({ name: owner }, { blackList: true });
 
-        return model.blackList;
+        return { blackList: model.blackList || [] };
     }
 
     async add({ owner, banned }) {
@@ -22,13 +22,7 @@ class BlackList {
     }
 
     async _initUser(name) {
-        let userModel = await User.find({ name });
-
-        if (!userModel) {
-            userModel = new User({ name });
-
-            await userModel.save();
-        }
+        await User.updateOne({ name }, { $set: { name } }, { upsert: true });
     }
 }
 

@@ -44,13 +44,7 @@ class Abstract {
     }
 
     async _initUser(name) {
-        let userModel = await User.find({ name });
-
-        if (!userModel) {
-            userModel = new User({ name });
-
-            await userModel.save();
-        }
+        await User.updateOne({ name }, { $set: { name } }, { upsert: true });
     }
 }
 

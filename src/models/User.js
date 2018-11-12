@@ -17,9 +17,6 @@ module.exports = MongoDB.makeModel(
             {
                 fields: {
                     user: 1,
-                },
-                options: {
-                    unique: true
                 }
             },
         ],
