@@ -11,6 +11,10 @@ class Repost extends Abstract {
             return;
         }
 
+        if (await this._isInBlackList(reposter, user)) {
+            return;
+        }
+
         const model = await this._saveRepost({ user, reposter, permlink }, blockNum);
 
         this.emit('registerEvent', user, model.toObject());

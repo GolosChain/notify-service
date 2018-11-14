@@ -11,6 +11,10 @@ class Vote extends Abstract {
             return;
         }
 
+        if (await this._isInBlackList(voter, user)) {
+            return;
+        }
+
         let type;
 
         if (weight > 0) {
