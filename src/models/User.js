@@ -9,15 +9,15 @@ module.exports = MongoDB.makeModel(
             required: true,
         },
         blackList: {
-            type: Array
-        }
+            type: Array,
+        },
     },
     {
         index: [
             {
                 fields: {
                     user: 1,
-                }
+                },
             },
         ],
     }

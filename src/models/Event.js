@@ -56,12 +56,12 @@ module.exports = MongoDB.makeModel(
         },
         // curatorReward
         curatorReward: {
-            type: String
+            type: String,
         },
         // curatorReward
         curatorTargetAuthor: {
-            type: String
-        }
+            type: String,
+        },
     },
     {
         index: [
