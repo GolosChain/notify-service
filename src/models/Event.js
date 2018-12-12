@@ -92,6 +92,12 @@ module.exports = MongoDB.makeModel(
                     blockNum: -1,
                 },
             },
+            // Edit comment filtration
+            {
+                eventTypes: 1,
+                permlink: 1,
+                fromUsers: 1,
+            },
         ],
     }
 );

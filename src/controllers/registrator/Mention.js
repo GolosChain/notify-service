@@ -20,6 +20,10 @@ class Mention extends Abstract {
                 continue;
             }
 
+            if (await Event.findOne({ eventType: 'mention', permlink, fromUsers: author, user })) {
+                return;
+            }
+
             if (await this._isInBlackList(author, user)) {
                 continue;
             }
