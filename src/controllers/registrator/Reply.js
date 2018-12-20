@@ -10,6 +10,10 @@ class Reply extends Abstract {
             return;
         }
 
+        if (await Event.findOne({ eventType: 'reply', permlink, fromUsers: author })) {
+            return;
+        }
+
         if (await this._isInBlackList(author, user)) {
             return;
         }

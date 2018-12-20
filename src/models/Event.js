@@ -56,12 +56,12 @@ module.exports = MongoDB.makeModel(
         },
         // curatorReward
         curatorReward: {
-            type: String
+            type: String,
         },
         // curatorReward
         curatorTargetAuthor: {
-            type: String
-        }
+            type: String,
+        },
     },
     {
         index: [
@@ -91,6 +91,12 @@ module.exports = MongoDB.makeModel(
                 fields: {
                     blockNum: -1,
                 },
+            },
+            // Edit comment filtration
+            {
+                eventTypes: 1,
+                permlink: 1,
+                fromUsers: 1,
             },
         ],
     }
