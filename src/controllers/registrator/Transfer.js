@@ -3,9 +3,7 @@ const Event = require('../../models/Event');
 
 class Transfer extends Abstract {
     async handle({ to: user, from, quantity }, blockNum) {
-        console.log(quantity);
         const amount = (1 / Math.pow(10, quantity.decs)) * quantity.amount;
-        console.log(amount, quantity.sym);
 
         if (await this._isInBlackList(from, user)) {
             return;
