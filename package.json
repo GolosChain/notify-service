@@ -11,7 +11,18 @@
         "tabWidth": 4,
         "semi": true,
         "trailingComma": "es5",
-        "printWidth": 100
+        "printWidth": 100,
+        "overrides": [
+            {
+                "files": [
+                    "*.yml",
+                    "*.json"
+                ],
+                "options": {
+                    "tabWidth": 2
+                }
+            }
+        ]
     },
     "repository": {
         "type": "git",
