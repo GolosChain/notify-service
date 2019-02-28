@@ -1,10 +1,8 @@
-const Event = require('../models/Event');
 const core = require('gls-core-service');
 const Logger = core.utils.Logger;
 const stats = core.utils.statsClient;
 const BasicService = core.services.Basic;
-const BlockSubscribe = core.services.BlockSubscribeDirect;
-const BlockSubscribeRestore = core.services.BlockSubscribeRestore;
+const BlockSubscribe = core.services.BlockSubscribe;
 
 const Reward = require('../controllers/registrator/Reward');
 const CuratorReward = require('../controllers/registrator/CuratorReward');
@@ -59,26 +57,17 @@ class Registrator extends BasicService {
 
         this.addNested(subscribe);
 
-        await subscribe.start((data, blockNum) => {
-            this._restorer.trySync(data, blockNum);
-            this._handleBlock(data, blockNum);
+        await subscribe.start();
+
+        subscribe.on('block', data => {
+            // console.log(data);
+
+            this._handleBlock(data, data.blockNum);
         });
     }
 
     async stop() {
         await this.stopNested();
-    }
-
-    async restore() {
-        this._restorer = new BlockSubscribeRestore(
-            Event,
-            this._handleBlock.bind(this),
-            this._handleBlockError.bind(this)
-        );
-
-        this.addNested(this._restorer);
-
-        await this._restorer.start();
     }
 
     _handleBlockError(error) {
@@ -95,83 +84,96 @@ class Registrator extends BasicService {
             });
         });
 
-        this._eachVirtualOperation(data, operation => {
+        /* this._eachVirtualOperation(data, operation => {
             this._routeVirtualEventHandlers(operation, blockNum).catch(error => {
                 Logger.error(`Virtual event handler error - ${error}`);
                 process.exit(1);
             });
-        });
+        }); */
 
         this.emit('blockDone');
     }
 
     _eachRealOperation(data, fn) {
         for (let transaction of data.transactions) {
-            for (let operation of transaction.operations) {
-                fn(operation);
+            if (!transaction) {
+                continue;
             }
-        }
-    }
-
-    _eachVirtualOperation(data, fn) {
-        if (!data._virtual_operations) {
-            return;
-        }
-
-        for (let virtual of data._virtual_operations) {
-            const operations = virtual.op;
-            let type = null;
-
-            for (let i = 0; i < operations.length; i++) {
-                if (i % 2) {
-                    fn([type, operations[i]]);
-                } else {
-                    type = operations[i];
+            for (let action of transaction.actions) {
+                if (action) {
+                    fn({ type: `${action.action}->${action.code}`, ...action });
                 }
             }
         }
     }
 
-    async _routeRealEventHandlers([type, body], blockNum) {
+    async _routeRealEventHandlers({ type, ...body }, blockNum) {
+        body = this._publishMapper(body);
+
         switch (type) {
-            case 'vote':
+            case 'pin->gls.social':
+                await this._subscribe.handle(body, 'subscribe', blockNum);
+                break;
+            case 'unpin->gls.social':
+                await this._subscribe.handle(body, 'unsubscribe', blockNum);
+                break;
+            case 'upvote->gls.publish':
+            case 'downvote->gls.publish':
                 await this._vote.handle(body, blockNum);
                 break;
 
-            case 'transfer':
+            case 'transfer->cyber.token':
                 await this._transfer.handle(body, blockNum);
                 break;
 
-            case 'comment':
+            case 'createmssg->gls.publish':
                 await this._reply.handle(body, blockNum);
                 await this._mention.handle(body, blockNum);
                 break;
 
             case 'custom_json':
-                await this._subscribe.handle(body, blockNum);
+                //TODO: add repost support
                 await this._repost.handle(body, blockNum);
                 break;
 
             case 'account_witness_vote':
+                //TODO: add witness support
                 await this._witnessVote.handle(body, blockNum);
                 break;
 
-            case 'delete_comment':
+            case 'deletemssg->gls.publish':
                 await this._deleteComment.handle(body);
                 break;
-        }
-    }
 
-    async _routeVirtualEventHandlers([type, body], blockNum) {
-        switch (type) {
             case 'author_reward':
+                // TODO: add author reward support
                 await this._reward.handle(body, blockNum);
                 break;
 
             case 'curation_reward':
+                // TODO: add curation reward support
                 await this._curatorReward.handle(body, blockNum);
                 break;
         }
+    }
+
+    _publishMapper(data) {
+        data.args = data.args || {};
+
+        data.args.message_id = data.args.message_id || {};
+        data.args.parent_id = data.args.parent_id || {};
+
+        return {
+            author: data.args.message_id.author,
+            title: data.args.headermssg,
+            body: data.args.bodymssg,
+            permlink: data.args.message_id.permlink,
+            parent_permlink: data.args.parent_id.permlink,
+            parent_author: data.args.parent_id.author,
+            user: data.args.pinner,
+            follower: data.args.pinning,
+            ...data.args,
+        };
     }
 }
 

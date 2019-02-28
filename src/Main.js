@@ -19,7 +19,9 @@ class Main extends BasicMain {
         const cleaner = new Cleaner();
 
         this.printEnvBasedConfig(env);
-        this.addNested(mongo, registrator, notifier, connector, cleaner);
+        // FIXME: do not forget to delete and uncomment
+        this.addNested(mongo, registrator, connector, cleaner);
+        // this.addNested(mongo, registrator, notifier, connector, cleaner);
     }
 }
 

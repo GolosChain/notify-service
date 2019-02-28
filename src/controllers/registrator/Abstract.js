@@ -36,15 +36,24 @@ class Abstract {
     }
 
     async _isInBlackList(nameFrom, nameTo) {
-        await this._initUser(nameTo);
+        try {
+            await this._initUser(nameTo);
 
-        const count = await User.countDocuments({ name: nameTo, blackList: nameFrom });
+            const count = await User.countDocuments({ name: nameTo, blackList: nameFrom });
 
-        return count !== 0;
+            return count !== 0;
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     async _initUser(name) {
-        await User.updateOne({ name }, { $set: { name } }, { upsert: true });
+        try {
+            const a = await User.updateOne({ name }, { $set: { name } }, { upsert: true });
+            return a;
+        } catch (e) {
+            console.error(e);
+        }
     }
 }
 

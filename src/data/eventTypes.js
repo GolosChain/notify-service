@@ -1,6 +1,6 @@
 module.exports = [
-    'vote',
-    'flag',
+    'upvote',
+    'downvote',
     'transfer',
     'reply',
     'subscribe',
