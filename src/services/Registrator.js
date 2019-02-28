@@ -57,11 +57,11 @@ class Registrator extends BasicService {
 
         this.addNested(subscribe);
 
-        await subscribe.start();
-
         subscribe.on('block', data => {
             this._handleBlock(data, data.blockNum);
         });
+
+        await subscribe.start();
     }
 
     async stop() {
@@ -76,7 +76,7 @@ class Registrator extends BasicService {
 
     _handleBlock(data, blockNum) {
         this._eachRealOperation(data, operation => {
-            this._routeRealEventHandlers(operation, blockNum).catch(error => {
+            this._routeEventHandlers(operation, blockNum).catch(error => {
                 Logger.error(`Event handler error - ${error}`);
                 process.exit(1);
             });
@@ -87,7 +87,7 @@ class Registrator extends BasicService {
 
     _eachRealOperation(data, fn) {
         for (let transaction of data.transactions) {
-            if (!transaction || !transaction.actions) {
+            if (!transaction.actions) {
                 continue;
             }
             for (let action of transaction.actions) {
@@ -98,7 +98,7 @@ class Registrator extends BasicService {
         }
     }
 
-    async _routeRealEventHandlers({ type, ...body }, blockNum) {
+    async _routeEventHandlers({ type, ...body }, blockNum) {
         body = this._actionMapper(body);
 
         switch (type) {
