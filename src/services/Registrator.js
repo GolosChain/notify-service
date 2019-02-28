@@ -87,7 +87,7 @@ class Registrator extends BasicService {
 
     _eachRealOperation(data, fn) {
         for (let transaction of data.transactions) {
-            if (!transaction) {
+            if (!transaction || !transaction.actions) {
                 continue;
             }
             for (let action of transaction.actions) {
