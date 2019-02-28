@@ -2,7 +2,7 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Vote extends Abstract {
-    async handle({ voter, author: user, permlink, weight }, blockNum) {
+    async handle({ voter, author: user, permlink, weight, refBlockNum }, blockNum) {
         if (weight === 0) {
             return;
         }
@@ -19,6 +19,7 @@ class Vote extends Abstract {
 
         const model = new Event({
             blockNum,
+            refBlockNum,
             user,
             eventType: type,
             permlink: permlink,

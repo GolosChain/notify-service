@@ -13,6 +13,7 @@ class Abstract {
     }
 
     _parseCustomJson(rawData) {
+        // TODO: add refBlockNum fetching
         const type = rawData.id;
         const user = rawData.required_posting_auths[0];
         let data;

@@ -9,6 +9,7 @@ class Reward extends Abstract {
             steem_payout: golos,
             vesting_payout: golosPower,
             sbd_payout: gbg,
+            refBlockNum,
         },
         blockNum
     ) {
@@ -18,6 +19,7 @@ class Reward extends Abstract {
 
         const model = new Event({
             blockNum,
+            refBlockNum,
             user,
             eventType: 'reward',
             permlink,

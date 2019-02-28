@@ -10,6 +10,7 @@ class Mention extends Abstract {
             permlink,
             parent_permlink: parentPermlink,
             parent_author: parentAuthor,
+            refBlockNum,
         },
         blockNum
     ) {
@@ -20,7 +21,14 @@ class Mention extends Abstract {
                 continue;
             }
 
-            if (await Event.findOne({ eventType: 'mention', permlink, fromUsers: author, user })) {
+            if (
+                await Event.findOne({
+                    eventType: 'mention',
+                    permlink,
+                    fromUsers: author,
+                    user,
+                })
+            ) {
                 return;
             }
 
@@ -30,6 +38,7 @@ class Mention extends Abstract {
 
             const model = new Event({
                 blockNum,
+                refBlockNum,
                 user,
                 eventType: 'mention',
                 permlink,

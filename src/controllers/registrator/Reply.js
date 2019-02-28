@@ -3,7 +3,7 @@ const Event = require('../../models/Event');
 
 class Reply extends Abstract {
     async handle(
-        { parent_author: user, parent_permlink: parentPermlink, author, permlink },
+        { parent_author: user, parent_permlink: parentPermlink, refBlockNum, author, permlink },
         blockNum
     ) {
         if (!user || user === author) {
@@ -20,6 +20,7 @@ class Reply extends Abstract {
 
         const model = new Event({
             blockNum,
+            refBlockNum,
             user,
             eventType: 'reply',
             permlink,

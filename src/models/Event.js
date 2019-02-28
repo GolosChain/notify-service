@@ -25,7 +25,11 @@ module.exports = MongoDB.makeModel(
 
         /* Type-specified fields */
 
-        // vote | flag | reply | mention | repost | reward | curatorReward
+        // upvote | downvote | reply | mention | repost | reward | curator reward
+        refBlockNum: {
+            type: Number,
+        },
+        // upvote | downvote | reply | mention | repost | reward | curatorReward
         permlink: {
             type: String,
         },
@@ -33,7 +37,7 @@ module.exports = MongoDB.makeModel(
         parentPermlink: {
             type: String,
         },
-        // vote | flag | transfer | reply | subscribe | unsubscribe
+        // upvote | downvote | transfer | reply | subscribe | unsubscribe
         // mention | repost | message | witnessVote | witnessCancelVote
         fromUsers: {
             type: [String],

@@ -3,13 +3,14 @@ const Event = require('../../models/Event');
 
 class CuratorReward extends Abstract {
     async handle(
-        { curator: user, reward, comment_author: author, comment_permlink: permlink },
+        { curator: user, reward, comment_author: author, comment_permlink: permlink, refBlockNum },
         blockNum
     ) {
         reward = parseFloat(reward);
 
         const model = new Event({
             blockNum,
+            refBlockNum,
             user,
             eventType: 'curatorReward',
             permlink,

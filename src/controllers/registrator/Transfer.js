@@ -6,7 +6,7 @@ const BigNum = core.types.BigNum;
 const TRANFER_ACTIN_RECEIVER = 'cyber.token';
 
 class Transfer extends Abstract {
-    async handle({ to: user, from, quantity, receiver }, blockNum) {
+    async handle({ to: user, from, quantity, receiver, refBlockNum }, blockNum) {
         if (receiver !== TRANFER_ACTIN_RECEIVER) {
             return;
         }
@@ -20,6 +20,7 @@ class Transfer extends Abstract {
 
         const model = new Event({
             blockNum,
+            refBlockNum,
             user,
             eventType: 'transfer',
             fromUsers: [from],

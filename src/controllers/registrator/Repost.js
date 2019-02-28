@@ -5,8 +5,7 @@ const Logger = core.utils.Logger;
 
 class Repost extends Abstract {
     async handle(rawData, blockNum) {
-        const { user, reposter, permlink } = this._tryExtractRepost(rawData);
-
+        const { user, reposter, permlink, refBlockNum } = this._tryExtractRepost(rawData);
         if (!user || user === reposter) {
             return;
         }
@@ -15,13 +14,13 @@ class Repost extends Abstract {
             return;
         }
 
-        const model = await this._saveRepost({ user, reposter, permlink }, blockNum);
+        const model = await this._saveRepost({ user, reposter, permlink, refBlockNum }, blockNum);
 
         this.emit('registerEvent', user, model.toObject());
     }
 
     _tryExtractRepost(rawData) {
-        const { type, user: reposter, data } = this._parseCustomJson(rawData);
+        const { type, user: reposter, data, refBlockNum } = this._parseCustomJson(rawData);
 
         if (type !== 'follow') {
             return {};
@@ -41,9 +40,10 @@ class Repost extends Abstract {
         }
     }
 
-    async _saveRepost({ user, reposter, permlink }, blockNum) {
+    async _saveRepost({ user, reposter, permlink, refBlockNum }, blockNum) {
         const model = new Event({
             blockNum,
+            refBlockNum,
             user,
             eventType: 'repost',
             permlink,

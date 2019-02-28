@@ -2,7 +2,7 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class WitnessVote extends Abstract {
-    async handle({ account: from, witness: user, approve }, blockNum) {
+    async handle({ account: from, witness: user, approve, refBlockNum }, blockNum) {
         if (await this._isInBlackList(from, user)) {
             return;
         }
@@ -17,6 +17,7 @@ class WitnessVote extends Abstract {
 
         const model = new Event({
             blockNum,
+            refBlockNum,
             user,
             eventType,
             fromUsers: [from],

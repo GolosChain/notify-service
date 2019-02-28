@@ -151,6 +151,10 @@ class Registrator extends BasicService {
     _actionMapper(data) {
         data.args = data.args || {};
 
+        if (data.args.message_id) {
+            data.args.refBlockNum = data.args.message_id.ref_block_num;
+        }
+
         data.args.message_id = data.args.message_id || {};
         data.args.parent_id = data.args.parent_id || {};
 
