@@ -84,13 +84,6 @@ class Registrator extends BasicService {
             });
         });
 
-        /* this._eachVirtualOperation(data, operation => {
-            this._routeVirtualEventHandlers(operation, blockNum).catch(error => {
-                Logger.error(`Virtual event handler error - ${error}`);
-                process.exit(1);
-            });
-        }); */
-
         this.emit('blockDone');
     }
 

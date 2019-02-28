@@ -49,8 +49,7 @@ class Abstract {
 
     async _initUser(name) {
         try {
-            const a = await User.updateOne({ name }, { $set: { name } }, { upsert: true });
-            return a;
+            return await User.updateOne({ name }, { $set: { name } }, { upsert: true });
         } catch (e) {
             console.error(e);
         }
