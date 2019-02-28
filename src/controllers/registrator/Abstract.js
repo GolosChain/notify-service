@@ -42,16 +42,16 @@ class Abstract {
             const count = await User.countDocuments({ name: nameTo, blackList: nameFrom });
 
             return count !== 0;
-        } catch (e) {
-            console.error(e);
+        } catch (error) {
+            Logger.error(error);
         }
     }
 
     async _initUser(name) {
         try {
             return await User.updateOne({ name }, { $set: { name } }, { upsert: true });
-        } catch (e) {
-            console.error(e);
+        } catch (error) {
+            Logger.error(error);
         }
     }
 }
