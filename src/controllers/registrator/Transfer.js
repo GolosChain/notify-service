@@ -1,9 +1,18 @@
 const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
+const core = require('gls-core-service');
+const BigNum = core.types.BigNum;
+
+const TRANFER_ACTIN_RECEIVER = 'cyber.token';
 
 class Transfer extends Abstract {
-    async handle({ to: user, from, quantity }, blockNum) {
-        const amount = (1 / Math.pow(10, quantity.decs)) * quantity.amount;
+    async handle({ to: user, from, quantity, receiver }, blockNum) {
+        if (receiver !== TRANFER_ACTIN_RECEIVER) {
+            return;
+        }
+
+        const rawAmount = new BigNum(quantity.amount);
+        const amount = rawAmount.shiftedBy(-rawAmount.sd() - quantity.decs - 1).toString();
 
         if (await this._isInBlackList(from, user)) {
             return;

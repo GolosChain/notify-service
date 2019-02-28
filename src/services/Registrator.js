@@ -99,7 +99,7 @@ class Registrator extends BasicService {
     }
 
     async _routeRealEventHandlers({ type, ...body }, blockNum) {
-        body = this._publishMapper(body);
+        body = this._actionMapper(body);
 
         switch (type) {
             case 'pin->gls.social':
@@ -148,7 +148,7 @@ class Registrator extends BasicService {
         }
     }
 
-    _publishMapper(data) {
+    _actionMapper(data) {
         data.args = data.args || {};
 
         data.args.message_id = data.args.message_id || {};
@@ -163,6 +163,7 @@ class Registrator extends BasicService {
             parent_author: data.args.parent_id.author,
             user: data.args.pinner,
             follower: data.args.pinning,
+            receiver: data.receiver,
             ...data.args,
         };
     }
