@@ -25,7 +25,6 @@ class Notifier extends BasicService {
         data = Object.assign({}, data);
 
         delete data.__v;
-        delete data.blockNum;
         delete data.user;
 
         this._accumulator[user] = this._accumulator[user] || [];
@@ -33,15 +32,17 @@ class Notifier extends BasicService {
     }
 
     async _broadcast() {
-        const time = new Date();
-        const accumulator = this._accumulator;
+        if (Object.entries(this._accumulator).length > 0) {
+            const time = new Date();
+            const accumulator = this._accumulator;
 
-        this._accumulator = {};
+            this._accumulator = {};
 
-        await this._sendToOnlineNotify(accumulator);
-        await this._sendToPush(accumulator);
+            await this._sendToOnlineNotify(accumulator);
+            await this._sendToPush(accumulator);
 
-        stats.timing('broadcast_notify', new Date() - time);
+            stats.timing('broadcast_notify', new Date() - time);
+        }
     }
 
     async _sendToOnlineNotify(accumulator) {
