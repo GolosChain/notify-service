@@ -60,8 +60,6 @@ class Registrator extends BasicService {
         await subscribe.start();
 
         subscribe.on('block', data => {
-            // console.log(data);
-
             this._handleBlock(data, data.blockNum);
         });
     }
