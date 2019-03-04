@@ -78,10 +78,12 @@ counter <number>    // Значение группировки, указывае
 upvote:                        // лайк (голос)
     permlink <string>        // ссылка на целевой пост/комментарий
     fromUsers <[string]>     // юзеры-источники эвента
+    refBlockNum <number>  // номер ref-блока
 
 downvote:                        // флаг (дизлайк, жалоба)
     permlink <string>        // ссылка на целевой пост/комментарий
     fromUsers <[string]>     // юзеры-источники эвента
+    refBlockNum <number>  // номер ref-блока
 
 transfer:                    // перевод средств
     fromUsers <[string]>     // юзеры-источники эвента
@@ -91,6 +93,7 @@ reply:                       // ответ на пост или коммента
     permlink <string>        // ссылка на целевой пост/комментарий
     parentPermlink <string>  // родительский пост/комментарий целевого поста/комментария
     fromUsers <[string]>     // юзеры-источники эвента
+    refBlockNum <number>  // номер ref-блока
 
 subscribe:                   // подписка на блог
     fromUsers <[string]>     // юзеры-источники эвента
@@ -102,10 +105,14 @@ mention:                     // упоминание в посте, заголо
     permlink <string>        // ссылка на целевой пост/комментарий
     parentPermlink <string>  // родительский пост целевого поста/комментария
     fromUsers <[string]>     // юзеры-источники эвента
+    refBlockNum <number>  // номер ref-блока
+
 
 repost:                      // репост
     permlink <string>        // ссылка на целевой пост
     fromUsers <[string]>     // юзеры-источники эвента
+    refBlockNum <number>  // номер ref-блока
+
 
 reward:                      // награда пользователю
     permlink <string>        // ссылка на целевой пост/коммент
