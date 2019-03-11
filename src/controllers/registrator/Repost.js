@@ -41,13 +41,16 @@ class Repost extends Abstract {
     }
 
     async _saveRepost({ user, reposter, permlink, refBlockNum }, blockNum) {
+        const type = 'respost';
         const model = new Event({
             blockNum,
             refBlockNum,
             user,
-            eventType: 'repost',
+            eventType: type,
             permlink,
             fromUsers: [reposter],
+            //TODO: make real call
+            ...(await this.callService('prism', `prism.${type}`, {})),
         });
 
         await model.save();

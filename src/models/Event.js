@@ -25,11 +25,55 @@ module.exports = MongoDB.makeModel(
 
         /* Type-specified fields */
 
+        post: {
+            contentId: {
+                userId: String,
+                refBlockNum: Number,
+                permlink: String,
+            },
+            title: String,
+        },
+
+        comment: {
+            contentId: {
+                userId: String,
+                refBlockNum: Number,
+                permlink: String,
+            },
+            body: String,
+        },
+        community: {
+            id: String,
+            name: String,
+        },
+        actor: {
+            id: String,
+            name: String,
+            avatarUrl: String,
+        },
+        parentComment: {
+            contentId: {
+                userId: String,
+                refBlockNum: Number,
+                permlink: String,
+            },
+            body: String,
+        },
+
+        value: {
+            amount: String,
+            currency: String,
+        },
+        payout: {
+            amount: String,
+            currency: String,
+        },
+
         // upvote | downvote | reply | mention | repost | reward | curator reward
         refBlockNum: {
             type: Number,
         },
-        // upvote | downvote | reply | mention | repost | reward | curatorReward
+        /*  // upvote | downvote | reply | mention | repost | reward | curatorReward
         permlink: {
             type: String,
         },
@@ -65,7 +109,7 @@ module.exports = MongoDB.makeModel(
         // curatorReward
         curatorTargetAuthor: {
             type: String,
-        },
+        }, */
     },
     {
         index: [
@@ -103,5 +147,11 @@ module.exports = MongoDB.makeModel(
                 fromUsers: 1,
             },
         ],
+        schema: {
+            timestamps: {
+                createdAt: 'timestamp',
+                updatedAt: 'timestamp',
+            },
+        },
     }
 );

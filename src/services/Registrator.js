@@ -77,7 +77,7 @@ class Registrator extends BasicService {
     _handleBlock(data, blockNum) {
         this._eachRealOperation(data, operation => {
             this._routeEventHandlers(operation, blockNum).catch(error => {
-                Logger.error(`Event handler error - ${error}`);
+                Logger.error(`Event handler error - ${error.stack}`);
                 process.exit(1);
             });
         });
@@ -155,6 +155,9 @@ class Registrator extends BasicService {
             data.args.refBlockNum = data.args.message_id.ref_block_num;
         }
 
+        const post = data.args.message_id;
+        const parentPost = data.args.parent_id;
+
         data.args.message_id = data.args.message_id || {};
         data.args.parent_id = data.args.parent_id || {};
 
@@ -168,7 +171,10 @@ class Registrator extends BasicService {
             user: data.args.pinner,
             follower: data.args.pinning,
             receiver: data.receiver,
+            post,
+            parentPost,
             ...data.args,
+            ...data,
         };
     }
 }

@@ -29,6 +29,7 @@ class Connector extends BasicConnector {
             requiredClients: {
                 onlineNotify: env.GLS_ONLINE_NOTIFY_CONNECT,
                 push: env.GLS_PUSH_CONNECT,
+                prism: env.GLS_PRISM_CONNECT,
             },
         });
     }

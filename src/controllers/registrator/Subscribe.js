@@ -26,6 +26,8 @@ class Subscribe extends Abstract {
             user,
             eventType,
             fromUsers: [follower],
+            //TODO: make real call
+            ...(await this.callService('prism', `prism.${eventType}`, {})),
         });
 
         await model.save();

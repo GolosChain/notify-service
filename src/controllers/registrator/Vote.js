@@ -22,8 +22,10 @@ class Vote extends Abstract {
             refBlockNum,
             user,
             eventType: type,
-            permlink: permlink,
+            permlink,
             fromUsers: [voter],
+            //TODO: make real call
+            ...(await this.callService('prism', `prism.${type}`, {})),
         });
         await model.save();
 

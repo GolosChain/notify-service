@@ -18,14 +18,18 @@ class Reply extends Abstract {
             return;
         }
 
+        const type = 'reply';
+
         const model = new Event({
             blockNum,
             refBlockNum,
             user,
-            eventType: 'reply',
+            eventType: type,
             permlink,
             parentPermlink,
             fromUsers: [author],
+            //TODO: make real call
+            ...(await this.callService('prism', `prism.${type}`, {})),
         });
 
         await model.save();

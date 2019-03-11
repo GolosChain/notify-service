@@ -36,14 +36,18 @@ class Mention extends Abstract {
                 continue;
             }
 
+            const type = 'mention';
+
             const model = new Event({
                 blockNum,
                 refBlockNum,
                 user,
-                eventType: 'mention',
+                eventType: type,
                 permlink,
                 parentPermlink,
                 fromUsers: [author],
+                //TODO: make real call
+                ...(await this.callService('prism', `prism.${type}`, {})),
             });
 
             await model.save();

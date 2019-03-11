@@ -1,15 +1,62 @@
 const EventEmitter = require('events');
 const core = require('gls-core-service');
+const BasicController = core.controllers.Basic;
 const Logger = core.utils.Logger;
 const User = require('../../models/User');
+const connector = require('../../services/Connector');
 
-class Abstract {
+class Abstract extends BasicController {
     constructor() {
+        super({ connector });
         this._emitter = new EventEmitter();
     }
 
     async handle(data, blockNum) {
         throw 'Handler not implemented';
+    }
+
+    async callService(...rest) {
+        // TODO: remove this method override
+
+        return {
+            actor: {
+                id: 's',
+                name: 'kek',
+                avatarUrl: 'https://ava.jpg',
+            },
+            post: {
+                contentId: {
+                    userId: 'post-author',
+                    refBlockNum: 123,
+                    permlink: 'post-permlink',
+                },
+                title: 'Cool title',
+            },
+            comment: {
+                contentId: {
+                    userId: 'comment-author',
+                    refBlockNum: 124,
+                    permlink: 'comment-permlink',
+                },
+                body: 'Hi, how are you?',
+            },
+            community: {
+                id: 'gls',
+                name: 'Golos',
+            },
+            parentComment: {
+                contentId: {
+                    userId: 'original-comment-author',
+                    refBlockNum: 124,
+                    permlink: 'comment-permlink',
+                },
+                body: 'Hi, how are you?',
+            },
+            payout: {
+                amount: 0.011,
+                currency: 'GLS',
+            },
+        };
     }
 
     _parseCustomJson(rawData) {

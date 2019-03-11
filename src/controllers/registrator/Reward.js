@@ -17,13 +17,17 @@ class Reward extends Abstract {
         golosPower = parseFloat(golosPower);
         gbg = parseFloat(gbg);
 
+        const type = 'reward';
+
         const model = new Event({
             blockNum,
             refBlockNum,
             user,
-            eventType: 'reward',
+            eventType: type,
             permlink,
             reward: { golos, golosPower, gbg },
+            //TODO: make real call
+            ...(await this.callService('prism', `prism.${type}`, {})),
         });
 
         await model.save();

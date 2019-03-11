@@ -3,11 +3,11 @@ const Event = require('../../models/Event');
 const core = require('gls-core-service');
 const BigNum = core.types.BigNum;
 
-const TRANFER_ACTIN_RECEIVER = 'cyber.token';
+const TRANSFER_ACTION_RECEIVER = 'cyber.token';
 
 class Transfer extends Abstract {
     async handle({ to: user, from, quantity, receiver, refBlockNum }, blockNum) {
-        if (receiver !== TRANFER_ACTIN_RECEIVER) {
+        if (receiver !== TRANSFER_ACTION_RECEIVER) {
             return;
         }
 
@@ -18,13 +18,20 @@ class Transfer extends Abstract {
             return;
         }
 
+        const type = 'transfer';
+
         const model = new Event({
             blockNum,
             refBlockNum,
             user,
-            eventType: 'transfer',
+            eventType: type,
             fromUsers: [from],
-            amount,
+            value: {
+                amount: String(amount),
+                currency: 'GLS',
+            },
+            //TODO: make real call
+            ...(await this.callService('prism', `prism.${type}`, {})),
         });
 
         await model.save();
