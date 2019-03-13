@@ -22,6 +22,8 @@ class Connector extends BasicConnector {
                 historyFresh: history.getHistoryFresh.bind(history),
                 markAsViewed: history.markAsViewed.bind(history),
                 markAllAsViewed: history.markAllAsViewed.bind(history),
+                markAsRead: history.markAsRead.bind(history),
+                markAllAsRead: history.markAllAsRead.bind(history),
                 getBlackList: blackList.get.bind(blackList),
                 addToBlackList: blackList.add.bind(blackList),
                 removeFromBlackList: blackList.remove.bind(blackList),

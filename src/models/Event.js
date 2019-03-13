@@ -9,16 +9,16 @@ module.exports = MongoDB.makeModel(
             type: Number,
             required: true,
         },
-        user: {
-            type: String,
-            required: true,
-        },
         eventType: {
             type: String,
             required: true,
             enum: eventTypes,
         },
         fresh: {
+            type: Boolean,
+            default: true,
+        },
+        unread: {
             type: Boolean,
             default: true,
         },
@@ -68,48 +68,9 @@ module.exports = MongoDB.makeModel(
             amount: String,
             currency: String,
         },
-
-        // upvote | downvote | reply | mention | repost | reward | curator reward
         refBlockNum: {
             type: Number,
         },
-        /*  // upvote | downvote | reply | mention | repost | reward | curatorReward
-        permlink: {
-            type: String,
-        },
-        // reply | mention
-        parentPermlink: {
-            type: String,
-        },
-        // upvote | downvote | transfer | reply | subscribe | unsubscribe
-        // mention | repost | message | witnessVote | witnessCancelVote
-        fromUsers: {
-            type: [String],
-        },
-        // transfer
-        amount: {
-            type: String,
-        },
-        // reward
-        reward: {
-            golos: {
-                type: Number,
-            },
-            golosPower: {
-                type: Number,
-            },
-            gbg: {
-                type: Number,
-            },
-        },
-        // curatorReward
-        curatorReward: {
-            type: String,
-        },
-        // curatorReward
-        curatorTargetAuthor: {
-            type: String,
-        }, */
     },
     {
         index: [
