@@ -15,7 +15,12 @@ class Vote extends Abstract {
             return;
         }
 
-        const type = weight > 0 ? 'upvote' : 'downvote';
+        let type;
+        if (weight > 0) {
+            type = 'upvote';
+        } else {
+            type = 'downvote';
+        }
 
         const model = new Event({
             blockNum,

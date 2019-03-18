@@ -30,10 +30,11 @@ module.exports = MongoDB.makeModel(
         /* Type-specified fields */
 
         post: {
+            // 3 parts which can identify any post/comment
             contentId: {
                 userId: String,
-                refBlockNum: Number,
                 permlink: String,
+                refBlockNum: Number,
             },
             title: String,
         },
@@ -41,8 +42,8 @@ module.exports = MongoDB.makeModel(
         comment: {
             contentId: {
                 userId: String,
-                refBlockNum: Number,
                 permlink: String,
+                refBlockNum: Number,
             },
             body: String,
         },
@@ -58,8 +59,8 @@ module.exports = MongoDB.makeModel(
         parentComment: {
             contentId: {
                 userId: String,
-                refBlockNum: Number,
                 permlink: String,
+                refBlockNum: Number,
             },
             body: String,
         },

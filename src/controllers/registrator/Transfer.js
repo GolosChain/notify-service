@@ -12,7 +12,8 @@ class Transfer extends Abstract {
         }
 
         const rawAmount = new BigNum(quantity.amount);
-        const amount = rawAmount.shiftedBy(-rawAmount.sd() - quantity.decs - 1).toString();
+        const digsAfterPoint = -rawAmount.sd() - quantity.decs - 1;
+        const amount = rawAmount.shiftedBy(digsAfterPoint).toString();
 
         if (await this._isInBlackList(from, user)) {
             return;
