@@ -17,27 +17,31 @@ class Reply extends Abstract {
 
         let comment, post, actor, parentComment;
 
-        const response = await this.callPrismService({
-            contentId: {
-                userId: parentPost.author,
-                refBlockNum: parentPost.ref_block_num,
-                permlink: parentPost.permlink,
-            },
-            userId: author,
-        });
-
-        actor = response.user;
-        post = response.post;
-        parentComment = response.comment;
-
-        const contentResponse = await this.callPrismService({
-            contentId: {
+        try {
+            const response = await this.callPrismService({
+                contentId: {
+                    userId: parentPost.author,
+                    refBlockNum: parentPost.ref_block_num,
+                    permlink: parentPost.permlink,
+                },
                 userId: author,
-                refBlockNum,
-                permlink,
-            },
-        });
-        comment = contentResponse.comment;
+            });
+
+            actor = response.user;
+            post = response.post;
+            parentComment = response.comment;
+
+            const contentResponse = await this.callPrismService({
+                contentId: {
+                    userId: author,
+                    refBlockNum,
+                    permlink,
+                },
+            });
+            comment = contentResponse.comment;
+        } catch (error) {
+            return;
+        }
 
         const type = 'reply';
 
