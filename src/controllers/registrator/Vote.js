@@ -22,17 +22,24 @@ class Vote extends Abstract {
             type = 'downvote';
         }
 
-        const response = await this.callPrismService({
-            contentId: {
-                userId: user,
-                refBlockNum,
-                permlink,
-            },
-            userId: voter,
-        });
+        let post, comment, actor;
 
-        const { post, comment } = response;
-        const actor = response.user;
+        try {
+            const response = await this.callPrismService({
+                contentId: {
+                    userId: user,
+                    refBlockNum,
+                    permlink,
+                },
+                userId: voter,
+            });
+
+            post = response.post;
+            comment = response.comment;
+            actor = response.user;
+        } catch (error) {
+            return;
+        }
 
         const model = new Event({
             blockNum,
