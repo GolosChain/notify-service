@@ -48,8 +48,12 @@ module.exports = MongoDB.makeModel(
             body: String,
         },
         community: {
-            id: String,
-            name: String,
+            // TODO: wait for blockchain
+            id: { type: String, default: 'gls' },
+            name: {
+                type: String,
+                default: 'Golos',
+            },
         },
         actor: {
             id: String,
