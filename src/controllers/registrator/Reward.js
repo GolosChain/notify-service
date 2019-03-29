@@ -27,7 +27,7 @@ class Reward extends Abstract {
             permlink,
             reward: { golos, golosPower, gbg },
             //TODO: make real call
-            ...(await this.callService('prism', `prism.${type}`, {})),
+            // ...(await this.callPrismService('prism', `prism.${type}`, {})),
         });
 
         await model.save();

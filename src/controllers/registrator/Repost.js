@@ -50,7 +50,7 @@ class Repost extends Abstract {
             permlink,
             fromUsers: [reposter],
             //TODO: make real call
-            ...(await this.callService('prism', `prism.${type}`, {})),
+            // ...(await this.callPrismService('prism', `prism.${type}`, {})),
         });
 
         await model.save();

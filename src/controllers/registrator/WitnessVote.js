@@ -22,7 +22,7 @@ class WitnessVote extends Abstract {
             eventType,
             fromUsers: [from],
             //TODO: make real call
-            ...(await this.callService('prism', `prism.${eventType}`, {})),
+            // ...(await this.callPrismService('prism', `prism.${eventType}`, {})),
         });
 
         await model.save();

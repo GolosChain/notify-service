@@ -11,6 +11,7 @@ class Mention extends Abstract {
             parent_permlink: parentPermlink,
             parent_author: parentAuthor,
             refBlockNum,
+            parentPost,
         },
         blockNum
     ) {
@@ -36,6 +37,44 @@ class Mention extends Abstract {
                 continue;
             }
 
+            let comment, actor, post;
+
+            try {
+                // this means that the post with a mention is actually a comment in a post
+                if (parentPost.author !== '') {
+                    const response = await this.callPrismService({
+                        userId: author,
+                        postId: {
+                            userId: parentPost.author,
+                            refBlockNum: parentPost.ref_block_num,
+                            permlink: parentPost.permlink,
+                        },
+                        commentId: {
+                            userId: author,
+                            refBlockNum,
+                            permlink,
+                        },
+                    });
+                    actor = response.user;
+                    post = response.post;
+                    comment = response.comment;
+                } else {
+                    const response = await this.callPrismService({
+                        userId: author,
+                        postId: {
+                            userId: author,
+                            refBlockNum,
+                            permlink,
+                        },
+                    });
+
+                    actor = response.user;
+                    post = response.post;
+                }
+            } catch (error) {
+                return;
+            }
+
             const type = 'mention';
 
             const model = new Event({
@@ -46,8 +85,10 @@ class Mention extends Abstract {
                 permlink,
                 parentPermlink,
                 fromUsers: [author],
-                //TODO: make real call
-                ...(await this.callService('prism', `prism.${type}`, {})),
+                post,
+                comment,
+                actor,
+                author,
             });
 
             await model.save();

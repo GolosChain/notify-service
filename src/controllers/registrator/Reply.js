@@ -2,11 +2,8 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Reply extends Abstract {
-    async handle(
-        { parent_author: user, parent_permlink: parentPermlink, refBlockNum, author, permlink },
-        blockNum
-    ) {
-        if (!user || user === author) {
+    async handle({ refBlockNum, author, permlink, parentPost }, blockNum) {
+        if (!parentPost.author || parentPost.author === author) {
             return;
         }
 
@@ -14,27 +11,53 @@ class Reply extends Abstract {
             return;
         }
 
-        if (await this._isInBlackList(author, user)) {
+        if (await this._isInBlackList(author, parentPost.author)) {
             return;
         }
+
+        let comment, post, actor, parentComment;
+
+        const response = await this.callPrismService({
+            contentId: {
+                userId: parentPost.author,
+                refBlockNum: parentPost.ref_block_num,
+                permlink: parentPost.permlink,
+            },
+            userId: author,
+        });
+
+        actor = response.user;
+        post = response.post;
+        parentComment = response.comment;
+
+        const contentResponse = await this.callPrismService({
+            contentId: {
+                userId: author,
+                refBlockNum,
+                permlink,
+            },
+        });
+        comment = contentResponse.comment;
 
         const type = 'reply';
 
         const model = new Event({
             blockNum,
             refBlockNum,
-            user,
+            user: parentPost.author,
             eventType: type,
             permlink,
-            parentPermlink,
+            parentPermlink: parentPost.permlink,
             fromUsers: [author],
-            //TODO: make real call
-            ...(await this.callService('prism', `prism.${type}`, {})),
+            actor,
+            post,
+            comment,
+            parentComment,
         });
 
         await model.save();
 
-        this.emit('registerEvent', user, model.toObject());
+        this.emit('registerEvent', parentPost.author, model.toObject());
     }
 }
 

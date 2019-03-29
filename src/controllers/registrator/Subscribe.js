@@ -10,29 +10,30 @@ class Subscribe extends Abstract {
         if (await this._isInBlackList(follower, user)) {
             return;
         }
+        let actor;
+        // TODO: check if it is a community or a user
+        try {
+            const response = await this.callPrismService({
+                userId: follower,
+            });
 
-        const model = await this._saveSubscribe(
-            { eventType, user, follower, refBlockNum },
-            blockNum
-        );
+            actor = response.user;
+        } catch (error) {
+            return;
+        }
 
-        this.emit('registerEvent', user, model.toObject());
-    }
-
-    async _saveSubscribe({ eventType, user, follower, refBlockNum }, blockNum) {
         const model = new Event({
             blockNum,
             refBlockNum,
             user,
             eventType,
             fromUsers: [follower],
-            //TODO: make real call
-            ...(await this.callService('prism', `prism.${eventType}`, {})),
+            actor,
         });
 
         await model.save();
 
-        return model;
+        this.emit('registerEvent', user, model.toObject());
     }
 }
 

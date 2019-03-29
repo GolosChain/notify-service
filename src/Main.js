@@ -13,13 +13,13 @@ class Main extends BasicMain {
         super(stats);
 
         const mongo = new MongoDB();
-        const registrator = new Registrator();
         const connector = new Connector();
+        const registrator = new Registrator(connector);
         const notifier = new Notifier(registrator, connector);
         const cleaner = new Cleaner();
 
         this.printEnvBasedConfig(env);
-        this.addNested(mongo, registrator, notifier, connector, cleaner);
+        this.addNested(mongo, connector, registrator, notifier, cleaner);
     }
 }
 

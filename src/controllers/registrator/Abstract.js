@@ -3,10 +3,9 @@ const core = require('gls-core-service');
 const BasicController = core.controllers.Basic;
 const Logger = core.utils.Logger;
 const User = require('../../models/User');
-const connector = require('../../services/Connector');
 
 class Abstract extends BasicController {
-    constructor() {
+    constructor({ connector }) {
         super({ connector });
         this._emitter = new EventEmitter();
     }
@@ -15,64 +14,56 @@ class Abstract extends BasicController {
         throw 'Handler not implemented';
     }
 
-    async callService(...rest) {
-        // TODO: remove this method override
+    async callPrismService({ userId, communityId, postId, commentId, contentId }) {
+        const data = {};
 
-        return {
-            actor: {
-                id: 's',
-                name: 'kek',
-                avatarUrl: 'https://ava.jpg',
-            },
-            post: {
-                contentId: {
-                    userId: 'post-author',
-                    refBlockNum: 123,
-                    permlink: 'post-permlink',
-                },
-                title: 'Cool title',
-            },
-            comment: {
-                contentId: {
-                    userId: 'comment-author',
-                    refBlockNum: 124,
-                    permlink: 'comment-permlink',
-                },
-                body: 'Hi, how are you?',
-            },
-            community: {
-                id: 'gls',
-                name: 'Golos',
-            },
-            parentComment: {
-                contentId: {
-                    userId: 'original-comment-author',
-                    refBlockNum: 124,
-                    permlink: 'comment-permlink',
-                },
-                body: 'Hi, how are you?',
-            },
-            payout: {
-                amount: 0.011,
-                currency: 'GLS',
-            },
-        };
-    }
-
-    _parseCustomJson(rawData) {
-        // TODO: add refBlockNum fetching
-        const type = rawData.id;
-        const user = rawData.required_posting_auths[0];
-        let data;
-
-        try {
-            data = JSON.parse(rawData.json);
-        } catch (error) {
-            Logger.log(`Bad custom JSON from - ${user}`);
-            return {};
+        if (postId) {
+            // нужно делать именно так, чтобы гарантировать порядок полей
+            data.postId = {
+                userId: postId.userId,
+                permlink: postId.permlink,
+                refBlockNum: postId.refBlockNum,
+            };
         }
 
-        return { type, user, data };
+        if (commentId) {
+            // нужно делать именно так, чтобы гарантировать порядок полей
+            data.commentId = {
+                userId: commentId.userId,
+                permlink: commentId.permlink,
+                refBlockNum: commentId.refBlockNum,
+            };
+        }
+
+        if (contentId) {
+            // нужно делать именно так, чтобы гарантировать порядок полей
+            data.contentId = {
+                userId: contentId.userId,
+                permlink: contentId.permlink,
+                refBlockNum: contentId.refBlockNum,
+            };
+        }
+
+        if (userId) {
+            data.userId = userId;
+        }
+
+        if (communityId) {
+            data.communityId = communityId;
+        }
+
+        try {
+            return await this.callService('prism', 'getNotifyMeta', data);
+        } catch (error) {
+            Logger.error(
+                `Error calling prism.getNotifyMeta in ${
+                    this.constructor.name
+                } with data:\n${JSON.stringify(data, null, 2)}\n`,
+                JSON.stringify(error, null, 2)
+            );
+
+            throw error;
+        }
     }
 
     emit(name, ...data) {

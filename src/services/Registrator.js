@@ -17,20 +17,20 @@ const WitnessVote = require('../controllers/registrator/WitnessVote');
 const DeleteComment = require('../controllers/registrator/DeleteComment');
 
 class Registrator extends BasicService {
-    constructor() {
+    constructor(connector) {
         super();
 
-        this._reward = new Reward();
-        this._curatorReward = new CuratorReward();
-        this._mention = new Mention();
-        this._message = new Message();
-        this._reply = new Reply();
-        this._repost = new Repost();
-        this._subscribe = new Subscribe();
-        this._transfer = new Transfer();
-        this._vote = new Vote();
-        this._witnessVote = new WitnessVote();
-        this._deleteComment = new DeleteComment();
+        this._reward = new Reward({ connector });
+        this._curatorReward = new CuratorReward({ connector });
+        this._mention = new Mention({ connector });
+        this._message = new Message({ connector });
+        this._reply = new Reply({ connector });
+        this._repost = new Repost({ connector });
+        this._subscribe = new Subscribe({ connector });
+        this._transfer = new Transfer({ connector });
+        this._vote = new Vote({ connector });
+        this._witnessVote = new WitnessVote({ connector });
+        this._deleteComment = new DeleteComment({ connector });
 
         this.translateEmit(
             [
@@ -68,18 +68,18 @@ class Registrator extends BasicService {
         await this.stopNested();
     }
 
-    _handleBlockError(error) {
-        stats.increment('block_registration_error');
-        Logger.error(`Load block error - ${error}`);
-        process.exit(1);
-    }
-
     _handleBlock(data, blockNum) {
-        this._eachRealOperation(data, operation => {
-            this._routeEventHandlers(operation, blockNum).catch(error => {
-                Logger.error(`Event handler error - ${error.stack}`);
+        this._eachRealOperation(data, async operation => {
+            try {
+                await this._routeEventHandlers(operation, blockNum);
+            } catch (error) {
+                const errJsonString = JSON.stringify(error, null, 2);
+                error = errJsonString === '{}' ? error : errJsonString;
+                Logger.error(
+                    `Event handler error: \n${error}. Stack:${'\n' + error.stack || 'no stack'}`
+                );
                 process.exit(1);
-            });
+            }
         });
 
         this.emit('blockDone');
@@ -145,6 +145,8 @@ class Registrator extends BasicService {
                 // TODO: add curation reward support
                 await this._curatorReward.handle(body, blockNum);
                 break;
+            default:
+                console.log('UNHANDLED,', type);
         }
     }
 
