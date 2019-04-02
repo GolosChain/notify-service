@@ -13,6 +13,7 @@ class Reward extends Abstract {
         },
         blockNum
     ) {
+        // TODO: wait for blockchain
         golos = parseFloat(golos);
         golosPower = parseFloat(golosPower);
         gbg = parseFloat(gbg);
@@ -26,8 +27,6 @@ class Reward extends Abstract {
             eventType: type,
             permlink,
             reward: { golos, golosPower, gbg },
-            //TODO: make real call
-            // ...(await this.callPrismService('prism', `prism.${type}`, {})),
         });
 
         await model.save();

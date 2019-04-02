@@ -6,6 +6,7 @@ class CuratorReward extends Abstract {
         { curator: user, reward, comment_author: author, comment_permlink: permlink, refBlockNum },
         blockNum
     ) {
+        // TODO: wait for blockchain
         reward = parseFloat(reward);
 
         const model = new Event({

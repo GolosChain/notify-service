@@ -130,7 +130,6 @@ class Registrator extends BasicService {
                 break;
 
             case 'reblog->gls.publish':
-                //TODO: add repost support
                 await this._repost.handle(body, blockNum);
                 break;
 
@@ -153,7 +152,7 @@ class Registrator extends BasicService {
                 await this._curatorReward.handle(body, blockNum);
                 break;
             default:
-                console.log('UNHANDLED,', type);
+                Logger.warn('Unhandled blockchain event: ', type);
         }
     }
 

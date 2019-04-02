@@ -3,6 +3,7 @@ const Event = require('../../models/Event');
 
 class WitnessVote extends Abstract {
     async handle({ account: from, witness: user, approve, refBlockNum }, blockNum) {
+        // TODO: wait for blockchain
         if (await this._isInBlackList(from, user)) {
             return;
         }
@@ -21,8 +22,6 @@ class WitnessVote extends Abstract {
             user,
             eventType,
             fromUsers: [from],
-            //TODO: make real call
-            // ...(await this.callPrismService('prism', `prism.${eventType}`, {})),
         });
 
         await model.save();
