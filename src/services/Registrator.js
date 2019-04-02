@@ -106,7 +106,7 @@ class Registrator extends BasicService {
         body = this._actionMapper(body);
 
         // wait for possible prism sync
-        await this.wait(60000);
+        await this.wait(2000);
 
         switch (type) {
             case 'pin->gls.social':
