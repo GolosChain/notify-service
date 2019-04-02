@@ -98,8 +98,15 @@ class Registrator extends BasicService {
         }
     }
 
+    wait(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
     async _routeEventHandlers({ type, ...body }, blockNum) {
         body = this._actionMapper(body);
+
+        // wait for possible prism sync
+        await this.wait(60000);
 
         switch (type) {
             case 'pin->gls.social':
@@ -122,7 +129,7 @@ class Registrator extends BasicService {
                 await this._mention.handle(body, blockNum);
                 break;
 
-            case 'custom_json':
+            case 'reblog->gls.publish':
                 //TODO: add repost support
                 await this._repost.handle(body, blockNum);
                 break;

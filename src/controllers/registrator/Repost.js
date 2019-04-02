@@ -4,58 +4,52 @@ const core = require('gls-core-service');
 const Logger = core.utils.Logger;
 
 class Repost extends Abstract {
-    async handle(rawData, blockNum) {
-        const { user, reposter, permlink, refBlockNum } = this._tryExtractRepost(rawData);
-        if (!user || user === reposter) {
+    async handle({ refBlockNum, author, permlink, rebloger }, blockNum) {
+        let actor, post, comment;
+        const reposterName = rebloger;
+
+        if (!author || author === reposterName) {
             return;
-        }
-
-        if (await this._isInBlackList(reposter, user)) {
-            return;
-        }
-
-        const model = await this._saveRepost({ user, reposter, permlink, refBlockNum }, blockNum);
-
-        this.emit('registerEvent', user, model.toObject());
-    }
-
-    _tryExtractRepost(rawData) {
-        const { type, user: reposter, data, refBlockNum } = this._parseCustomJson(rawData);
-
-        if (type !== 'follow') {
-            return {};
         }
 
         try {
-            if (data[0] !== 'reblog') {
-                return {};
-            }
+            const response = await this.callPrismService({
+                contentId: {
+                    userId: author,
+                    refBlockNum,
+                    permlink,
+                },
+                userId: reposterName,
+            });
 
-            const { author: user, permlink } = data[1];
-
-            return { user, reposter, permlink };
+            actor = response.user;
+            post = response.post;
+            comment = response.comment;
         } catch (error) {
-            Logger.log(`Bad repost from - ${reposter}`);
-            return {};
+            return;
         }
-    }
 
-    async _saveRepost({ user, reposter, permlink, refBlockNum }, blockNum) {
-        const type = 'respost';
+        if (await this._isInBlackList(actor, author)) {
+            return;
+        }
+
+        const type = 'repost';
+
         const model = new Event({
             blockNum,
             refBlockNum,
-            user,
+            user: author,
+            post,
+            actor,
+            comment,
             eventType: type,
             permlink,
-            fromUsers: [reposter],
-            //TODO: make real call
-            // ...(await this.callPrismService('prism', `prism.${type}`, {})),
+            fromUsers: [actor],
         });
 
         await model.save();
 
-        return model;
+        this.emit('registerEvent', author, model.toObject());
     }
 }
 

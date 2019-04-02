@@ -44,15 +44,10 @@ class Mention extends Abstract {
                 if (parentPost.author !== '') {
                     const response = await this.callPrismService({
                         userId: author,
-                        postId: {
+                        contentId: {
                             userId: parentPost.author,
                             refBlockNum: parentPost.ref_block_num,
                             permlink: parentPost.permlink,
-                        },
-                        commentId: {
-                            userId: author,
-                            refBlockNum,
-                            permlink,
                         },
                     });
                     actor = response.user;
@@ -61,7 +56,7 @@ class Mention extends Abstract {
                 } else {
                     const response = await this.callPrismService({
                         userId: author,
-                        postId: {
+                        contentId: {
                             userId: author,
                             refBlockNum,
                             permlink,
@@ -70,6 +65,7 @@ class Mention extends Abstract {
 
                     actor = response.user;
                     post = response.post;
+                    comment = response.comment;
                 }
             } catch (error) {
                 return;
