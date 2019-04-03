@@ -69,7 +69,7 @@ class Registrator extends BasicService {
     }
 
     _handleBlock(data, blockNum) {
-        this._eachRealOperation(data, async operation => {
+        this._eachBlock(data, async operation => {
             try {
                 await this._routeEventHandlers(operation, blockNum);
             } catch (error) {
@@ -85,7 +85,7 @@ class Registrator extends BasicService {
         this.emit('blockDone');
     }
 
-    _eachRealOperation(data, fn) {
+    _eachBlock(data, fn) {
         for (let transaction of data.transactions) {
             if (!transaction.actions) {
                 continue;
@@ -103,7 +103,7 @@ class Registrator extends BasicService {
     }
 
     async _routeEventHandlers({ type, ...body }, blockNum) {
-        body = this._actionMapper(body);
+        body = this._mapAction(body);
 
         // wait for possible prism sync
         await this.wait(2000);
@@ -152,11 +152,16 @@ class Registrator extends BasicService {
                 await this._curatorReward.handle(body, blockNum);
                 break;
             default:
-                Logger.warn('Unhandled blockchain event: ', type);
+                Logger.warn(
+                    'Unhandled blockchain event: ',
+                    type,
+                    '\n',
+                    JSON.stringify(body, null, 4)
+                );
         }
     }
 
-    _actionMapper(data) {
+    _mapAction(data) {
         data.args = data.args || {};
 
         if (data.args.message_id) {

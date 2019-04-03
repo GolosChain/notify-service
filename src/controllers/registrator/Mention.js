@@ -80,7 +80,7 @@ class Mention extends Abstract {
                 eventType: type,
                 permlink,
                 parentPermlink,
-                fromUsers: [author],
+                fromUsers: [actor],
                 post,
                 comment,
                 actor,
