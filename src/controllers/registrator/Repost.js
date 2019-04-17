@@ -4,7 +4,9 @@ const core = require('gls-core-service');
 const Logger = core.utils.Logger;
 
 class Repost extends Abstract {
-    async handle({ refBlockNum, author, permlink, rebloger }, blockNum) {
+    async handle({ refBlockNum, author, permlink, rebloger }, blockNum, transactionId) {
+        await this.waitForTransaction(transactionId);
+
         let actor, post, comment;
         const reposterName = rebloger;
 

@@ -2,7 +2,9 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Reply extends Abstract {
-    async handle({ refBlockNum, author, permlink, parentPost }, blockNum) {
+    async handle({ refBlockNum, author, permlink, parentPost }, blockNum, transactionId) {
+        await this.waitForTransaction(transactionId);
+
         if (!parentPost.author || parentPost.author === author) {
             return;
         }

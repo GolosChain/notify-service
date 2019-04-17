@@ -6,7 +6,9 @@ const BigNum = core.types.BigNum;
 const TRANSFER_ACTION_RECEIVER = 'cyber.token';
 
 class Transfer extends Abstract {
-    async handle({ to: user, from, quantity, receiver, refBlockNum }, blockNum) {
+    async handle({ to: user, from, quantity, receiver, refBlockNum }, blockNum, transactionId) {
+        await this.waitForTransaction(transactionId);
+
         if (receiver !== TRANSFER_ACTION_RECEIVER) {
             return;
         }

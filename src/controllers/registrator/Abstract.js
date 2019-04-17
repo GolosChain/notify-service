@@ -66,6 +66,18 @@ class Abstract extends BasicController {
         }
     }
 
+    async waitForTransaction(transactionId) {
+        try {
+            return await this.callService('prism', 'waitForTransaction', {
+                transactionId,
+            });
+        } catch (error) {
+            Logger.error(`Error calling prism.waitForTransaction`, JSON.stringify(error, null, 2));
+
+            throw error;
+        }
+    }
+
     emit(name, ...data) {
         this._emitter.emit(name, ...data);
     }

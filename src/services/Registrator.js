@@ -71,7 +71,7 @@ class Registrator extends BasicService {
     _handleBlock(data, blockNum) {
         this._eachBlock(data, async operation => {
             try {
-                await this._routeEventHandlers(operation, blockNum);
+                await this._routeEventHandlers(operation, blockNum, operation.transaction.id);
             } catch (error) {
                 const errJsonString = JSON.stringify(error, null, 2);
                 error = errJsonString === '{}' ? error : errJsonString;
@@ -88,76 +88,67 @@ class Registrator extends BasicService {
     _eachBlock(data, fn) {
         for (let transaction of data.transactions) {
             if (!transaction.actions) {
+                Logger.info('No actions', transaction);
                 continue;
             }
-            for (let action of transaction.actions) {
+
+            for (const action of transaction.actions) {
                 if (action) {
-                    fn({ type: `${action.action}->${action.code}`, ...action });
+                    fn({ type: `${action.action}->${action.code}`, ...action, transaction });
+                } else {
+                    Logger.info('No actions', JSON.stringify(transaction, null, 4));
                 }
             }
         }
     }
 
-    wait(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    async _routeEventHandlers({ type, ...body }, blockNum) {
+    async _routeEventHandlers({ type, ...body }, blockNum, transactionId) {
         body = this._mapAction(body);
-
-        // wait for possible prism sync
-        await this.wait(2000);
+        Logger.info('Registred event', type);
 
         switch (type) {
             case 'pin->gls.social':
-                await this._subscribe.handle(body, 'subscribe', blockNum);
+                await this._subscribe.handle(body, 'subscribe', blockNum, transactionId);
                 break;
             case 'unpin->gls.social':
-                await this._subscribe.handle(body, 'unsubscribe', blockNum);
+                await this._subscribe.handle(body, 'unsubscribe', blockNum, transactionId);
                 break;
             case 'upvote->gls.publish':
-            case 'downvote->gls.publish':
-                await this._vote.handle(body, blockNum);
+                await this._vote.handle(body, blockNum, transactionId, 'upvote');
                 break;
-
+            case 'downvote->gls.publish':
+                await this._vote.handle(body, blockNum, transactionId, 'downvote');
+                break;
             case 'transfer->cyber.token':
-                await this._transfer.handle(body, blockNum);
+                await this._transfer.handle(body, blockNum, transactionId);
                 break;
 
             case 'createmssg->gls.publish':
-                await this._reply.handle(body, blockNum);
-                await this._mention.handle(body, blockNum);
+                await this._reply.handle(body, blockNum, transactionId);
+                await this._mention.handle(body, blockNum, transactionId);
                 break;
 
             case 'reblog->gls.publish':
-                await this._repost.handle(body, blockNum);
+                await this._repost.handle(body, blockNum, transactionId);
                 break;
 
             case 'account_witness_vote':
                 //TODO: add witness support
-                await this._witnessVote.handle(body, blockNum);
+                await this._witnessVote.handle(body, blockNum, transactionId);
                 break;
 
             case 'deletemssg->gls.publish':
                 await this._deleteComment.handle(body);
                 break;
 
-            case 'author_reward':
-                // TODO: add author reward support
-                await this._reward.handle(body, blockNum);
-                break;
-
-            case 'curation_reward':
+            case 'closemssg -> gls.publish':
+                Logger.info('Reward', '\n', JSON.stringify(body, null, 4));
                 // TODO: add curation reward support
-                await this._curatorReward.handle(body, blockNum);
+                await this._reward.handle(body, blockNum, transactionId);
+                await this._curatorReward.handle(body, blockNum, transactionId);
                 break;
             default:
-                Logger.warn(
-                    'Unhandled blockchain event: ',
-                    type,
-                    '\n',
-                    JSON.stringify(body, null, 4)
-                );
+                Logger.warn('Unhandled blockchain event: ', type);
         }
     }
 

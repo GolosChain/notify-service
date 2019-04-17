@@ -13,8 +13,10 @@ class Mention extends Abstract {
             refBlockNum,
             parentPost,
         },
-        blockNum
+        blockNum,
+        transactionId
     ) {
+        await this.waitForTransaction(transactionId);
         const users = this._extractMention(title, body);
 
         for (let user of users) {

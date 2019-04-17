@@ -2,7 +2,12 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Vote extends Abstract {
-    async handle({ voter, author: user, permlink, weight, refBlockNum, ...rest }, blockNum) {
+    async handle(
+        { voter, author: user, permlink, weight, refBlockNum, ...rest },
+        blockNum,
+        transactionId,
+        type
+    ) {
         if (weight === 0) {
             return;
         }
@@ -15,12 +20,7 @@ class Vote extends Abstract {
             return;
         }
 
-        let type;
-        if (weight > 0) {
-            type = 'upvote';
-        } else {
-            type = 'downvote';
-        }
+        await this.waitForTransaction(transactionId);
 
         let post, comment, actor;
 
