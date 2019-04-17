@@ -3,7 +3,17 @@ const Event = require('../../models/Event');
 
 class Vote extends Abstract {
     async handle(
-        { voter, author: user, permlink, weight, refBlockNum, ...rest },
+        {
+            voter,
+            author: user,
+            permlink,
+            weight,
+            refBlockNum,
+            parentPost,
+            parent_permlink: parentPermlink,
+            parent_author: parentAuthor,
+            ...rest
+        },
         blockNum,
         transactionId,
         type
@@ -25,6 +35,8 @@ class Vote extends Abstract {
         let post, comment, actor;
 
         try {
+            // todo: if vote is against comment -> fetch root post
+
             const response = await this.callPrismService({
                 contentId: {
                     userId: user,
@@ -36,6 +48,11 @@ class Vote extends Abstract {
 
             post = response.post;
             comment = response.comment;
+
+            if (comment) {
+                post = comment.parentPost;
+            }
+
             actor = response.user;
         } catch (error) {
             return;
