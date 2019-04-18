@@ -30,7 +30,10 @@ class Reply extends Abstract {
             });
 
             actor = response.user;
-            post = response.post;
+            // todo: check if thi is correct
+            // previous version
+            // post = response.post
+            post = response.parentPost || response.post;
             parentComment = response.comment;
 
             const contentResponse = await this.callPrismService({

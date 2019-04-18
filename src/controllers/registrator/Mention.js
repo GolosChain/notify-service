@@ -59,7 +59,7 @@ class Mention extends Abstract {
                         },
                     });
                     actor = response.user;
-                    post = response.post || response.parentPost;
+                    post = response.parentPost || response.post;
                     comment = response.comment;
                 } else {
                     const response = await this.callPrismService({
