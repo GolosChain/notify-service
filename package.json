@@ -39,7 +39,9 @@
   },
   "dependencies": {
     "@types/node-rsa": "^1.0.0",
+    "cyberwayjs": "^20.0.0-beta3.5",
     "gls-core-service": "^3.18.0",
+    "node-fetch": "^2.3.0",
     "node-rsa": "^1.0.3"
   }
 }
