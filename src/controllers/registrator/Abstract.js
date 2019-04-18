@@ -66,12 +66,15 @@ class Abstract extends BasicController {
         }
     }
 
-    async waitForTransaction(transactionId) {
+    async waitForTransaction(transactionId, retryNum = 0, maxRetries = 5) {
         try {
             return await this.callService('prism', 'waitForTransaction', {
                 transactionId,
             });
         } catch (error) {
+            if (error.code === 'ECONNRESET' && retryNum <= maxRetries) {
+                return await this.waitForTransaction(transactionId, retryNum++);
+            }
             Logger.error(`Error calling prism.waitForTransaction`, JSON.stringify(error, null, 2));
 
             throw error;

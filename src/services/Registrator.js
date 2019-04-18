@@ -104,7 +104,6 @@ class Registrator extends BasicService {
 
     async _routeEventHandlers({ type, ...body }, blockNum, transactionId) {
         body = this._mapAction(body);
-        Logger.info('Registred event', type);
 
         switch (type) {
             case 'pin->gls.social':
