@@ -58,8 +58,9 @@ class Mention extends Abstract {
                             permlink: parentPost.permlink,
                         },
                     });
+                    console.log(JSON.stringify(response, null, 2));
                     actor = response.user;
-                    post = response.post;
+                    post = response.post || response.parentPost;
                     comment = response.comment;
                 } else {
                     const response = await this.callPrismService({

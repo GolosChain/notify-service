@@ -11,7 +11,9 @@ class Reward extends Abstract {
             sbd_payout: gbg,
             refBlockNum,
         },
-        blockNum
+        blockNum,
+        transaction,
+        transactionId
     ) {
         // TODO: wait for blockchain
         golos = parseFloat(golos);

@@ -71,7 +71,12 @@ class Registrator extends BasicService {
     _handleBlock(data, blockNum) {
         this._eachBlock(data, async operation => {
             try {
-                await this._routeEventHandlers(operation, blockNum, operation.transaction.id);
+                await this._routeEventHandlers(
+                    operation,
+                    blockNum,
+                    operation.transaction.id,
+                    operation.transaction
+                );
             } catch (error) {
                 const errJsonString = JSON.stringify(error, null, 2);
                 error = errJsonString === '{}' ? error : errJsonString;
@@ -102,9 +107,8 @@ class Registrator extends BasicService {
         }
     }
 
-    async _routeEventHandlers({ type, ...body }, blockNum, transactionId) {
+    async _routeEventHandlers({ type, ...body }, blockNum, transactionId, transaction) {
         body = this._mapAction(body);
-
         switch (type) {
             case 'pin->gls.social':
                 await this._subscribe.handle(body, 'subscribe', blockNum, transactionId);
@@ -140,11 +144,11 @@ class Registrator extends BasicService {
                 await this._deleteComment.handle(body);
                 break;
 
-            case 'closemssg -> gls.publish':
+            case 'closemssg->gls.publish':
                 Logger.info('Reward', '\n', JSON.stringify(body, null, 4));
                 // TODO: add curation reward support
-                await this._reward.handle(body, blockNum, transactionId);
-                await this._curatorReward.handle(body, blockNum, transactionId);
+                await this._reward.handle(body, blockNum, transactionId, transaction);
+                await this._curatorReward.handle(body, blockNum, transactionId, transaction);
                 break;
             default:
                 Logger.warn('Unhandled blockchain event: ', type);
