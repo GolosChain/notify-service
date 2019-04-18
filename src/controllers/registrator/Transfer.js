@@ -4,6 +4,7 @@ const core = require('gls-core-service');
 const BigNum = core.types.BigNum;
 
 const TRANSFER_ACTION_RECEIVER = 'cyber.token';
+const TRANSFER_ACTION_ACTOR = 'gls.issuer';
 
 class Transfer extends Abstract {
     async handle({ to: user, from, quantity, receiver, refBlockNum }, blockNum, transactionId) {
@@ -22,11 +23,17 @@ class Transfer extends Abstract {
         const type = 'transfer';
         let actor;
 
-        try {
-            const response = await this.callPrismService({ userId: from });
-            actor = response.user;
-        } catch (error) {
-            return;
+        if (from === TRANSFER_ACTION_ACTOR) {
+            actor = {
+                id: from,
+            };
+        } else {
+            try {
+                const response = await this.callPrismService({ userId: from });
+                actor = response.user;
+            } catch (error) {
+                return;
+            }
         }
 
         const model = new Event({
