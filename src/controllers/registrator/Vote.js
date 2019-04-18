@@ -35,8 +35,6 @@ class Vote extends Abstract {
         let post, comment, actor;
 
         try {
-            // todo: if vote is against comment -> fetch root post
-
             const response = await this.callPrismService({
                 contentId: {
                     userId: user,

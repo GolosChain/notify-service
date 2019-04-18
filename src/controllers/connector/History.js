@@ -16,7 +16,7 @@ class History {
 
         const query = { user };
 
-        if (types !== 'all') {
+        if (!types.includes('all')) {
             query.eventType = types;
         }
 
@@ -174,7 +174,7 @@ class History {
     }
 
     _validateTypes(types) {
-        if (types === 'all') {
+        if (types === 'all' || (Array.isArray(types) && types.includes('all'))) {
             return;
         }
 
