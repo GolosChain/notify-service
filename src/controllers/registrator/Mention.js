@@ -102,7 +102,7 @@ class Mention extends Abstract {
     }
 
     _extractMention(title, body) {
-        const re = /(@[a-z][-\.a-z\d@]+[a-z\d])/gi;
+        const re = /(?<=\s|^)@[a-z][a-z\d.-]+(?:@[a-z][a-z\d]+)?(?=\s|$)/gi;
         const inTitle = title.match(re) || [];
         const inBody = body.match(re) || [];
         const totalRaw = inTitle.concat(inBody);
