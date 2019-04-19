@@ -46,7 +46,7 @@ class Transfer extends Abstract {
             const contentId = {
                 userId: memo[0],
                 // blockchain <--> prism sync issue fix
-                refBlockNum: Number(memo[2]) - 1,
+                refBlockNum: Number(memo[2]),
                 permlink: memo[1],
             };
 
@@ -56,7 +56,17 @@ class Transfer extends Abstract {
                 });
                 post = response.comment || response.post;
             } catch (error) {
-                return;
+                try {
+                    console.info('Retrying');
+                    contentId.refBlockNum--;
+
+                    const response = await this.callPrismService({
+                        contentId,
+                    });
+                    post = response.comment || response.post;
+                } catch (error) {
+                    return;
+                }
             }
 
             actor = {
