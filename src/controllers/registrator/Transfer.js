@@ -24,6 +24,7 @@ class Transfer extends Abstract {
         let type = 'transfer';
         let actor;
         let post;
+        let comment;
 
         if (from === 'gls.publish' && user === 'gls.vesting') {
             // send to and reward type
@@ -54,7 +55,8 @@ class Transfer extends Abstract {
                 const response = await this.callPrismService({
                     contentId,
                 });
-                post = response.comment || response.post;
+                comment = response.comment;
+                post = response.post || response.parentPost;
             } catch (error) {
                 try {
                     console.info('Retrying');
@@ -63,7 +65,8 @@ class Transfer extends Abstract {
                     const response = await this.callPrismService({
                         contentId,
                     });
-                    post = response.comment || response.post;
+                    comment = response.comment;
+                    post = response.post || response.parentPost;
                 } catch (error) {
                     return;
                 }
@@ -86,6 +89,7 @@ class Transfer extends Abstract {
             refBlockNum,
             user,
             post,
+            comment,
             eventType: type,
             fromUsers: [from],
             actor,
