@@ -3,20 +3,17 @@ const Event = require('../../models/Event');
 const core = require('gls-core-service');
 const BigNum = core.types.BigNum;
 
-const TRANSFER_ACTION_RECEIVER = 'cyber.token';
-const TRANSFER_ACTION_ACTOR = 'gls.issuer';
+// const TRANSFER_ACTION_RECEIVER = 'cyber.token';
+// const TRANSFER_ACTION_ACTOR = 'gls.issuer';
+// const REWARD_ACTION_ACTOR = 'gls.publish';
 
 class Transfer extends Abstract {
-    async handle({ to: user, from, quantity, receiver, refBlockNum }, blockNum, transactionId) {
+    async handle(
+        { to: user, from, quantity, receiver, refBlockNum, memo },
+        blockNum,
+        transactionId
+    ) {
         await this.waitForTransaction(transactionId);
-
-        if (!user) {
-            return;
-        }
-
-        if (receiver !== TRANSFER_ACTION_RECEIVER) {
-            return;
-        }
 
         const amount = this._calculateAmount(quantity);
 
@@ -24,10 +21,43 @@ class Transfer extends Abstract {
             return;
         }
 
-        const type = 'transfer';
+        let type = 'transfer';
         let actor;
+        let post;
 
-        if (from === TRANSFER_ACTION_ACTOR) {
+        if (from === 'gls.publish' && user === 'gls.vesting') {
+            // send to and reward type
+            memo = memo.split(';');
+
+            // username
+            user = memo[0].split(': ')[1];
+
+            // reward type and post id
+            memo = memo[1].split('reward for post ');
+
+            if (memo[0] === ' author') {
+                type = 'reward';
+            } else {
+                type = 'curatorReward';
+            }
+
+            memo = memo[1].split(':');
+
+            const contentId = {
+                userId: memo[0],
+                refBlockNum: memo[2],
+                permlink: memo[1],
+            };
+
+            try {
+                const response = await this.callPrismService({
+                    contentId,
+                });
+                post = response.comment || response.post;
+            } catch (error) {
+                return;
+            }
+
             actor = {
                 id: from,
             };
@@ -44,6 +74,7 @@ class Transfer extends Abstract {
             blockNum,
             refBlockNum,
             user,
+            post,
             eventType: type,
             fromUsers: [from],
             actor,
