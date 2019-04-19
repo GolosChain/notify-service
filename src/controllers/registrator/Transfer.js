@@ -45,7 +45,8 @@ class Transfer extends Abstract {
 
             const contentId = {
                 userId: memo[0],
-                refBlockNum: memo[2],
+                // blockchain <--> prism sync issue fix
+                refBlockNum: Number(memo[2]) - 1,
                 permlink: memo[1],
             };
 
