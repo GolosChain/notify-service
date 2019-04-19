@@ -81,7 +81,15 @@ class Registrator extends BasicService {
                 const errJsonString = JSON.stringify(error, null, 2);
                 error = errJsonString === '{}' ? error : errJsonString;
                 Logger.error(
-                    `Event handler error: \n${error}. Stack:${'\n' + (error.stack || 'no stack')}`
+                    `Event handler error:
+                    ${error}
+                    
+                        Stack:
+                        ${(error.stack || 'no stack')}
+                        
+                        Identity:
+                        ${(error.identity || 'no identity provided')}
+                        `
                 );
                 process.exit(1);
             }
@@ -108,58 +116,68 @@ class Registrator extends BasicService {
     }
 
     async _routeEventHandlers({ type, ...body }, blockNum, transactionId, transaction) {
-        body = this._mapAction(body);
-        switch (type) {
-            case 'pin->gls.social':
-                Logger.info(type);
-                await this._subscribe.handle(body, 'subscribe', blockNum, transactionId);
-                break;
-            case 'unpin->gls.social':
-                Logger.info(type);
-                await this._subscribe.handle(body, 'unsubscribe', blockNum, transactionId);
-                break;
-            case 'upvote->gls.publish':
-                Logger.info(type);
-                await this._vote.handle(body, blockNum, transactionId, 'upvote');
-                break;
-            case 'downvote->gls.publish':
-                Logger.info(type);
-                await this._vote.handle(body, blockNum, transactionId, 'downvote');
-                break;
-            case 'transfer->cyber.token':
-                Logger.info(type);
-                await this._transfer.handle(body, blockNum, transactionId);
-                break;
+        try {
+            body = this._mapAction(body);
+            switch (type) {
+                case 'pin->gls.social':
+                    Logger.info(type);
+                    await this._subscribe.handle(body, 'subscribe', blockNum, transactionId);
+                    break;
+                case 'unpin->gls.social':
+                    Logger.info(type);
+                    await this._subscribe.handle(body, 'unsubscribe', blockNum, transactionId);
+                    break;
+                case 'upvote->gls.publish':
+                    Logger.info(type);
+                    await this._vote.handle(body, blockNum, transactionId, 'upvote');
+                    break;
+                case 'downvote->gls.publish':
+                    Logger.info(type);
+                    await this._vote.handle(body, blockNum, transactionId, 'downvote');
+                    break;
+                case 'transfer->cyber.token':
+                    Logger.info(type);
+                    await this._transfer.handle(body, blockNum, transactionId);
+                    break;
 
-            case 'createmssg->gls.publish':
-                Logger.info(type);
-                await this._reply.handle(body, blockNum, transactionId);
-                await this._mention.handle(body, blockNum, transactionId);
-                break;
+                case 'createmssg->gls.publish':
+                    Logger.info(type);
+                    await this._reply.handle(body, blockNum, transactionId);
+                    await this._mention.handle(body, blockNum, transactionId);
+                    break;
 
-            case 'reblog->gls.publish':
-                Logger.info(type);
-                await this._repost.handle(body, blockNum, transactionId);
-                break;
+                case 'reblog->gls.publish':
+                    Logger.info(type);
+                    await this._repost.handle(body, blockNum, transactionId);
+                    break;
 
-            case 'account_witness_vote':
-                //TODO: add witness support
-                await this._witnessVote.handle(body, blockNum, transactionId);
-                break;
+                case 'account_witness_vote':
+                    //TODO: add witness support
+                    await this._witnessVote.handle(body, blockNum, transactionId);
+                    break;
 
-            case 'deletemssg->gls.publish':
-                Logger.info(type);
-                await this._deleteComment.handle(body);
-                break;
+                case 'deletemssg->gls.publish':
+                    Logger.info(type);
+                    await this._deleteComment.handle(body);
+                    break;
 
-            case 'closemssg->gls.publish':
-                // Logger.info('Reward', '\n', JSON.stringify(body, null, 4));
-                // TODO: add curation reward support
-                // await this._reward.handle(body, blockNum, transactionId, transaction);
-                // await this._curatorReward.handle(body, blockNum, transactionId, transaction);
-                break;
-            // default:
-            // Logger.warn('Unhandled blockchain event: ', type);
+                case 'closemssg->gls.publish':
+                    // Logger.info('Reward', '\n', JSON.stringify(body, null, 4));
+                    // TODO: add curation reward support
+                    // await this._reward.handle(body, blockNum, transactionId, transaction);
+                    // await this._curatorReward.handle(body, blockNum, transactionId, transaction);
+                    break;
+                default:
+                    Logger.warn('Unhandled blockchain event: ', type);
+                    break;
+            }
+        } catch (error) {
+            error.identity = {
+                type,
+                body,
+            };
+
+            throw error;
         }
     }
 
