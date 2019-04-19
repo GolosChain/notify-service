@@ -10,6 +10,10 @@ class Transfer extends Abstract {
     async handle({ to: user, from, quantity, receiver, refBlockNum }, blockNum, transactionId) {
         await this.waitForTransaction(transactionId);
 
+        if (!user) {
+            return;
+        }
+
         if (receiver !== TRANSFER_ACTION_RECEIVER) {
             return;
         }
