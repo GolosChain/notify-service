@@ -72,7 +72,10 @@ class Abstract extends BasicController {
                 transactionId,
             });
         } catch (error) {
-            if ((error.code === 408 || error.code === 'ECONNRESET') && retryNum <= maxRetries) {
+            if (
+                (error.code === 408 || error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') &&
+                retryNum <= maxRetries
+            ) {
                 return await this.waitForTransaction(transactionId, retryNum++);
             }
             Logger.error(`Error calling prism.waitForTransaction`, JSON.stringify(error, null, 2));

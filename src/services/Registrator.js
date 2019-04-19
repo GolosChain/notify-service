@@ -85,10 +85,10 @@ class Registrator extends BasicService {
                     ${error}
                     
                         Stack:
-                        ${(error.stack || 'no stack')}
+                        ${error.stack || 'no stack'}
                         
                         Identity:
-                        ${(error.identity || 'no identity provided')}
+                        ${error.identity || 'no identity provided'}
                         `
                 );
                 process.exit(1);
@@ -99,7 +99,12 @@ class Registrator extends BasicService {
     }
 
     _eachBlock(data, fn) {
-        for (let transaction of data.transactions) {
+        for (const transaction of data.transactions) {
+            if (!transaction) {
+                Logger.warn('Missing transaction in', data);
+                continue;
+            }
+
             if (!transaction.actions) {
                 Logger.info('No actions', transaction);
                 continue;
