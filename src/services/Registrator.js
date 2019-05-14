@@ -156,9 +156,20 @@ class Registrator extends BasicService {
                     await this._repost.handle(body, blockNum, transactionId);
                     break;
 
-                case 'account_witness_vote':
-                    //TODO: add witness support
-                    await this._witnessVote.handle(body, blockNum, transactionId);
+                case 'votewitness->gls.ctrl':
+                    await this._witnessVote.handle(
+                        { ...body, type: 'vote' },
+                        blockNum,
+                        transactionId
+                    );
+                    break;
+
+                case 'unvotewitn->gls.ctrl':
+                    await this._witnessVote.handle(
+                        { ...body, type: 'unvote' },
+                        blockNum,
+                        transactionId
+                    );
                     break;
 
                 case 'deletemssg->gls.publish':
@@ -166,12 +177,6 @@ class Registrator extends BasicService {
                     await this._deleteComment.handle(body);
                     break;
 
-                case 'closemssg->gls.publish':
-                    // Logger.info('Reward', '\n', JSON.stringify(body, null, 4));
-                    // TODO: add curation reward support
-                    // await this._reward.handle(body, blockNum, transactionId, transaction);
-                    // await this._curatorReward.handle(body, blockNum, transactionId, transaction);
-                    break;
                 default:
                     Logger.warn('Unhandled blockchain event: ', type);
                     break;

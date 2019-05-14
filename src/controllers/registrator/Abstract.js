@@ -1,8 +1,12 @@
+const fetch = require('node-fetch');
 const EventEmitter = require('events');
 const core = require('gls-core-service');
 const BasicController = core.controllers.Basic;
 const Logger = core.utils.Logger;
 const User = require('../../models/User');
+const env = require('../../data/env');
+const { JsonRpc } = require('cyberwayjs');
+const RPC = new JsonRpc(env.GLS_CYBERWAY_HTTP_URL, { fetch });
 
 class Abstract extends BasicController {
     constructor({ connector }) {
@@ -12,6 +16,19 @@ class Abstract extends BasicController {
 
     async handle(data, blockNum) {
         throw 'Handler not implemented';
+    }
+
+    async resolveName(user) {
+        let name = user;
+        // if (user.includes('@')) {
+        try {
+            const resolved = await RPC.fetch('/v1/chain/resolve_names', [user]);
+            name = resolved[0].resolved_username;
+        } catch (error) {
+            Logger.error('Error resolve account name -- ', error);
+        }
+        // }
+        return name;
     }
 
     async callPrismService({ userId, communityId, postId, commentId, contentId }) {
@@ -66,7 +83,7 @@ class Abstract extends BasicController {
         }
     }
 
-    async waitForTransaction(transactionId, retryNum = 0, maxRetries = 5) {
+    async waitForTransaction(transactionId, maxRetries = 5, retryNum = 0) {
         try {
             return await this.callService('prism', 'waitForTransaction', {
                 transactionId,
@@ -76,7 +93,7 @@ class Abstract extends BasicController {
                 (error.code === 408 || error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') &&
                 retryNum <= maxRetries
             ) {
-                return await this.waitForTransaction(transactionId, retryNum++);
+                return await this.waitForTransaction(transactionId, maxRetries, retryNum++);
             }
             Logger.error(`Error calling prism.waitForTransaction`, JSON.stringify(error, null, 2));
 

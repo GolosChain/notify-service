@@ -30,7 +30,7 @@ class Reply extends Abstract {
             });
 
             actor = response.user;
-            // todo: check if thi is correct
+            // todo: check if this is correct
             // previous version
             // post = response.post
             post = response.parentPost || response.post;

@@ -1,9 +1,5 @@
-const fetch = require('node-fetch');
 const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
-const env = require('../../data/env');
-const { JsonRpc } = require('cyberwayjs');
-const RPC = new JsonRpc(env.GLS_CYBERWAY_HTTP_URL, { fetch });
 
 class Mention extends Abstract {
     async handle(
@@ -24,7 +20,7 @@ class Mention extends Abstract {
         const users = this._extractMention(title, body);
 
         for (let user of users) {
-            user = await this._resolveName(user);
+            user = await this.resolveName(user);
 
             if (user === author || user === parentAuthor) {
                 continue;
@@ -109,19 +105,6 @@ class Mention extends Abstract {
         const total = totalRaw.map(v => v.slice(1));
 
         return new Set(total);
-    }
-
-    async _resolveName(user) {
-        let name = user;
-        if (user.includes('@')) {
-            try {
-                const resolved = await RPC.fetch('/v1/chain/resolve_names', [user]);
-                name = resolved[0].resolved_username;
-            } catch (error) {
-                Logger.error('Error resolve account name -- ', error);
-            }
-        }
-        return name;
     }
 }
 
