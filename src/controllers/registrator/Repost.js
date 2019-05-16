@@ -4,7 +4,11 @@ const core = require('gls-core-service');
 const Logger = core.utils.Logger;
 
 class Repost extends Abstract {
-    async handle({ refBlockNum, author, permlink, rebloger }, blockNum, transactionId) {
+    async handle(
+        { refBlockNum, author, permlink, rebloger, contractName },
+        blockNum,
+        transactionId
+    ) {
         await this.waitForTransaction(transactionId);
 
         let actor, post, comment;
@@ -15,14 +19,17 @@ class Repost extends Abstract {
         }
 
         try {
-            const response = await this.callPrismService({
-                contentId: {
-                    userId: author,
-                    refBlockNum,
-                    permlink,
+            const response = await this.callPrismService(
+                {
+                    contentId: {
+                        userId: author,
+                        refBlockNum,
+                        permlink,
+                    },
+                    userId: reposterName,
                 },
-                userId: reposterName,
-            });
+                contractName
+            );
 
             actor = response.user;
             post = response.post;

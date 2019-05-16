@@ -12,6 +12,7 @@ class Mention extends Abstract {
             parent_author: parentAuthor,
             refBlockNum,
             parentPost,
+            contractName,
         },
         blockNum,
         transactionId
@@ -46,26 +47,32 @@ class Mention extends Abstract {
             try {
                 // this means that the post with a mention is actually a comment in a post
                 if (parentPost.author !== '') {
-                    const response = await this.callPrismService({
-                        userId: author,
-                        contentId: {
-                            userId: parentPost.author,
-                            refBlockNum: parentPost.ref_block_num,
-                            permlink: parentPost.permlink,
+                    const response = await this.callPrismService(
+                        {
+                            userId: author,
+                            contentId: {
+                                userId: parentPost.author,
+                                refBlockNum: parentPost.ref_block_num,
+                                permlink: parentPost.permlink,
+                            },
                         },
-                    });
+                        contractName
+                    );
                     actor = response.user;
                     post = response.parentPost || response.post;
                     comment = response.comment;
                 } else {
-                    const response = await this.callPrismService({
-                        userId: author,
-                        contentId: {
+                    const response = await this.callPrismService(
+                        {
                             userId: author,
-                            refBlockNum,
-                            permlink,
+                            contentId: {
+                                userId: author,
+                                refBlockNum,
+                                permlink,
+                            },
                         },
-                    });
+                        contractName
+                    );
 
                     actor = response.user;
                     post = response.post;

@@ -3,7 +3,7 @@ const Event = require('../../models/Event');
 
 class WitnessVote extends Abstract {
     async handle(
-        { voter: from, witness: user, refBlockNum, type = 'unvote' },
+        { voter: from, witness: user, refBlockNum, type = 'unvote', contractName },
         blockNum,
         transactionId
     ) {
@@ -24,17 +24,22 @@ class WitnessVote extends Abstract {
         let actor;
 
         try {
-            const response = await this.callPrismService({
-                userId: from,
-            });
+            const response = await this.callPrismService(
+                {
+                    userId: from,
+                },
+                contractName
+            );
             actor = response.user;
         } catch (error) {
-            // return;
             try {
                 from = await this.resolveName(from);
-                const response = await this.callPrismService({
-                    userId: from,
-                });
+                const response = await this.callPrismService(
+                    {
+                        userId: from,
+                    },
+                    contractName
+                );
                 actor = response.user;
             } catch (error) {
                 return;

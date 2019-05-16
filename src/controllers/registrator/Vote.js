@@ -12,6 +12,7 @@ class Vote extends Abstract {
             parentPost,
             parent_permlink: parentPermlink,
             parent_author: parentAuthor,
+            contractName,
             ...rest
         },
         blockNum,
@@ -35,14 +36,17 @@ class Vote extends Abstract {
         let post, comment, actor;
 
         try {
-            const response = await this.callPrismService({
-                contentId: {
-                    userId: user,
-                    refBlockNum,
-                    permlink,
+            const response = await this.callPrismService(
+                {
+                    contentId: {
+                        userId: user,
+                        refBlockNum,
+                        permlink,
+                    },
+                    userId: voter,
                 },
-                userId: voter,
-            });
+                contractName
+            );
 
             post = response.post;
             comment = response.comment;

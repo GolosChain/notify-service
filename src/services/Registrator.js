@@ -122,7 +122,7 @@ class Registrator extends BasicService {
 
     async _routeEventHandlers({ type, ...body }, blockNum, transactionId, transaction) {
         try {
-            body = this._mapAction(body);
+            body = this._mapAction(body, type);
             switch (type) {
                 case 'pin->gls.social':
                     Logger.info(type);
@@ -191,7 +191,7 @@ class Registrator extends BasicService {
         }
     }
 
-    _mapAction(data) {
+    _mapAction(data, type) {
         data.args = data.args || {};
 
         if (data.args.message_id) {
@@ -216,6 +216,7 @@ class Registrator extends BasicService {
             receiver: data.receiver,
             post,
             parentPost,
+            contractName: type.split('->')[1].split('.')[0],
             ...data.args,
             ...data,
         };

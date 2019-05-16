@@ -31,8 +31,11 @@ class Abstract extends BasicController {
         return name;
     }
 
-    async callPrismService({ userId, communityId, postId, commentId, contentId }) {
-        const data = {};
+    async callPrismService(
+        { userId, communityId, postId, commentId, contentId },
+        contractName = 'cyber'
+    ) {
+        const data = { app: contractName };
 
         if (postId) {
             // нужно делать именно так, чтобы гарантировать порядок полей

@@ -11,7 +11,8 @@ class Transfer extends Abstract {
     async handle(
         { to: user, from, quantity, receiver, refBlockNum, memo },
         blockNum,
-        transactionId
+        transactionId,
+        contractName
     ) {
         await this.waitForTransaction(transactionId);
 
@@ -52,9 +53,12 @@ class Transfer extends Abstract {
             };
 
             try {
-                const response = await this.callPrismService({
-                    contentId,
-                });
+                const response = await this.callPrismService(
+                    {
+                        contentId,
+                    },
+                    contractName
+                );
                 comment = response.comment;
                 post = response.post || response.parentPost;
             } catch (error) {
@@ -62,9 +66,12 @@ class Transfer extends Abstract {
                     console.info('Retrying');
                     contentId.refBlockNum--;
 
-                    const response = await this.callPrismService({
-                        contentId,
-                    });
+                    const response = await this.callPrismService(
+                        {
+                            contentId,
+                        },
+                        contractName
+                    );
                     comment = response.comment;
                     post = response.post || response.parentPost;
                 } catch (error) {
@@ -77,7 +84,7 @@ class Transfer extends Abstract {
             };
         } else {
             try {
-                const response = await this.callPrismService({ userId: from });
+                const response = await this.callPrismService({ userId: from }, contractName);
                 actor = response.user;
             } catch (error) {
                 return;

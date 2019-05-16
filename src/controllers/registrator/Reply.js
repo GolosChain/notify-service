@@ -2,7 +2,11 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Reply extends Abstract {
-    async handle({ refBlockNum, author, permlink, parentPost }, blockNum, transactionId) {
+    async handle(
+        { refBlockNum, author, permlink, parentPost, contractName },
+        blockNum,
+        transactionId
+    ) {
         await this.waitForTransaction(transactionId);
 
         if (!parentPost.author || parentPost.author === author) {
@@ -20,14 +24,17 @@ class Reply extends Abstract {
         let comment, post, actor, parentComment;
 
         try {
-            const response = await this.callPrismService({
-                contentId: {
-                    userId: parentPost.author,
-                    refBlockNum: parentPost.ref_block_num,
-                    permlink: parentPost.permlink,
+            const response = await this.callPrismService(
+                {
+                    contentId: {
+                        userId: parentPost.author,
+                        refBlockNum: parentPost.ref_block_num,
+                        permlink: parentPost.permlink,
+                    },
+                    userId: author,
                 },
-                userId: author,
-            });
+                contractName
+            );
 
             actor = response.user;
             // todo: check if this is correct
@@ -36,13 +43,16 @@ class Reply extends Abstract {
             post = response.parentPost || response.post;
             parentComment = response.comment;
 
-            const contentResponse = await this.callPrismService({
-                contentId: {
-                    userId: author,
-                    refBlockNum,
-                    permlink,
+            const contentResponse = await this.callPrismService(
+                {
+                    contentId: {
+                        userId: author,
+                        refBlockNum,
+                        permlink,
+                    },
                 },
-            });
+                contractName
+            );
             comment = contentResponse.comment;
         } catch (error) {
             return;
