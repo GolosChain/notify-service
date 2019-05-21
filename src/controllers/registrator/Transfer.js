@@ -73,7 +73,12 @@ class Transfer extends Abstract {
                         contractName
                     );
                     comment = response.comment;
-                    post = response.post || response.parentPost;
+                    if (response.comment && response.comment.parentPost) {
+                        post = response.comment.parentPost;
+                        comment = response.comment;
+                    } else {
+                        post = response.post;
+                    }
                 } catch (error) {
                     return;
                 }

@@ -45,39 +45,24 @@ class Mention extends Abstract {
             let comment, actor, post;
 
             try {
-                // this means that the post with a mention is actually a comment in a post
-                if (parentPost.author !== '') {
-                    const response = await this.callPrismService(
-                        {
+                const response = await this.callPrismService(
+                    {
+                        userId: author,
+                        contentId: {
                             userId: author,
-                            contentId: {
-                                userId: parentPost.author,
-                                refBlockNum: parentPost.ref_block_num,
-                                permlink: parentPost.permlink,
-                            },
+                            refBlockNum,
+                            permlink,
                         },
-                        contractName
-                    );
-                    actor = response.user;
-                    post = response.parentPost || response.post;
+                    },
+                    contractName
+                );
+                if (response.comment && response.comment.parentPost) {
+                    post = response.comment.parentPost;
                     comment = response.comment;
                 } else {
-                    const response = await this.callPrismService(
-                        {
-                            userId: author,
-                            contentId: {
-                                userId: author,
-                                refBlockNum,
-                                permlink,
-                            },
-                        },
-                        contractName
-                    );
-
-                    actor = response.user;
                     post = response.post;
-                    comment = response.comment;
                 }
+                actor = response.user;
             } catch (error) {
                 return;
             }
