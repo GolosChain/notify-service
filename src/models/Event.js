@@ -34,7 +34,6 @@ module.exports = MongoDB.makeModel(
             contentId: {
                 userId: String,
                 permlink: String,
-                refBlockNum: Number,
             },
             title: String,
         },
@@ -43,7 +42,6 @@ module.exports = MongoDB.makeModel(
             contentId: {
                 userId: String,
                 permlink: String,
-                refBlockNum: Number,
             },
             body: String,
         },
@@ -56,15 +54,14 @@ module.exports = MongoDB.makeModel(
             },
         },
         actor: {
-            id: String,
-            name: String,
+            userId: String,
+            username: String,
             avatarUrl: String,
         },
         parentComment: {
             contentId: {
                 userId: String,
                 permlink: String,
-                refBlockNum: Number,
             },
             body: String,
         },
@@ -76,9 +73,6 @@ module.exports = MongoDB.makeModel(
         payout: {
             amount: String,
             currency: String,
-        },
-        refBlockNum: {
-            type: Number,
         },
     },
     {
@@ -114,7 +108,6 @@ module.exports = MongoDB.makeModel(
             {
                 eventTypes: 1,
                 permlink: 1,
-                fromUsers: 1,
             },
         ],
         schema: {

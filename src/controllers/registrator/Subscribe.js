@@ -2,12 +2,7 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Subscribe extends Abstract {
-    async handle(
-        { user, follower, refBlockNum, contractName },
-        eventType,
-        blockNum,
-        transactionId
-    ) {
+    async handle({ user, follower, contractName }, eventType, blockNum, transactionId) {
         await this.waitForTransaction(transactionId);
 
         if (!user || user === follower) {
@@ -34,7 +29,6 @@ class Subscribe extends Abstract {
 
         const model = new Event({
             blockNum,
-            refBlockNum,
             user,
             eventType,
             fromUsers: [follower],

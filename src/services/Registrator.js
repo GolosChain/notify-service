@@ -4,8 +4,6 @@ const stats = core.utils.statsClient;
 const BasicService = core.services.Basic;
 const BlockSubscribe = core.services.BlockSubscribe;
 
-const Reward = require('../controllers/registrator/Reward');
-const CuratorReward = require('../controllers/registrator/CuratorReward');
 const Mention = require('../controllers/registrator/Mention');
 const Message = require('../controllers/registrator/Message');
 const Reply = require('../controllers/registrator/Reply');
@@ -20,8 +18,6 @@ class Registrator extends BasicService {
     constructor(connector) {
         super();
 
-        this._reward = new Reward({ connector });
-        this._curatorReward = new CuratorReward({ connector });
         this._mention = new Mention({ connector });
         this._message = new Message({ connector });
         this._reply = new Reply({ connector });
@@ -34,8 +30,6 @@ class Registrator extends BasicService {
 
         this.translateEmit(
             [
-                this._reward,
-                this._curatorReward,
                 this._mention,
                 this._message,
                 this._reply,
@@ -78,19 +72,20 @@ class Registrator extends BasicService {
                     operation.transaction
                 );
             } catch (error) {
-                const errJsonString = JSON.stringify(error, null, 2);
-                error = errJsonString === '{}' ? error : errJsonString;
-                Logger.error(
-                    `Event handler error:
-                    ${error}
-                    
-                        Stack:
-                        ${error.stack || 'no stack'}
-                        
-                        Identity:
-                        ${error.identity || 'no identity provided'}
-                        `
-                );
+                // const errJsonString = JSON.stringify(error, null, 2);
+                // error = errJsonString === '{}' ? error : errJsonString;
+                // Logger.error(
+                //     `Event handler error:
+                //     ${error}
+                //
+                //         Stack:
+                //         ${error.stack || 'no stack'}
+                //
+                //         Identity:
+                //         ${error.identity || 'no identity provided'}
+                //         `
+                // );
+                Logger.error(error);
                 process.exit(1);
             }
         });

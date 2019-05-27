@@ -4,11 +4,7 @@ const core = require('gls-core-service');
 const Logger = core.utils.Logger;
 
 class Repost extends Abstract {
-    async handle(
-        { refBlockNum, author, permlink, rebloger, contractName },
-        blockNum,
-        transactionId
-    ) {
+    async handle({ author, permlink, rebloger, contractName }, blockNum, transactionId) {
         await this.waitForTransaction(transactionId);
 
         let actor, post, comment;
@@ -23,7 +19,6 @@ class Repost extends Abstract {
                 {
                     contentId: {
                         userId: author,
-                        refBlockNum,
                         permlink,
                     },
                     userId: reposterName,
@@ -46,7 +41,6 @@ class Repost extends Abstract {
 
         const model = new Event({
             blockNum,
-            refBlockNum,
             user: author,
             post,
             actor,

@@ -20,15 +20,16 @@ class Abstract extends BasicController {
 
     async resolveName(user) {
         let name = user;
-        // if (user.includes('@')) {
+        if (!user.includes('@')) {
+            name += '@golos';
+        }
         try {
             const resolved = await RPC.fetch('/v1/chain/resolve_names', [user]);
-            name = resolved[0].resolved_username;
+            return resolved[0].resolved_username;
         } catch (error) {
-            Logger.error('Error resolve account name -- ', error);
+            Logger.warn(`Cannot get such an account -- ${name}`);
         }
-        // }
-        return name;
+        return user;
     }
 
     async callPrismService(
@@ -42,7 +43,6 @@ class Abstract extends BasicController {
             data.postId = {
                 userId: postId.userId,
                 permlink: postId.permlink,
-                refBlockNum: postId.refBlockNum,
             };
         }
 
@@ -51,7 +51,6 @@ class Abstract extends BasicController {
             data.commentId = {
                 userId: commentId.userId,
                 permlink: commentId.permlink,
-                refBlockNum: commentId.refBlockNum,
             };
         }
 
@@ -60,7 +59,6 @@ class Abstract extends BasicController {
             data.contentId = {
                 userId: contentId.userId,
                 permlink: contentId.permlink,
-                refBlockNum: contentId.refBlockNum,
             };
         }
 
@@ -79,7 +77,7 @@ class Abstract extends BasicController {
                 `Error calling prism.getNotifyMeta in ${
                     this.constructor.name
                 } with data:\n${JSON.stringify(data, null, 2)}\n`,
-                JSON.stringify(error, null, 2)
+                error
             );
 
             throw error;

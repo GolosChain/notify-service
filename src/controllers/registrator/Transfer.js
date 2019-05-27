@@ -1,7 +1,7 @@
 const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 const core = require('gls-core-service');
-const BigNum = core.types.BigNum;
+// const BigNum = core.types.BigNum;
 
 // const TRANSFER_ACTION_RECEIVER = 'cyber.token';
 // const TRANSFER_ACTION_ACTOR = 'gls.issuer';
@@ -9,15 +9,16 @@ const BigNum = core.types.BigNum;
 
 class Transfer extends Abstract {
     async handle(
-        { to: user, from, quantity, receiver, refBlockNum, memo },
+        { to: user, from, quantity, receiver, memo },
         blockNum,
         transactionId,
         contractName
     ) {
         await this.waitForTransaction(transactionId);
 
-        const amount = this._calculateAmount(quantity);
-
+        quantity = quantity.split(' ');
+        const amount = quantity[0];
+        const currency = quantity[1];
         if (await this._isInBlackList(from, user)) {
             return;
         }
@@ -47,8 +48,6 @@ class Transfer extends Abstract {
 
             const contentId = {
                 userId: memo[0],
-                // blockchain <--> prism sync issue fix
-                refBlockNum: Number(memo[2]),
                 permlink: memo[1],
             };
 
@@ -60,28 +59,9 @@ class Transfer extends Abstract {
                     contractName
                 );
                 comment = response.comment;
-                post = response.post || response.parentPost;
+                post = response.post || response.comment.parentPost;
             } catch (error) {
-                try {
-                    console.info('Retrying');
-                    contentId.refBlockNum--;
-
-                    const response = await this.callPrismService(
-                        {
-                            contentId,
-                        },
-                        contractName
-                    );
-                    comment = response.comment;
-                    if (response.comment && response.comment.parentPost) {
-                        post = response.comment.parentPost;
-                        comment = response.comment;
-                    } else {
-                        post = response.post;
-                    }
-                } catch (error) {
-                    return;
-                }
+                return;
             }
 
             actor = {
@@ -98,7 +78,6 @@ class Transfer extends Abstract {
 
         const model = new Event({
             blockNum,
-            refBlockNum,
             user,
             post,
             comment,
@@ -107,18 +86,13 @@ class Transfer extends Abstract {
             actor,
             value: {
                 amount,
-                // TODO: wait for multiple currencies support
-                currency: 'GLS',
+                currency,
             },
         });
 
         await model.save();
 
         this.emit('registerEvent', user, model.toObject());
-    }
-
-    _calculateAmount(quantity) {
-        return new BigNum(quantity.amount).shiftedBy(-quantity.decs).toString();
     }
 }
 

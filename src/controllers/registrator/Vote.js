@@ -8,12 +8,10 @@ class Vote extends Abstract {
             author: user,
             permlink,
             weight,
-            refBlockNum,
             parentPost,
             parent_permlink: parentPermlink,
             parent_author: parentAuthor,
             contractName,
-            ...rest
         },
         blockNum,
         transactionId,
@@ -40,7 +38,6 @@ class Vote extends Abstract {
                 {
                     contentId: {
                         userId: user,
-                        refBlockNum,
                         permlink,
                     },
                     userId: voter,
@@ -62,7 +59,6 @@ class Vote extends Abstract {
 
         const model = new Event({
             blockNum,
-            refBlockNum,
             user,
             eventType: type,
             permlink,

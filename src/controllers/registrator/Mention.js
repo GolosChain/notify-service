@@ -10,7 +10,6 @@ class Mention extends Abstract {
             permlink,
             parent_permlink: parentPermlink,
             parent_author: parentAuthor,
-            refBlockNum,
             parentPost,
             contractName,
         },
@@ -27,17 +26,6 @@ class Mention extends Abstract {
                 continue;
             }
 
-            if (
-                await Event.findOne({
-                    eventType: 'mention',
-                    permlink,
-                    fromUsers: author,
-                    user,
-                })
-            ) {
-                return;
-            }
-
             if (await this._isInBlackList(author, user)) {
                 continue;
             }
@@ -50,7 +38,6 @@ class Mention extends Abstract {
                         userId: author,
                         contentId: {
                             userId: author,
-                            refBlockNum,
                             permlink,
                         },
                     },
@@ -67,11 +54,21 @@ class Mention extends Abstract {
                 return;
             }
 
+            if (
+                await Event.findOne({
+                    eventType: 'mention',
+                    permlink,
+                    actor,
+                    user,
+                })
+            ) {
+                return;
+            }
+
             const type = 'mention';
 
             const model = new Event({
                 blockNum,
-                refBlockNum,
                 user,
                 eventType: type,
                 permlink,
@@ -90,7 +87,7 @@ class Mention extends Abstract {
     }
 
     _extractMention(title, body) {
-        const re = /(?<=\s|^)@[a-z][a-z\d.-]+(?:@[a-z][a-z\d]+)?(?=\s|$)/gi;
+        const re = /(?<=\s|^|>)@[a-z][a-z\d.-]+(?:@[a-z][a-z\d]+)?(?=\s|$)/gi;
         const inTitle = title.match(re) || [];
         const inBody = body.match(re) || [];
         const totalRaw = inTitle.concat(inBody);

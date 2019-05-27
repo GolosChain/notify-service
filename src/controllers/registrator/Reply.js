@@ -2,11 +2,7 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Reply extends Abstract {
-    async handle(
-        { refBlockNum, author, permlink, parentPost, contractName },
-        blockNum,
-        transactionId
-    ) {
+    async handle({ author, permlink, parentPost, contractName }, blockNum, transactionId) {
         await this.waitForTransaction(transactionId);
 
         if (!parentPost.author || parentPost.author === author) {
@@ -28,7 +24,6 @@ class Reply extends Abstract {
                 {
                     contentId: {
                         userId: parentPost.author,
-                        refBlockNum: parentPost.ref_block_num,
                         permlink: parentPost.permlink,
                     },
                     userId: author,
@@ -48,7 +43,6 @@ class Reply extends Abstract {
                 {
                     contentId: {
                         userId: author,
-                        refBlockNum,
                         permlink,
                     },
                 },
@@ -63,7 +57,6 @@ class Reply extends Abstract {
 
         const model = new Event({
             blockNum,
-            refBlockNum,
             user: parentPost.author,
             eventType: type,
             permlink,
