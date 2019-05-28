@@ -1,11 +1,5 @@
 const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
-const core = require('gls-core-service');
-// const BigNum = core.types.BigNum;
-
-// const TRANSFER_ACTION_RECEIVER = 'cyber.token';
-// const TRANSFER_ACTION_ACTOR = 'gls.issuer';
-// const REWARD_ACTION_ACTOR = 'gls.publish';
 
 class Transfer extends Abstract {
     async handle(
@@ -68,6 +62,9 @@ class Transfer extends Abstract {
                 id: from,
             };
         } else {
+            if (user !== receiver) {
+                return;
+            }
             try {
                 const response = await this.callPrismService({ userId: from }, contractName);
                 actor = response.user;

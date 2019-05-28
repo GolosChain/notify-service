@@ -54,8 +54,6 @@ class WitnessVote extends Abstract {
             fromUsers: [from],
         });
 
-        console.log(model.toObject());
-
         await model.save();
 
         this.emit('registerEvent', user, model.toObject());

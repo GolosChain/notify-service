@@ -72,19 +72,6 @@ class Registrator extends BasicService {
                     operation.transaction
                 );
             } catch (error) {
-                // const errJsonString = JSON.stringify(error, null, 2);
-                // error = errJsonString === '{}' ? error : errJsonString;
-                // Logger.error(
-                //     `Event handler error:
-                //     ${error}
-                //
-                //         Stack:
-                //         ${error.stack || 'no stack'}
-                //
-                //         Identity:
-                //         ${error.identity || 'no identity provided'}
-                //         `
-                // );
                 Logger.error(error);
                 process.exit(1);
             }
