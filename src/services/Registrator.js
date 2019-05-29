@@ -10,6 +10,7 @@ const Reply = require('../controllers/registrator/Reply');
 const Repost = require('../controllers/registrator/Repost');
 const Subscribe = require('../controllers/registrator/Subscribe');
 const Transfer = require('../controllers/registrator/Transfer');
+const Reward = require('../controllers/registrator/Reward');
 const Vote = require('../controllers/registrator/Vote');
 const WitnessVote = require('../controllers/registrator/WitnessVote');
 const DeleteComment = require('../controllers/registrator/DeleteComment');
@@ -24,6 +25,7 @@ class Registrator extends BasicService {
         this._repost = new Repost({ connector });
         this._subscribe = new Subscribe({ connector });
         this._transfer = new Transfer({ connector });
+        this._reward = new Reward({ connector });
         this._vote = new Vote({ connector });
         this._witnessVote = new WitnessVote({ connector });
         this._deleteComment = new DeleteComment({ connector });
@@ -36,6 +38,7 @@ class Registrator extends BasicService {
                 this._repost,
                 this._subscribe,
                 this._transfer,
+                this._reward,
                 this._vote,
                 this._witnessVote,
             ],
@@ -65,12 +68,7 @@ class Registrator extends BasicService {
     _handleBlock(data, blockNum) {
         this._eachBlock(data, async operation => {
             try {
-                await this._routeEventHandlers(
-                    operation,
-                    blockNum,
-                    operation.transaction.id,
-                    operation.transaction
-                );
+                await this._routeEventHandlers(operation, blockNum, operation.transaction.id);
             } catch (error) {
                 Logger.error(error);
                 process.exit(1);
@@ -94,7 +92,7 @@ class Registrator extends BasicService {
 
             for (const action of transaction.actions) {
                 if (action) {
-                    fn({ type: `${action.action}->${action.code}`, ...action, transaction });
+                    fn({ type: `${action.code}->${action.action}`, ...action, transaction });
                 } else {
                     Logger.info('No actions', JSON.stringify(transaction, null, 4));
                 }
@@ -102,43 +100,44 @@ class Registrator extends BasicService {
         }
     }
 
-    async _routeEventHandlers({ type, ...body }, blockNum, transactionId, transaction) {
+    async _routeEventHandlers({ type, ...body }, blockNum, transactionId) {
         try {
             body = this._mapAction(body, type);
             switch (type) {
-                case 'pin->gls.social':
+                case 'gls.social->pin':
                     Logger.info(type);
                     await this._subscribe.handle(body, 'subscribe', blockNum, transactionId);
                     break;
-                case 'unpin->gls.social':
+                case 'gls.social->unpin':
                     Logger.info(type);
                     await this._subscribe.handle(body, 'unsubscribe', blockNum, transactionId);
                     break;
-                case 'upvote->gls.publish':
+                case 'gls.publish->upvote':
                     Logger.info(type);
                     await this._vote.handle(body, blockNum, transactionId, 'upvote');
                     break;
-                case 'downvote->gls.publish':
+                case 'gls.publish->downvote':
                     Logger.info(type);
                     await this._vote.handle(body, blockNum, transactionId, 'downvote');
                     break;
-                case 'transfer->cyber.token':
+                case 'cyber.token->transfer':
                     Logger.info(type);
                     await this._transfer.handle(body, blockNum, transactionId);
+                    await this._reward.handle(body, blockNum, transactionId);
                     break;
 
-                case 'createmssg->gls.publish':
+                case 'gls.publish->createmssg':
                     Logger.info(type);
                     await this._reply.handle(body, blockNum, transactionId);
                     await this._mention.handle(body, blockNum, transactionId);
                     break;
 
-                case 'reblog->gls.publish':
+                case 'gls.publish->reblog':
                     Logger.info(type);
                     await this._repost.handle(body, blockNum, transactionId);
                     break;
 
-                case 'votewitness->gls.ctrl':
+                case 'gls.ctrl->votewitness':
                     await this._witnessVote.handle(
                         { ...body, type: 'vote' },
                         blockNum,
@@ -146,7 +145,7 @@ class Registrator extends BasicService {
                     );
                     break;
 
-                case 'unvotewitn->gls.ctrl':
+                case 'gls.ctrl->unvotewitn':
                     await this._witnessVote.handle(
                         { ...body, type: 'unvote' },
                         blockNum,
@@ -154,7 +153,7 @@ class Registrator extends BasicService {
                     );
                     break;
 
-                case 'deletemssg->gls.publish':
+                case 'gls.publish->deletemssg':
                     Logger.info(type);
                     await this._deleteComment.handle(body);
                     break;
@@ -174,6 +173,7 @@ class Registrator extends BasicService {
     }
 
     _mapAction(data, type) {
+        const contractName = type.split('->')[0].split('.')[0];
         data.args = data.args || {};
 
         if (data.args.message_id) {
@@ -198,7 +198,7 @@ class Registrator extends BasicService {
             receiver: data.receiver,
             post,
             parentPost,
-            contractName: type.split('->')[1].split('.')[0],
+            contractName,
             ...data.args,
             ...data,
         };
