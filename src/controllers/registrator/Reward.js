@@ -55,8 +55,6 @@ class Reward extends Abstract {
             },
         });
 
-        console.log('REWARD', JSON.stringify(model.toObject(), null, 4));
-
         await model.save();
 
         this.emit('registerEvent', user, model.toObject());
