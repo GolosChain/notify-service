@@ -1,6 +1,6 @@
 const core = require('gls-core-service');
 const Logger = core.utils.Logger;
-const stats = core.utils.statsClient;
+const metrics = core.utils.metrics;
 const Moments = core.utils.Moments;
 const BasicService = core.services.Basic;
 const env = require('../data/env');
@@ -24,16 +24,16 @@ class Cleaner extends BasicService {
     async iteration() {
         Logger.info('Start cleaning...');
 
-        const timer = new Date();
+        const end = metrics.startTimer('cleaning');
         const expiration = Moments.ago(parseInt(env.GLS_EVENT_EXPIRATION));
 
         try {
             await Event.remove({ createdAt: { $lte: expiration } });
 
-            stats.timing('cleaning', new Date() - timer);
+            end();
             Logger.info('Cleaning done!');
         } catch (error) {
-            stats.increment('cleaning_error');
+            metrics.inc('cleaning_error');
             Logger.error(`Cleaning error - ${error}`);
             process.exit(1);
         }
