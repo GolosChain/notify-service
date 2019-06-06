@@ -49,7 +49,7 @@ class Notifier extends BasicService {
         try {
             await this._connector.sendTo('onlineNotify', 'transfer', accumulator);
         } catch (error) {
-            metrics.increment('broadcast_to_online_notifier_error');
+            metrics.inc('broadcast_to_online_notifier_error');
             Logger.error(`On send to online notifier - ${error}`);
         }
     }
