@@ -1,6 +1,5 @@
 const core = require('gls-core-service');
 const Logger = core.utils.Logger;
-const stats = core.utils.statsClient;
 const BasicService = core.services.Basic;
 const BlockSubscribe = core.services.BlockSubscribe;
 
@@ -70,7 +69,7 @@ class Registrator extends BasicService {
             try {
                 await this._routeEventHandlers(operation, blockNum, operation.transaction.id);
             } catch (error) {
-                Logger.error(error);
+                Logger.error('Operation routing error -- ', error);
                 process.exit(1);
             }
         });
