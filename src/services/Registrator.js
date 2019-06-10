@@ -80,7 +80,6 @@ class Registrator extends BasicService {
     _eachBlock(data, fn) {
         for (const transaction of data.transactions) {
             if (!transaction) {
-                Logger.warn('Missing transaction in', data);
                 continue;
             }
 
