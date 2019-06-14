@@ -7,7 +7,7 @@ class Reward extends Abstract {
         blockNum,
         transactionId
     ) {
-        if (!(from === `${contractName}.publish` && user === `${contractName}.vesting`)) {
+        if (!(from.includes('.publish') && user.includes('.vesting'))) {
             return;
         }
 
