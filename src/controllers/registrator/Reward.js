@@ -76,7 +76,7 @@ class Reward extends Abstract {
         // reward type and post id
         memo = memo[1].split('reward for post ');
 
-        if (memo[0] === ' author') {
+        if (memo[0] === ' author ') {
             type = 'reward';
         } else {
             type = 'curatorReward';
