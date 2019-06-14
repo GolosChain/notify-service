@@ -86,9 +86,9 @@ class Reward extends Abstract {
 
     async _shouldBeProcessed({ from, user, receiver }) {
         if (
-            from.includes('.publish') &&
-            user.includes('.vesting') &&
-            receiver.includes('.vesting')
+            from.endsWith('.publish') &&
+            user.endsWith('.vesting') &&
+            receiver.endsWith('.vesting')
         ) {
             return !(await this._isInBlackList(from, user));
         }

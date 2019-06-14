@@ -17,9 +17,7 @@ class Transfer extends Abstract {
 
         await this.waitForTransaction(transactionId);
 
-        quantity = quantity.split(' ');
-        const amount = quantity[0];
-        const currency = quantity[1];
+        const { amount, currency } = this._parseQuantity(quantity);
         if (await this._isInBlackList(from, user)) {
             return;
         }
@@ -49,6 +47,14 @@ class Transfer extends Abstract {
         await model.save();
 
         this.emit('registerEvent', user, model.toObject());
+    }
+    _parseQuantity(quantity) {
+        const [amount, currency] = quantity.split(' ');
+
+        return {
+            amount,
+            currency,
+        };
     }
 }
 

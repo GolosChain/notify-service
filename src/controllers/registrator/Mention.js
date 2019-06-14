@@ -19,8 +19,8 @@ class Mention extends Abstract {
         await this.waitForTransaction(transactionId);
         const users = this._extractMention(title, body);
 
-        for (let user of users) {
-            user = await this.resolveName(user);
+        for (const username of users) {
+            const user = await this.resolveName(username);
 
             if (user === author || user === parentAuthor) {
                 continue;

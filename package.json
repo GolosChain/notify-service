@@ -34,15 +34,14 @@
     "url": "https://github.com/GolosChain/golos-notifications/issues"
   },
   "homepage": "https://github.com/GolosChain/golos-notifications#readme",
-  "devDependencies": {
-    "prettier": "^1.17.0"
-  },
   "dependencies": {
-    "@types/node-rsa": "^1.0.0",
     "cyber-client": "^1.1.27",
     "cyberwayjs": "^20.0.0-beta5",
     "gls-core-service": "^3.18.0",
     "node-fetch": "^2.3.0",
     "node-rsa": "^1.0.3"
+  },
+  "devDependencies": {
+    "prettier": "^1.17.0"
   }
 }

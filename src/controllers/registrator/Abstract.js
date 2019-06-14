@@ -1,11 +1,11 @@
 const fetch = require('node-fetch');
+const { JsonRpc } = require('cyberwayjs');
 const EventEmitter = require('events');
 const core = require('gls-core-service');
 const BasicController = core.controllers.Basic;
 const Logger = core.utils.Logger;
 const User = require('../../models/User');
 const env = require('../../data/env');
-const { JsonRpc } = require('cyberwayjs');
 const RPC = new JsonRpc(env.GLS_CYBERWAY_HTTP_URL, { fetch });
 
 class Abstract extends BasicController {
@@ -99,7 +99,7 @@ class Abstract extends BasicController {
             ) {
                 return await this.waitForTransaction(transactionId, maxRetries, retryNum++);
             }
-            Logger.error(`Error calling prism.waitForTransaction`, JSON.stringify(error, null, 2));
+            Logger.error(`Error calling prism.waitForTransaction`, error);
 
             throw error;
         }

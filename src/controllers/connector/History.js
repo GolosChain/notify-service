@@ -146,12 +146,7 @@ class History {
     }
 
     async markAsRead({ ids = [], user }) {
-        const markReadPromises = [];
-
-        for (const id of ids) {
-            markReadPromises.push(this._markReadWithUser(id, user));
-        }
-        await Promise.all(markReadPromises);
+        await Promise.all(ids.map(id => this._markReadWithUser(id, user)));
     }
 
     async markAllAsRead({ user }) {
