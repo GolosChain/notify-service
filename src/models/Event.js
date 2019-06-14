@@ -32,16 +32,16 @@ module.exports = MongoDB.makeModel(
         post: {
             // 3 parts which can identify any post/comment
             contentId: {
-                userId: String,
-                permlink: String,
+                userId: { type: String },
+                permlink: { type: String },
             },
             title: String,
         },
 
         comment: {
             contentId: {
-                userId: String,
-                permlink: String,
+                userId: { type: String },
+                permlink: { type: String },
             },
             body: String,
         },
@@ -54,25 +54,25 @@ module.exports = MongoDB.makeModel(
             },
         },
         actor: {
-            userId: String,
-            username: String,
-            avatarUrl: String,
+            userId: { type: String },
+            username: { type: String },
+            avatarUrl: { type: String },
         },
         parentComment: {
             contentId: {
-                userId: String,
-                permlink: String,
+                userId: { type: String },
+                permlink: { type: String },
             },
             body: String,
         },
 
         value: {
-            amount: String,
-            currency: String,
+            amount: { type: String },
+            currency: { type: String },
         },
         payout: {
-            amount: String,
-            currency: String,
+            amount: { type: String },
+            currency: { type: String },
         },
     },
     {

@@ -8,7 +8,7 @@ class History {
         user,
         fromId = null,
         limit = 10,
-        types = 'all',
+        types = ['all'],
         markAsViewed = true,
         freshOnly = false,
     }) {
@@ -65,7 +65,7 @@ class History {
         );
     }
 
-    async getHistoryFresh({ user, types = 'all' }) {
+    async getHistoryFresh({ user, types = ['all'] }) {
         this._validateTypes(types);
 
         return {
@@ -111,7 +111,7 @@ class History {
     async _getUnreadByTypes(user, types) {
         const result = { summary: 0 };
 
-        for (let eventType of this._eachType(types)) {
+        for (const eventType of this._eachType(types)) {
             result[eventType] = await this._getCountBy({ user, eventType, unread: true });
             result.summary += result[eventType];
         }
@@ -120,11 +120,11 @@ class History {
     }
 
     *_eachType(types) {
-        if (types === 'all') {
+        if (types.includes('all')) {
             types = eventTypes;
         }
 
-        for (let eventType of types) {
+        for (const eventType of types) {
             yield eventType;
         }
     }
@@ -147,7 +147,8 @@ class History {
 
     async markAsRead({ ids = [], user }) {
         const markReadPromises = [];
-        for (let id of ids) {
+
+        for (const id of ids) {
             markReadPromises.push(this._markReadWithUser(id, user));
         }
         await Promise.all(markReadPromises);
@@ -166,7 +167,7 @@ class History {
             throw { code: 400, message: `Limit > ${MAX_HISTORY_LIMIT}` };
         }
 
-        if (!Array.isArray(types) && types !== 'all') {
+        if (!types.includes('all')) {
             throw { code: 400, message: 'Bad types' };
         }
 
@@ -174,11 +175,11 @@ class History {
     }
 
     _validateTypes(types) {
-        if (types === 'all' || (Array.isArray(types) && types.includes('all'))) {
+        if (types.includes('all')) {
             return;
         }
 
-        for (let type of types) {
+        for (const type of types) {
             if (!eventTypes.includes(type)) {
                 throw { code: 400, message: `Bad type - ${type || 'null'}` };
             }

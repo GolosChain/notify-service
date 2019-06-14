@@ -7,39 +7,21 @@ class Reward extends Abstract {
         blockNum,
         transactionId
     ) {
-        if (
-            !(
-                from.includes('.publish') &&
-                user.includes('.vesting') &&
-                receiver.includes('.vesting')
-            )
-        ) {
+        if (!(await this._shouldBeProcessed({ from, receiver, user }))) {
             return;
         }
 
-        await this.waitForTransaction(transactionId);
-
-        quantity = quantity.split(' ');
-        const amount = quantity[0];
-        const currency = quantity[1];
-        if (await this._isInBlackList(from, user)) {
-            return;
-        }
-
-        const actor = {
-            id: from,
-        };
-
-        let post;
-        let comment;
+        const { amount, currency } = this._parseQuantity(quantity);
 
         const parsedMemo = this._parseMemo(memo);
-
         const contentId = parsedMemo.contentId;
         const type = parsedMemo.type;
         user = parsedMemo.user;
 
+        let post;
+        let comment;
         try {
+            await this.waitForTransaction(transactionId);
             const response = await this.callPrismService({ contentId }, contractName);
             comment = response.comment;
             post = response.post || response.comment.parentPost;
@@ -54,7 +36,7 @@ class Reward extends Abstract {
             comment,
             eventType: type,
             fromUsers: [from],
-            actor,
+            actor: { id: from },
             value: {
                 amount,
                 currency,
@@ -91,6 +73,26 @@ class Reward extends Abstract {
             user,
             type,
         };
+    }
+
+    _parseQuantity(quantity) {
+        const [amount, currency] = quantity.split(' ');
+
+        return {
+            amount,
+            currency,
+        };
+    }
+
+    async _shouldBeProcessed({ from, user, receiver }) {
+        if (
+            from.includes('.publish') &&
+            user.includes('.vesting') &&
+            receiver.includes('.vesting')
+        ) {
+            return !(await this._isInBlackList(from, user));
+        }
+        return false;
     }
 }
 

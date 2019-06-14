@@ -32,18 +32,7 @@ class WitnessVote extends Abstract {
             );
             actor = response.user;
         } catch (error) {
-            try {
-                // from = await this.resolveName(from);
-                const response = await this.callPrismService(
-                    {
-                        userId: from,
-                    },
-                    contractName
-                );
-                actor = response.user;
-            } catch (error) {
-                return;
-            }
+            return;
         }
 
         const model = new Event({

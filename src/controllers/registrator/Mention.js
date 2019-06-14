@@ -33,23 +33,15 @@ class Mention extends Abstract {
             let comment, actor, post;
 
             try {
-                const response = await this.callPrismService(
-                    {
-                        userId: author,
-                        contentId: {
-                            userId: author,
-                            permlink,
-                        },
-                    },
-                    contractName
-                );
-                if (response.comment && response.comment.parentPost) {
-                    post = response.comment.parentPost;
-                    comment = response.comment;
-                } else {
-                    post = response.post;
-                }
-                actor = response.user;
+                const response = await this._populatePrismResponse({
+                    author,
+                    permlink,
+                    contractName,
+                });
+
+                comment = response.comment;
+                actor = response.actor;
+                post = response.post;
             } catch (error) {
                 return;
             }
@@ -94,6 +86,29 @@ class Mention extends Abstract {
         const total = totalRaw.map(v => v.slice(1));
 
         return new Set(total);
+    }
+
+    async _populatePrismResponse({ author, permlink, contractName }) {
+        let post, comment, actor;
+        const response = await this.callPrismService(
+            {
+                userId: author,
+                contentId: {
+                    userId: author,
+                    permlink,
+                },
+            },
+            contractName
+        );
+        if (response.comment && response.comment.parentPost) {
+            post = response.comment.parentPost;
+            comment = response.comment;
+        } else {
+            post = response.post;
+        }
+        actor = response.user;
+
+        return { post, comment, actor };
     }
 }
 

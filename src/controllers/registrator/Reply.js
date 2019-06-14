@@ -20,35 +20,16 @@ class Reply extends Abstract {
         let comment, post, actor, parentComment;
 
         try {
-            const response = await this.callPrismService(
-                {
-                    contentId: {
-                        userId: parentPost.author,
-                        permlink: parentPost.permlink,
-                    },
-                    userId: author,
-                },
-                contractName
-            );
-
-            actor = response.user;
-            if (response.comment && response.comment.parentPost) {
-                post = response.comment.parentPost;
-                parentComment = response.comment;
-            } else {
-                post = response.post;
-            }
-
-            const contentResponse = await this.callPrismService(
-                {
-                    contentId: {
-                        userId: author,
-                        permlink,
-                    },
-                },
-                contractName
-            );
-            comment = contentResponse.comment;
+            const prismResponse = await this._populatePrismResponse({
+                parentPost,
+                permlink,
+                author,
+                contractName,
+            });
+            comment = prismResponse.comment;
+            post = prismResponse.post;
+            actor = prismResponse.actor;
+            parentComment = prismResponse.parentComment;
         } catch (error) {
             return;
         }
@@ -71,6 +52,41 @@ class Reply extends Abstract {
         await model.save();
 
         this.emit('registerEvent', parentPost.author, model.toObject());
+    }
+
+    async _populatePrismResponse({ permlink, author, contractName, parentPost }) {
+        let comment, post, actor, parentComment;
+        const response = await this.callPrismService(
+            {
+                contentId: {
+                    userId: parentPost.author,
+                    permlink: parentPost.permlink,
+                },
+                userId: author,
+            },
+            contractName
+        );
+
+        actor = response.user;
+        if (response.comment && response.comment.parentPost) {
+            post = response.comment.parentPost;
+            parentComment = response.comment;
+        } else {
+            post = response.post;
+        }
+
+        const contentResponse = await this.callPrismService(
+            {
+                contentId: {
+                    userId: author,
+                    permlink,
+                },
+            },
+            contractName
+        );
+        comment = contentResponse.comment;
+
+        return { comment, post, actor, parentComment };
     }
 }
 

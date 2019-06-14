@@ -32,12 +32,7 @@ class Abstract extends BasicController {
         return user;
     }
 
-    async callPrismService(
-        { userId, communityId, postId, commentId, contentId },
-        contractName = 'cyber'
-    ) {
-        const data = { app: contractName };
-
+    _populatePrismRequestData(data, { userId, communityId, postId, commentId, contentId }) {
         if (postId) {
             // нужно делать именно так, чтобы гарантировать порядок полей
             data.postId = {
@@ -69,6 +64,14 @@ class Abstract extends BasicController {
         if (communityId) {
             data.communityId = communityId;
         }
+    }
+
+    async callPrismService(
+        { userId, communityId, postId, commentId, contentId },
+        contractName = 'cyber'
+    ) {
+        const data = { app: contractName };
+        this._populatePrismRequestData(data, { userId, communityId, postId, commentId, contentId });
 
         try {
             return await this.callService('prism', 'getNotifyMeta', data);

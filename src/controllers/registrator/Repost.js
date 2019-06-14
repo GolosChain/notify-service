@@ -4,31 +4,30 @@ const core = require('gls-core-service');
 const Logger = core.utils.Logger;
 
 class Repost extends Abstract {
-    async handle({ author, permlink, rebloger, contractName }, blockNum, transactionId) {
+    async handle(
+        { author, permlink, rebloger: reposterName, contractName },
+        blockNum,
+        transactionId
+    ) {
         await this.waitForTransaction(transactionId);
 
         let actor, post, comment;
-        const reposterName = rebloger;
 
         if (!author || author === reposterName) {
             return;
         }
 
         try {
-            const response = await this.callPrismService(
-                {
-                    contentId: {
-                        userId: author,
-                        permlink,
-                    },
-                    userId: reposterName,
-                },
-                contractName
-            );
+            const prismResponse = await this._populatePrismResponse({
+                permlink,
+                contractName,
+                author,
+                reposterName,
+            });
 
-            actor = response.user;
-            post = response.post;
-            comment = response.comment;
+            actor = prismResponse.user;
+            post = prismResponse.post;
+            comment = prismResponse.comment;
         } catch (error) {
             return;
         }
@@ -53,6 +52,25 @@ class Repost extends Abstract {
         await model.save();
 
         this.emit('registerEvent', author, model.toObject());
+    }
+
+    async _populatePrismResponse({ permlink, author, reposterName, contractName }) {
+        const response = await this.callPrismService(
+            {
+                contentId: {
+                    userId: author,
+                    permlink,
+                },
+                userId: reposterName,
+            },
+            contractName
+        );
+
+        return {
+            actor: response.user,
+            post: response.post,
+            comment: response.comment,
+        };
     }
 }
 
