@@ -162,7 +162,7 @@ class History {
             throw { code: 400, message: `Limit > ${MAX_HISTORY_LIMIT}` };
         }
 
-        if (!types.includes('all')) {
+        if (!Array.isArray(types)) {
             throw { code: 400, message: 'Bad types' };
         }
 
