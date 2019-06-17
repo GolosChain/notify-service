@@ -54,8 +54,22 @@ class Reward extends Abstract {
         );
 
         const groups = memo.match(regexp).groups;
+
+        let type;
+        switch (groups.type) {
+            case 'author':
+                type = 'reward';
+                break;
+            case 'curator':
+                type = 'curatorReward';
+                break;
+            case 'benefeciary':
+                type = 'benefeciaryReward';
+                break;
+        }
+
         return {
-            type: groups.type === 'author' ? 'reward' : 'curatorReward',
+            type,
             user: groups.user,
             contentId: {
                 userId: groups.author,
