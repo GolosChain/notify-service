@@ -8,7 +8,7 @@ class History {
         user,
         fromId = null,
         limit = 10,
-        types = 'all',
+        types = ['all'],
         markAsViewed = true,
         freshOnly = false,
     }) {
@@ -16,7 +16,7 @@ class History {
 
         const query = { user };
 
-        if (types !== 'all') {
+        if (!types.includes('all')) {
             query.eventType = types;
         }
 
@@ -41,6 +41,8 @@ class History {
             totalByTypes: await this._getTotalByTypes(user, types),
             fresh: await this._getFresh(user),
             freshByTypes: await this._getFreshByTypes(user, types),
+            unread: await this._getUnread(user),
+            unreadByTypes: await this._getUnreadByTypes(user, types),
             data,
         };
     }
@@ -63,7 +65,7 @@ class History {
         );
     }
 
-    async getHistoryFresh({ user, types = 'all' }) {
+    async getHistoryFresh({ user, types = ['all'] }) {
         this._validateTypes(types);
 
         return {
@@ -102,12 +104,27 @@ class History {
         return result;
     }
 
+    async _getUnread(user) {
+        return await this._getCountBy({ user, unread: true });
+    }
+
+    async _getUnreadByTypes(user, types) {
+        const result = { summary: 0 };
+
+        for (const eventType of this._eachType(types)) {
+            result[eventType] = await this._getCountBy({ user, eventType, unread: true });
+            result.summary += result[eventType];
+        }
+
+        return result;
+    }
+
     *_eachType(types) {
-        if (types === 'all') {
+        if (types.includes('all')) {
             types = eventTypes;
         }
 
-        for (let eventType of types) {
+        for (const eventType of types) {
             yield eventType;
         }
     }
@@ -117,13 +134,23 @@ class History {
     }
 
     async markAsViewed({ ids = [], user }) {
+        const freshOffPromises = [];
         for (let id of ids) {
-            await this._freshOffWithUser(id, user);
+            freshOffPromises.push(this._freshOffWithUser(id, user));
         }
+        await Promise.all(freshOffPromises);
     }
 
     async markAllAsViewed({ user }) {
         await this._allFreshOffForUser(user);
+    }
+
+    async markAsRead({ ids = [], user }) {
+        await Promise.all(ids.map(id => this._markReadWithUser(id, user)));
+    }
+
+    async markAllAsRead({ user }) {
+        await this._allMarkReadForUser(user);
     }
 
     _validateHistoryRequest(limit, types) {
@@ -135,7 +162,7 @@ class History {
             throw { code: 400, message: `Limit > ${MAX_HISTORY_LIMIT}` };
         }
 
-        if (!Array.isArray(types) && types !== 'all') {
+        if (!types.includes('all')) {
             throw { code: 400, message: 'Bad types' };
         }
 
@@ -143,11 +170,11 @@ class History {
     }
 
     _validateTypes(types) {
-        if (types === 'all') {
+        if (types.includes('all')) {
             return;
         }
 
-        for (let type of types) {
+        for (const type of types) {
             if (!eventTypes.includes(type)) {
                 throw { code: 400, message: `Bad type - ${type || 'null'}` };
             }
@@ -168,6 +195,21 @@ class History {
 
     async _allFreshOffForUser(user) {
         await Event.updateMany({ user }, { $set: { fresh: false } });
+    }
+    async _markRead(_id) {
+        await this._markReadByQuery({ _id });
+    }
+
+    async _markReadWithUser(_id, user) {
+        await this._markReadByQuery({ _id, user });
+    }
+
+    async _markReadByQuery(query) {
+        await Event.update(query, { $set: { unread: false } });
+    }
+
+    async _allMarkReadForUser(user) {
+        await Event.updateMany({ user }, { $set: { unread: false } });
     }
 }
 

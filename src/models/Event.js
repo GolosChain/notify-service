@@ -22,45 +22,57 @@ module.exports = MongoDB.makeModel(
             type: Boolean,
             default: true,
         },
+        unread: {
+            type: Boolean,
+            default: true,
+        },
 
         /* Type-specified fields */
 
-        // vote | flag | reply | mention | repost | reward | curatorReward
-        permlink: {
-            type: String,
-        },
-        // reply | mention
-        parentPermlink: {
-            type: String,
-        },
-        // vote | flag | transfer | reply | subscribe | unsubscribe
-        // mention | repost | message | witnessVote | witnessCancelVote
-        fromUsers: {
-            type: [String],
-        },
-        // transfer
-        amount: {
-            type: String,
-        },
-        // reward
-        reward: {
-            golos: {
-                type: Number,
+        post: {
+            // 3 parts which can identify any post/comment
+            contentId: {
+                userId: { type: String },
+                permlink: { type: String },
             },
-            golosPower: {
-                type: Number,
+            title: String,
+        },
+
+        comment: {
+            contentId: {
+                userId: { type: String },
+                permlink: { type: String },
             },
-            gbg: {
-                type: Number,
+            body: String,
+        },
+        community: {
+            // TODO: wait for blockchain
+            id: { type: String, default: 'gls' },
+            name: {
+                type: String,
+                default: 'Golos',
             },
         },
-        // curatorReward
-        curatorReward: {
-            type: String,
+        actor: {
+            userId: { type: String },
+            username: { type: String },
+            avatarUrl: { type: String },
         },
-        // curatorReward
-        curatorTargetAuthor: {
-            type: String,
+        parentComment: {
+            contentId: {
+                userId: { type: String },
+                permlink: { type: String },
+            },
+            body: String,
+        },
+
+        value: {
+            amount: { type: String },
+            currency: { type: String },
+        },
+        payout: {
+            amount: { type: String },
+            currency: { type: String },
         },
     },
     {
@@ -96,8 +108,13 @@ module.exports = MongoDB.makeModel(
             {
                 eventTypes: 1,
                 permlink: 1,
-                fromUsers: 1,
             },
         ],
+        schema: {
+            timestamps: {
+                createdAt: 'timestamp',
+                updatedAt: 'timestamp',
+            },
+        },
     }
 );

@@ -22,6 +22,8 @@ class Connector extends BasicConnector {
                 historyFresh: history.getHistoryFresh.bind(history),
                 markAsViewed: history.markAsViewed.bind(history),
                 markAllAsViewed: history.markAllAsViewed.bind(history),
+                markAsRead: history.markAsRead.bind(history),
+                markAllAsRead: history.markAllAsRead.bind(history),
                 getBlackList: blackList.get.bind(blackList),
                 addToBlackList: blackList.add.bind(blackList),
                 removeFromBlackList: blackList.remove.bind(blackList),
@@ -29,6 +31,7 @@ class Connector extends BasicConnector {
             requiredClients: {
                 onlineNotify: env.GLS_ONLINE_NOTIFY_CONNECT,
                 push: env.GLS_PUSH_CONNECT,
+                prism: env.GLS_PRISM_CONNECT,
             },
         });
     }

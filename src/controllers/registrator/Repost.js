@@ -4,55 +4,73 @@ const core = require('gls-core-service');
 const Logger = core.utils.Logger;
 
 class Repost extends Abstract {
-    async handle(rawData, blockNum) {
-        const { user, reposter, permlink } = this._tryExtractRepost(rawData);
+    async handle(
+        { author, permlink, rebloger: reposterName, contractName },
+        blockNum,
+        transactionId
+    ) {
+        await this.waitForTransaction(transactionId);
 
-        if (!user || user === reposter) {
+        let actor, post, comment;
+
+        if (!author || author === reposterName) {
             return;
-        }
-
-        if (await this._isInBlackList(reposter, user)) {
-            return;
-        }
-
-        const model = await this._saveRepost({ user, reposter, permlink }, blockNum);
-
-        this.emit('registerEvent', user, model.toObject());
-    }
-
-    _tryExtractRepost(rawData) {
-        const { type, user: reposter, data } = this._parseCustomJson(rawData);
-
-        if (type !== 'follow') {
-            return {};
         }
 
         try {
-            if (data[0] !== 'reblog') {
-                return {};
-            }
+            const prismResponse = await this._populatePrismResponse({
+                permlink,
+                contractName,
+                author,
+                reposterName,
+            });
 
-            const { author: user, permlink } = data[1];
-
-            return { user, reposter, permlink };
+            actor = prismResponse.user;
+            post = prismResponse.post;
+            comment = prismResponse.comment;
         } catch (error) {
-            Logger.log(`Bad repost from - ${reposter}`);
-            return {};
+            return;
         }
-    }
 
-    async _saveRepost({ user, reposter, permlink }, blockNum) {
+        if (await this._isInBlackList(actor, author)) {
+            return;
+        }
+
+        const type = 'repost';
+
         const model = new Event({
             blockNum,
-            user,
-            eventType: 'repost',
+            user: author,
+            post,
+            actor,
+            comment,
+            eventType: type,
             permlink,
-            fromUsers: [reposter],
+            fromUsers: [actor],
         });
 
         await model.save();
 
-        return model;
+        this.emit('registerEvent', author, model.toObject());
+    }
+
+    async _populatePrismResponse({ permlink, author, reposterName, contractName }) {
+        const response = await this.callPrismService(
+            {
+                contentId: {
+                    userId: author,
+                    permlink,
+                },
+                userId: reposterName,
+            },
+            contractName
+        );
+
+        return {
+            actor: response.user,
+            post: response.post,
+            comment: response.comment,
+        };
     }
 }
 

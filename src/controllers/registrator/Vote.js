@@ -2,7 +2,21 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Vote extends Abstract {
-    async handle({ voter, author: user, permlink, weight }, blockNum) {
+    async handle(
+        {
+            voter,
+            author: user,
+            permlink,
+            weight,
+            parentPost,
+            parent_permlink: parentPermlink,
+            parent_author: parentAuthor,
+            contractName,
+        },
+        blockNum,
+        transactionId,
+        type
+    ) {
         if (weight === 0) {
             return;
         }
@@ -15,20 +29,43 @@ class Vote extends Abstract {
             return;
         }
 
-        let type;
+        await this.waitForTransaction(transactionId);
 
-        if (weight > 0) {
-            type = 'vote';
-        } else {
-            type = 'flag';
+        let post, comment, actor;
+
+        try {
+            const response = await this.callPrismService(
+                {
+                    contentId: {
+                        userId: user,
+                        permlink,
+                    },
+                    userId: voter,
+                },
+                contractName
+            );
+
+            post = response.post;
+            comment = response.comment;
+
+            if (comment) {
+                post = comment.parentPost;
+            }
+
+            actor = response.user;
+        } catch (error) {
+            return;
         }
 
         const model = new Event({
             blockNum,
             user,
             eventType: type,
-            permlink: permlink,
+            permlink,
             fromUsers: [voter],
+            post,
+            comment,
+            actor,
         });
         await model.save();
 

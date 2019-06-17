@@ -2,11 +2,10 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Reply extends Abstract {
-    async handle(
-        { parent_author: user, parent_permlink: parentPermlink, author, permlink },
-        blockNum
-    ) {
-        if (!user || user === author) {
+    async handle({ author, permlink, parentPost, contractName }, blockNum, transactionId) {
+        await this.waitForTransaction(transactionId);
+
+        if (!parentPost.author || parentPost.author === author) {
             return;
         }
 
@@ -14,22 +13,80 @@ class Reply extends Abstract {
             return;
         }
 
-        if (await this._isInBlackList(author, user)) {
+        if (await this._isInBlackList(author, parentPost.author)) {
             return;
         }
 
+        let comment, post, actor, parentComment;
+
+        try {
+            const prismResponse = await this._populatePrismResponse({
+                parentPost,
+                permlink,
+                author,
+                contractName,
+            });
+            comment = prismResponse.comment;
+            post = prismResponse.post;
+            actor = prismResponse.actor;
+            parentComment = prismResponse.parentComment;
+        } catch (error) {
+            return;
+        }
+
+        const type = 'reply';
+
         const model = new Event({
             blockNum,
-            user,
-            eventType: 'reply',
+            user: parentPost.author,
+            eventType: type,
             permlink,
-            parentPermlink,
+            parentPermlink: parentPost.permlink,
             fromUsers: [author],
+            actor,
+            post,
+            comment,
+            parentComment,
         });
 
         await model.save();
 
-        this.emit('registerEvent', user, model.toObject());
+        this.emit('registerEvent', parentPost.author, model.toObject());
+    }
+
+    async _populatePrismResponse({ permlink, author, contractName, parentPost }) {
+        let comment, post, actor, parentComment;
+        const response = await this.callPrismService(
+            {
+                contentId: {
+                    userId: parentPost.author,
+                    permlink: parentPost.permlink,
+                },
+                userId: author,
+            },
+            contractName
+        );
+
+        actor = response.user;
+        if (response.comment && response.comment.parentPost) {
+            post = response.comment.parentPost;
+            parentComment = response.comment;
+        } else {
+            post = response.post;
+        }
+
+        const contentResponse = await this.callPrismService(
+            {
+                contentId: {
+                    userId: author,
+                    permlink,
+                },
+            },
+            contractName
+        );
+        comment = contentResponse.comment;
+
+        return { comment, post, actor, parentComment };
     }
 }
 
