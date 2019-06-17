@@ -103,35 +103,28 @@ class Registrator extends BasicService {
             body = this._mapAction(body, type);
             switch (type) {
                 case 'gls.social->pin':
-                    Logger.info(type);
                     await this._subscribe.handle(body, 'subscribe', blockNum, transactionId);
                     break;
                 case 'gls.social->unpin':
-                    Logger.info(type);
                     await this._subscribe.handle(body, 'unsubscribe', blockNum, transactionId);
                     break;
                 case 'gls.publish->upvote':
-                    Logger.info(type);
                     await this._vote.handle(body, blockNum, transactionId, 'upvote');
                     break;
                 case 'gls.publish->downvote':
-                    Logger.info(type);
                     await this._vote.handle(body, blockNum, transactionId, 'downvote');
                     break;
                 case 'cyber.token->transfer':
-                    Logger.info(type);
                     await this._transfer.handle(body, blockNum, transactionId);
                     await this._reward.handle(body, blockNum, transactionId);
                     break;
 
                 case 'gls.publish->createmssg':
-                    Logger.info(type);
                     await this._reply.handle(body, blockNum, transactionId);
                     await this._mention.handle(body, blockNum, transactionId);
                     break;
 
                 case 'gls.publish->reblog':
-                    Logger.info(type);
                     await this._repost.handle(body, blockNum, transactionId);
                     break;
 
@@ -152,12 +145,10 @@ class Registrator extends BasicService {
                     break;
 
                 case 'gls.publish->deletemssg':
-                    Logger.info(type);
                     await this._deleteComment.handle(body);
                     break;
 
                 default:
-                    Logger.warn('Unhandled blockchain event: ', type);
                     break;
             }
         } catch (error) {
