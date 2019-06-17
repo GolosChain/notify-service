@@ -49,29 +49,18 @@ class Reward extends Abstract {
     }
 
     _parseMemo(memo) {
-        let type;
-        // send to and reward type
-        memo = memo.split(';');
-        // username
-        const user = memo[0].split(': ')[1];
+        const regexp = new RegExp(
+            /send to: (?<user>.*); *(?<type>[\S]*).*(post|comment) (?<author>.*):(?<permlink>.*)/
+        );
 
-        // reward type and post id
-        memo = memo[1].split('reward for post ');
-
-        if (memo[0] === ' author ') {
-            type = 'reward';
-        } else {
-            type = 'curatorReward';
-        }
-
-        memo = memo[1].split(':');
+        const groups = memo.match(regexp).groups;
         return {
+            type: groups.type === 'author' ? 'reward' : 'curatorReward',
+            user: groups.user,
             contentId: {
-                userId: memo[0],
-                permlink: memo[1],
+                userId: groups.author,
+                permlink: groups.permlink,
             },
-            user,
-            type,
         };
     }
 
