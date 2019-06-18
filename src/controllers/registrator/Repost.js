@@ -25,7 +25,7 @@ class Repost extends Abstract {
                 reposterName,
             });
 
-            actor = prismResponse.user;
+            actor = prismResponse.actor;
             post = prismResponse.post;
             comment = prismResponse.comment;
         } catch (error) {
