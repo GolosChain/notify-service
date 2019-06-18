@@ -9,6 +9,7 @@ module.exports = [
     'repost',
     'reward',
     'curatorReward',
+    'benefeciaryReward',
     'message',
     'witnessVote',
     'witnessCancelVote',
