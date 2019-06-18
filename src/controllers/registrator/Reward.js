@@ -60,7 +60,7 @@ class Reward extends Abstract {
             case 'author':
                 type = 'reward';
                 break;
-            case 'curator':
+            case 'curators':
                 type = 'curatorReward';
                 break;
             case 'benefeciary':
