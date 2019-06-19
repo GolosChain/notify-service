@@ -4,14 +4,7 @@ const eventTypes = require('../../data/eventTypes');
 const MAX_HISTORY_LIMIT = 100;
 
 class History {
-    async getHistory({
-        user,
-        fromId = null,
-        limit = 10,
-        types = ['all'],
-        markAsViewed = true,
-        freshOnly = false,
-    }) {
+    async getHistory({ user, fromId, limit, types, markAsViewed, freshOnly }) {
         this._validateHistoryRequest(limit, types);
 
         const query = { user };
@@ -65,7 +58,7 @@ class History {
         );
     }
 
-    async getHistoryFresh({ user, types = ['all'] }) {
+    async getHistoryFresh({ user, types }) {
         this._validateTypes(types);
 
         return {
@@ -133,7 +126,7 @@ class History {
         return await Event.find(query).countDocuments();
     }
 
-    async markAsViewed({ ids = [], user }) {
+    async markAsViewed({ ids, user }) {
         const freshOffPromises = [];
         for (let id of ids) {
             freshOffPromises.push(this._freshOffWithUser(id, user));
@@ -145,7 +138,7 @@ class History {
         await this._allFreshOffForUser(user);
     }
 
-    async markAsRead({ ids = [], user }) {
+    async markAsRead({ ids, user }) {
         await Promise.all(ids.map(id => this._markReadWithUser(id, user)));
     }
 
