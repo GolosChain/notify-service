@@ -96,24 +96,16 @@ class Connector extends BasicConnector {
                 getBlackList: {
                     handler: blackList.get,
                     scope: blackList,
-                    validation: {
-                        required: ['owner'],
-                        properties: {
-                            owner: {
-                                type: 'string',
-                            },
-                        },
-                    },
+                    inherits: ['identificationByOwner'],
+                    validation: {},
                 },
                 addToBlackList: {
                     handler: blackList.add,
                     scope: blackList,
+                    inherits: ['identificationByOwner'],
                     validation: {
-                        required: ['owner', 'banned'],
+                        required: ['banned'],
                         properties: {
-                            owner: {
-                                type: 'string',
-                            },
                             banned: {
                                 type: 'string',
                             },
@@ -123,12 +115,10 @@ class Connector extends BasicConnector {
                 removeFromBlackList: {
                     handler: blackList.remove,
                     scope: blackList,
+                    inherits: ['identificationByOwner'],
                     validation: {
-                        required: ['owner', 'banned'],
+                        required: ['banned'],
                         properties: {
-                            owner: {
-                                type: 'string',
-                            },
                             banned: {
                                 type: 'string',
                             },
@@ -148,6 +138,21 @@ class Connector extends BasicConnector {
                                     default: 'cyber',
                                 },
                                 user: {
+                                    type: 'string',
+                                },
+                            },
+                        },
+                    },
+                    identificationByOwner: {
+                        validation: {
+                            required: ['app', 'owner'],
+                            properties: {
+                                app: {
+                                    type: 'string',
+                                    enum: ['cyber', 'gls'],
+                                    default: 'cyber',
+                                },
+                                owner: {
                                     type: 'string',
                                 },
                             },

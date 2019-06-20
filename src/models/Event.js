@@ -13,6 +13,11 @@ module.exports = MongoDB.makeModel(
             type: String,
             required: true,
         },
+        app: {
+            type: String,
+            enum: ['gls', 'cyber'],
+            default: 'cyber',
+        },
         eventType: {
             type: String,
             required: true,
