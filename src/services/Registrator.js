@@ -95,6 +95,7 @@ class Registrator extends BasicService {
         }
     }
 
+    // TODO Change WaitForTransaction
     async _routeEventHandlers({ type, ...body }, blockNum, transactionId) {
         try {
             const app = this._getAppType(type);
@@ -145,6 +146,11 @@ class Registrator extends BasicService {
                     break;
             }
         } catch (error) {
+            if (error.prismError) {
+                Logger.warn('Prism error!', error);
+                return;
+            }
+
             error.identity = {
                 type,
                 body,

@@ -14,10 +14,6 @@ class Abstract extends BasicController {
         this._emitter = new EventEmitter();
     }
 
-    async handle(data, blockNum) {
-        throw 'Handler not implemented';
-    }
-
     async resolveName(user) {
         let name = user;
 
@@ -89,6 +85,8 @@ class Abstract extends BasicController {
                 error
             );
 
+            error.prismError = true;
+
             throw error;
         }
     }
@@ -105,7 +103,10 @@ class Abstract extends BasicController {
             if (isTimeOut && retryNum <= maxRetries) {
                 return await this.waitForTransaction(transactionId, maxRetries, retryNum++);
             }
+
             Logger.error(`Error calling prism.waitForTransaction`, error);
+
+            error.prismError = true;
 
             throw error;
         }
