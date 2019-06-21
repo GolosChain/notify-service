@@ -87,6 +87,7 @@ module.exports = MongoDB.makeModel(
                 fields: {
                     eventType: 1,
                     user: 1,
+                    app: 1,
                 },
             },
             // History request
@@ -94,13 +95,14 @@ module.exports = MongoDB.makeModel(
                 fields: {
                     user: 1,
                     eventType: 1,
+                    app: 1,
                     _id: -1,
                 },
             },
             // Cleaner
             {
                 fields: {
-                    createdAt: -1,
+                    timestamp: -1,
                 },
             },
             // Restorer

@@ -28,7 +28,7 @@ class Cleaner extends BasicService {
         const expiration = Moments.ago(parseInt(env.GLS_EVENT_EXPIRATION));
 
         try {
-            await Event.remove({ createdAt: { $lte: expiration } });
+            await Event.remove({ timestamp: { $lte: expiration } });
 
             end();
             Logger.info('Cleaning done!');
