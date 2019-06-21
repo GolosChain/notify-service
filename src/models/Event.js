@@ -37,47 +37,82 @@ module.exports = MongoDB.makeModel(
         post: {
             // 3 parts which can identify any post/comment
             contentId: {
-                userId: { type: String },
-                permlink: { type: String },
+                userId: {
+                    type: String,
+                },
+                permlink: {
+                    type: String,
+                },
             },
-            title: String,
+            title: {
+                type: String,
+            },
         },
 
         comment: {
             contentId: {
-                userId: { type: String },
-                permlink: { type: String },
+                userId: {
+                    type: String,
+                },
+                permlink: {
+                    type: String,
+                },
             },
-            body: String,
+            body: {
+                type: String,
+            },
         },
         community: {
             // TODO: wait for blockchain
-            id: { type: String, default: 'gls' },
+            id: {
+                type: String,
+                default: 'gls',
+            },
             name: {
                 type: String,
                 default: 'Golos',
             },
         },
         actor: {
-            userId: { type: String },
-            username: { type: String },
-            avatarUrl: { type: String },
+            userId: {
+                type: String,
+            },
+            username: {
+                type: String,
+            },
+            avatarUrl: {
+                type: String,
+            },
         },
         parentComment: {
             contentId: {
-                userId: { type: String },
-                permlink: { type: String },
+                userId: {
+                    type: String,
+                },
+                permlink: {
+                    type: String,
+                },
             },
-            body: String,
+            body: {
+                type: String,
+            },
         },
 
         value: {
-            amount: { type: String },
-            currency: { type: String },
+            amount: {
+                type: String,
+            },
+            currency: {
+                type: String,
+            },
         },
         payout: {
-            amount: { type: String },
-            currency: { type: String },
+            amount: {
+                type: String,
+            },
+            currency: {
+                type: String,
+            },
         },
     },
     {
