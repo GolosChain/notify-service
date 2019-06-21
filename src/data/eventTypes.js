@@ -10,7 +10,6 @@ module.exports = [
     'reward',
     'curatorReward',
     'benefeciaryReward',
-    'message',
     'witnessVote',
     'witnessCancelVote',
 ];

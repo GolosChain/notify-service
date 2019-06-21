@@ -4,7 +4,6 @@ const BasicService = core.services.Basic;
 const BlockSubscribe = core.services.BlockSubscribe;
 
 const Mention = require('../controllers/registrator/Mention');
-const Message = require('../controllers/registrator/Message');
 const Reply = require('../controllers/registrator/Reply');
 const Repost = require('../controllers/registrator/Repost');
 const Subscribe = require('../controllers/registrator/Subscribe');
@@ -19,7 +18,6 @@ class Registrator extends BasicService {
         super();
 
         this._mention = new Mention({ connector });
-        this._message = new Message({ connector });
         this._reply = new Reply({ connector });
         this._repost = new Repost({ connector });
         this._subscribe = new Subscribe({ connector });
@@ -32,7 +30,6 @@ class Registrator extends BasicService {
         this.translateEmit(
             [
                 this._mention,
-                this._message,
                 this._reply,
                 this._repost,
                 this._subscribe,
