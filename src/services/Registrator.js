@@ -100,48 +100,44 @@ class Registrator extends BasicService {
 
     async _routeEventHandlers({ type, ...body }, blockNum, transactionId) {
         try {
-            body = this._mapAction(body, type);
+            const app = this._getAppType(type);
+            const context = { blockNum, transactionId, app };
+
+            body = this._mapAction(body);
+
             switch (type) {
                 case 'gls.social->pin':
-                    await this._subscribe.handle(body, 'subscribe', blockNum, transactionId);
+                    await this._subscribe.handleSubscribe(body, context);
                     break;
                 case 'gls.social->unpin':
-                    await this._subscribe.handle(body, 'unsubscribe', blockNum, transactionId);
+                    await this._subscribe.handleUnsubscribe(body, context);
                     break;
                 case 'gls.publish->upvote':
-                    await this._vote.handle(body, blockNum, transactionId, 'upvote');
+                    await this._vote.handleUpVote(body, context);
                     break;
                 case 'gls.publish->downvote':
-                    await this._vote.handle(body, blockNum, transactionId, 'downvote');
+                    await this._vote.handleDownVote(body, context);
                     break;
                 case 'cyber.token->transfer':
-                    await this._transfer.handle(body, blockNum, transactionId);
-                    await this._reward.handle(body, blockNum, transactionId);
+                    await this._transfer.handle(body, context);
+                    await this._reward.handle(body, context);
                     break;
 
                 case 'gls.publish->createmssg':
-                    await this._reply.handle(body, blockNum, transactionId);
-                    await this._mention.handle(body, blockNum, transactionId);
+                    await this._reply.handle(body, context);
+                    await this._mention.handle(body, context);
                     break;
 
                 case 'gls.publish->reblog':
-                    await this._repost.handle(body, blockNum, transactionId);
+                    await this._repost.handle(body, context);
                     break;
 
                 case 'gls.ctrl->votewitness':
-                    await this._witnessVote.handle(
-                        { ...body, type: 'vote' },
-                        blockNum,
-                        transactionId
-                    );
+                    await this._witnessVote.handleVote(body, context);
                     break;
 
                 case 'gls.ctrl->unvotewitn':
-                    await this._witnessVote.handle(
-                        { ...body, type: 'unvote' },
-                        blockNum,
-                        transactionId
-                    );
+                    await this._witnessVote.handleUnvote(body, context);
                     break;
 
                 case 'gls.publish->deletemssg':
@@ -161,8 +157,7 @@ class Registrator extends BasicService {
         }
     }
 
-    _mapAction(data, type) {
-        const contractName = type.split('->')[0].split('.')[0];
+    _mapAction(data) {
         data.args = data.args || {};
 
         if (data.args.message_id) {
@@ -187,10 +182,19 @@ class Registrator extends BasicService {
             receiver: data.receiver,
             post,
             parentPost,
-            contractName,
             ...data.args,
             ...data,
         };
+    }
+
+    _getAppType(type) {
+        const contractPrefix = type.split('.')[0];
+
+        if (contractPrefix === 'gls') {
+            return 'gls';
+        } else {
+            return 'cyber';
+        }
     }
 }
 
