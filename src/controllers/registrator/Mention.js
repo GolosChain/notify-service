@@ -101,6 +101,11 @@ class Mention extends Abstract {
             },
             app
         );
+
+        if (!response) {
+            return;
+        }
+
         if (response.comment && response.comment.parentPost) {
             post = response.comment.parentPost;
             comment = response.comment;

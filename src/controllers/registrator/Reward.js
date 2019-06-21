@@ -23,6 +23,11 @@ class Reward extends Abstract {
         try {
             await this.waitForTransaction(transactionId);
             const response = await this.getEntityMetaData({ contentId }, app); // TODO -
+
+            if (!response) {
+                return;
+            }
+
             comment = response.comment;
             post = response.post || response.comment.parentPost;
         } catch (error) {

@@ -43,7 +43,8 @@ class Vote extends Abstract {
         let post, comment, actor;
 
         try {
-            const response = await this.getEntityMetaData( // TODO -
+            const response = await this.getEntityMetaData(
+                // TODO -
                 {
                     contentId: {
                         userId: user,
@@ -53,6 +54,10 @@ class Vote extends Abstract {
                 },
                 app
             );
+
+            if (!response) {
+                return;
+            }
 
             post = response.post;
             comment = response.comment;

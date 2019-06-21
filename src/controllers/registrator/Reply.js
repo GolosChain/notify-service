@@ -67,6 +67,10 @@ class Reply extends Abstract {
             app
         );
 
+        if (!response) {
+            return;
+        }
+
         actor = response.user;
         if (response.comment && response.comment.parentPost) {
             post = response.comment.parentPost;
@@ -84,6 +88,11 @@ class Reply extends Abstract {
             },
             app
         );
+
+        if (!contentResponse) {
+            return;
+        }
+
         comment = contentResponse.comment;
 
         return { comment, post, actor, parentComment };

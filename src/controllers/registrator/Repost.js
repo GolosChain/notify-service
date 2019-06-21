@@ -66,6 +66,10 @@ class Repost extends Abstract {
             app
         );
 
+        if (!response) {
+            return;
+        }
+
         return {
             actor: response.user,
             post: response.post,
