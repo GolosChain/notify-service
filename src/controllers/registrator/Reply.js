@@ -13,7 +13,7 @@ class Reply extends Abstract {
             return;
         }
 
-        if (await this._isInBlackList(author, parentPost.author)) {
+        if (await this._isInBlackList(author, parentPost.author, app)) { // TODO -
             return;
         }
 

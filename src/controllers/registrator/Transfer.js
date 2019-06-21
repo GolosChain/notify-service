@@ -18,7 +18,7 @@ class Transfer extends Abstract {
         await this.waitForTransaction(transactionId);
 
         const { amount, currency } = this._parseQuantity(quantity);
-        if (await this._isInBlackList(from, user)) {
+        if (await this._isInBlackList(from, user, app)) {  // TODO -
             return;
         }
 

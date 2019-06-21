@@ -7,7 +7,7 @@ class WitnessVote extends Abstract {
         blockNum,
         transactionId
     ) {
-        if (await this._isInBlackList(from, user)) {
+        if (await this._isInBlackList(from, user, app)) { // TODO -
             return;
         }
 

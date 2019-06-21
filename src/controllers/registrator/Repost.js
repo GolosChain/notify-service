@@ -32,7 +32,7 @@ class Repost extends Abstract {
             return;
         }
 
-        if (await this._isInBlackList(actor, author)) {
+        if (await this._isInBlackList(actor, author, app)) { // TODO -
             return;
         }
 

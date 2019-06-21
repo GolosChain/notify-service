@@ -26,7 +26,7 @@ class Mention extends Abstract {
                 continue;
             }
 
-            if (await this._isInBlackList(author, user)) {
+            if (await this._isInBlackList(author, user, app)) { // TODO -
                 continue;
             }
 

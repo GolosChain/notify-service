@@ -93,7 +93,7 @@ class Reward extends Abstract {
             user.endsWith('.vesting') &&
             receiver.endsWith('.vesting')
         ) {
-            return !(await this._isInBlackList(from, user));
+            return !(await this._isInBlackList(from, user, app)); // TODO -
         }
         return false;
     }

@@ -9,7 +9,7 @@ class Subscribe extends Abstract {
             return;
         }
 
-        if (await this._isInBlackList(follower, user)) {
+        if (await this._isInBlackList(follower, user, app)) { // TODO -
             return;
         }
         let actor;

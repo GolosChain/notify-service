@@ -25,7 +25,7 @@ class Vote extends Abstract {
             return;
         }
 
-        if (await this._isInBlackList(voter, user)) {
+        if (await this._isInBlackList(voter, user, app)) { // TODO -
             return;
         }
 
