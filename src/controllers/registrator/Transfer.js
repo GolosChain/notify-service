@@ -26,7 +26,7 @@ class Transfer extends Abstract {
         let actor;
 
         try {
-            const response = await this.callPrismService({ userId: from }, contractName);
+            const response = await this.getEntityMetaData({ userId: from }, app); // TODO -
             actor = response.user;
         } catch (error) {
             return;

@@ -22,7 +22,7 @@ class Reward extends Abstract {
         let comment;
         try {
             await this.waitForTransaction(transactionId);
-            const response = await this.callPrismService({ contentId }, contractName);
+            const response = await this.getEntityMetaData({ contentId }, app); // TODO -
             comment = response.comment;
             post = response.post || response.comment.parentPost;
         } catch (error) {

@@ -2,6 +2,14 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Vote extends Abstract {
+    async handleUpVote() {
+        // TODO -
+    }
+
+    async handleDownVote() {
+        // TODO -
+    }
+
     async handle(
         {
             voter,
@@ -25,7 +33,8 @@ class Vote extends Abstract {
             return;
         }
 
-        if (await this._isInBlackList(voter, user, app)) { // TODO -
+        if (await this._isInBlackList(voter, user, app)) {
+            // TODO -
             return;
         }
 
@@ -34,7 +43,7 @@ class Vote extends Abstract {
         let post, comment, actor;
 
         try {
-            const response = await this.callPrismService(
+            const response = await this.getEntityMetaData( // TODO -
                 {
                     contentId: {
                         userId: user,
@@ -42,7 +51,7 @@ class Vote extends Abstract {
                     },
                     userId: voter,
                 },
-                contractName
+                app
             );
 
             post = response.post;

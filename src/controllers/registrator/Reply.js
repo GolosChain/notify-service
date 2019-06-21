@@ -56,7 +56,7 @@ class Reply extends Abstract {
 
     async _populatePrismResponse({ permlink, author, contractName, parentPost }) {
         let comment, post, actor, parentComment;
-        const response = await this.callPrismService(
+        const response = await this.getEntityMetaData(// TODO -
             {
                 contentId: {
                     userId: parentPost.author,
@@ -64,7 +64,7 @@ class Reply extends Abstract {
                 },
                 userId: author,
             },
-            contractName
+            app
         );
 
         actor = response.user;
@@ -75,14 +75,14 @@ class Reply extends Abstract {
             post = response.post;
         }
 
-        const contentResponse = await this.callPrismService(
+        const contentResponse = await this.getEntityMetaData( // TODO -
             {
                 contentId: {
                     userId: author,
                     permlink,
                 },
             },
-            contractName
+            app
         );
         comment = contentResponse.comment;
 

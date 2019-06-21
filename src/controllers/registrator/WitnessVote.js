@@ -20,7 +20,7 @@ class WitnessVote extends Abstract {
         let actor;
 
         try {
-            const response = await this.callPrismService({ userId: from }, app);
+            const response = await this.getEntityMetaData({ userId: from }, app);
 
             actor = response.user;
         } catch (error) {

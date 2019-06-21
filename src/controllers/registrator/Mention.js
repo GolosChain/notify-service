@@ -26,7 +26,8 @@ class Mention extends Abstract {
                 continue;
             }
 
-            if (await this._isInBlackList(author, user, app)) { // TODO -
+            if (await this._isInBlackList(author, user, app)) {
+                // TODO -
                 continue;
             }
 
@@ -90,7 +91,7 @@ class Mention extends Abstract {
 
     async _populatePrismResponse({ author, permlink, contractName }) {
         let post, comment, actor;
-        const response = await this.callPrismService(
+        const response = await this.getEntityMetaData( // TODO -
             {
                 userId: author,
                 contentId: {
@@ -98,7 +99,7 @@ class Mention extends Abstract {
                     permlink,
                 },
             },
-            contractName
+            app
         );
         if (response.comment && response.comment.parentPost) {
             post = response.comment.parentPost;

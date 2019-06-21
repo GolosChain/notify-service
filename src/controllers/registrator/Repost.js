@@ -55,7 +55,7 @@ class Repost extends Abstract {
     }
 
     async _populatePrismResponse({ permlink, author, reposterName, contractName }) {
-        const response = await this.callPrismService(
+        const response = await this.getEntityMetaData( // TODO -
             {
                 contentId: {
                     userId: author,
@@ -63,7 +63,7 @@ class Repost extends Abstract {
                 },
                 userId: reposterName,
             },
-            contractName
+            app
         );
 
         return {

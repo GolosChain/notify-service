@@ -74,11 +74,9 @@ class Abstract extends BasicController {
         }
     }
 
-    async callPrismService(
-        { userId, communityId, postId, commentId, contentId },
-        contractName = 'cyber'
-    ) {
-        const data = { app: contractName };
+    async getEntityMetaData({ userId, communityId, postId, commentId, contentId }, app) {
+        const data = { app };
+
         this._populatePrismRequestData(data, { userId, communityId, postId, commentId, contentId });
 
         try {
