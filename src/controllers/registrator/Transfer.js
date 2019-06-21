@@ -2,12 +2,11 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Transfer extends Abstract {
-    async handle(
-        { to: user, from, quantity, receiver, memo, contractName },
-        blockNum,
-        transactionId
+    async handleEvent(
+        { to: user, from, quantity, receiver, memo },
+        { blockNum, transactionId, app }
     ) {
-        if (from === `${contractName}.publish` && user === `${contractName}.vesting`) {
+        if (from === `${app}.publish` && user === `${app}.vesting`) {
             return;
         }
 
@@ -18,24 +17,16 @@ class Transfer extends Abstract {
         await this.waitForTransaction(transactionId);
 
         const { amount, currency } = this._parseQuantity(quantity);
-        if (await this._isInBlackList(from, user, app)) {  // TODO -
+
+        if (await this._isInBlackList(from, user, app)) {
             return;
         }
 
-        let type = 'transfer';
-        let actor;
-
-        try {
-            const response = await this.getEntityMetaData({ userId: from }, app); // TODO -
-            actor = response.user;
-        } catch (error) {
-            return;
-        }
-
+        const { user: actor } = await this.getEntityMetaData({ userId: from }, app);
         const model = new Event({
             blockNum,
             user,
-            eventType: type,
+            eventType: 'transfer',
             fromUsers: [from],
             actor,
             value: {
@@ -48,13 +39,11 @@ class Transfer extends Abstract {
 
         this.emit('registerEvent', user, model.toObject());
     }
+
     _parseQuantity(quantity) {
         const [amount, currency] = quantity.split(' ');
 
-        return {
-            amount,
-            currency,
-        };
+        return { amount, currency };
     }
 }
 

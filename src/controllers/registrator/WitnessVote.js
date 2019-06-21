@@ -17,17 +17,14 @@ class WitnessVote extends Abstract {
 
         await this.waitForTransaction(transactionId, 1);
 
-        let actor;
-
-        try {
-            const response = await this.getEntityMetaData({ userId: from }, app);
-
-            actor = response.user;
-        } catch (error) {
-            return;
-        }
-
-        const model = await Event.create({ blockNum, user, eventType, actor, fromUsers: [from] });
+        const meta = await this.getEntityMetaData({ userId: from }, app);
+        const model = await Event.create({
+            blockNum,
+            user,
+            eventType,
+            actor: meta.user,
+            fromUsers: [from],
+        });
 
         this.emit('registerEvent', user, model.toObject());
     }

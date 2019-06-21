@@ -2,15 +2,15 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Subscribe extends Abstract {
-    async handleSubscribe() {
-        // TODO -
+    async handleSubscribe({ user, follower }, context) {
+        await this._handle({ user, follower, eventType: 'subscribe' }, context);
     }
 
-    async handleUnsubscribe() {
-        // TODO -
+    async handleUnsubscribe({ user, follower }, context) {
+        await this._handle({ user, follower, eventType: 'unsubscribe' }, context);
     }
 
-    async handle({ user, follower, contractName }, eventType, blockNum, transactionId) {
+    async _handle({ user, follower, eventType }, { app, blockNum, transactionId }) {
         await this.waitForTransaction(transactionId);
 
         if (!user || user === follower) {
@@ -18,24 +18,10 @@ class Subscribe extends Abstract {
         }
 
         if (await this._isInBlackList(follower, user, app)) {
-            // TODO -
-            return;
-        }
-        let actor;
-        // TODO: check if it is a community or a user
-        try {
-            const response = await this.getEntityMetaData( // TODO -
-                {
-                    userId: follower,
-                },
-                app
-            );
-
-            actor = response.user;
-        } catch (error) {
             return;
         }
 
+        const { user: actor } = await this.getEntityMetaData({ userId: follower }, app);
         const model = new Event({
             blockNum,
             user,

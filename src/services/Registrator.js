@@ -117,7 +117,7 @@ class Registrator extends BasicService {
                     await this._vote.handleDownVote(body, context);
                     break;
                 case 'cyber.token->transfer':
-                    await this._transfer.handle(body, context);
+                    await this._transfer.handleEvent(body, context);
                     await this._reward.handle(body, context);
                     break;
 
