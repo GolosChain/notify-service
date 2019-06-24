@@ -29,10 +29,7 @@ class Transfer extends Abstract {
             eventType: 'transfer',
             fromUsers: [from],
             actor,
-            value: {
-                amount,
-                currency,
-            },
+            value: { amount, currency },
             app,
         });
 

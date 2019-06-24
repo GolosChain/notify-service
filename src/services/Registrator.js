@@ -118,7 +118,7 @@ class Registrator extends BasicService {
                     break;
                 case 'cyber.token->transfer':
                     await this._transfer.handleEvent(body, context);
-                    await this._reward.handle(body, context);
+                    await this._reward.handleEvent(body, context);
                     break;
 
                 case 'gls.publish->createmssg':
