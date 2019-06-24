@@ -32,7 +32,8 @@ class Repost extends Abstract {
             return;
         }
 
-        if (await this._isInBlackList(actor, author, app)) { // TODO -
+        if (await this._isInBlackList(actor, author, app)) {
+            // TODO -
             return;
         }
 
@@ -47,6 +48,7 @@ class Repost extends Abstract {
             eventType: type,
             permlink,
             fromUsers: [actor],
+            app,
         });
 
         await model.save();
@@ -55,7 +57,8 @@ class Repost extends Abstract {
     }
 
     async _populatePrismResponse({ permlink, author, reposterName, contractName }) {
-        const response = await this.getEntityMetaData( // TODO -
+        const response = await this.getEntityMetaData(
+            // TODO -
             {
                 contentId: {
                     userId: author,

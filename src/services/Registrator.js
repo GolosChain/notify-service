@@ -139,7 +139,7 @@ class Registrator extends BasicService {
                     break;
 
                 case 'gls.publish->deletemssg':
-                    await this._deleteComment.handle(body);
+                    await this._deleteComment.handleEvent(body);
                     break;
 
                 default:

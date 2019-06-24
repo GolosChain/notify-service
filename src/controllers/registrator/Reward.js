@@ -46,6 +46,7 @@ class Reward extends Abstract {
                 amount,
                 currency,
             },
+            app,
         });
 
         await model.save();

@@ -71,6 +71,7 @@ class Mention extends Abstract {
                 comment,
                 actor,
                 author,
+                app,
             });
 
             await model.save();
@@ -91,7 +92,8 @@ class Mention extends Abstract {
 
     async _populatePrismResponse({ author, permlink, contractName }) {
         let post, comment, actor;
-        const response = await this.getEntityMetaData( // TODO -
+        const response = await this.getEntityMetaData(
+            // TODO -
             {
                 userId: author,
                 contentId: {

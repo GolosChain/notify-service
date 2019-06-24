@@ -28,6 +28,7 @@ class Subscribe extends Abstract {
             eventType,
             fromUsers: [follower],
             actor,
+            app,
         });
 
         await model.save();

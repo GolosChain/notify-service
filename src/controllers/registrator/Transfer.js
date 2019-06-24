@@ -33,6 +33,7 @@ class Transfer extends Abstract {
                 amount,
                 currency,
             },
+            app,
         });
 
         await model.save();

@@ -13,7 +13,8 @@ class Reply extends Abstract {
             return;
         }
 
-        if (await this._isInBlackList(author, parentPost.author, app)) { // TODO -
+        if (await this._isInBlackList(author, parentPost.author, app)) {
+            // TODO -
             return;
         }
 
@@ -47,6 +48,7 @@ class Reply extends Abstract {
             post,
             comment,
             parentComment,
+            app,
         });
 
         await model.save();
@@ -56,7 +58,8 @@ class Reply extends Abstract {
 
     async _populatePrismResponse({ permlink, author, contractName, parentPost }) {
         let comment, post, actor, parentComment;
-        const response = await this.getEntityMetaData(// TODO -
+        const response = await this.getEntityMetaData(
+            // TODO -
             {
                 contentId: {
                     userId: parentPost.author,
@@ -79,7 +82,8 @@ class Reply extends Abstract {
             post = response.post;
         }
 
-        const contentResponse = await this.getEntityMetaData( // TODO -
+        const contentResponse = await this.getEntityMetaData(
+            // TODO -
             {
                 contentId: {
                     userId: author,
