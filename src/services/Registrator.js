@@ -123,7 +123,7 @@ class Registrator extends BasicService {
 
                 case 'gls.publish->createmssg':
                     await this._reply.handleEvent(body, context);
-                    await this._mention.handle(body, context);
+                    await this._mention.handleEvent(body, context);
                     break;
 
                 case 'gls.publish->reblog':

@@ -2,7 +2,7 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Mention extends Abstract {
-    async handle(
+    async handleEvent(
         {
             author,
             title,
@@ -11,73 +11,63 @@ class Mention extends Abstract {
             parent_permlink: parentPermlink,
             parent_author: parentAuthor,
             parentPost,
-            contractName,
         },
-        blockNum,
-        transactionId
+        { blockNum, transactionId, app }
     ) {
         await this.waitForTransaction(transactionId);
+
         const users = this._extractMention(title, body);
 
         for (const username of users) {
-            const user = await this.resolveName(username);
-
-            if (user === author || user === parentAuthor) {
-                continue;
-            }
-
-            if (await this._isInBlackList(author, user, app)) {
-                // TODO -
-                continue;
-            }
-
-            let comment, actor, post;
-
-            try {
-                const response = await this._populatePrismResponse({
-                    author,
-                    permlink,
-                    contractName,
-                });
-
-                comment = response.comment;
-                actor = response.actor;
-                post = response.post;
-            } catch (error) {
-                return;
-            }
-
-            if (
-                await Event.findOne({
-                    eventType: 'mention',
-                    permlink,
-                    actor,
-                    user,
-                })
-            ) {
-                return;
-            }
-
-            const type = 'mention';
-
-            const model = new Event({
-                blockNum,
-                user,
-                eventType: type,
-                permlink,
-                parentPermlink,
-                fromUsers: [actor],
-                post,
-                comment,
-                actor,
+            await this._handleSingleMention({
+                username,
                 author,
+                parentAuthor,
+                parentPermlink,
+                blockNum,
                 app,
             });
-
-            await model.save();
-
-            this.emit('registerEvent', user, model.toObject());
         }
+    }
+
+    async _handleSingleMention({
+        username,
+        author,
+        permlink,
+        parentAuthor,
+        parentPermlink,
+        blockNum,
+        app,
+    }) {
+        const user = await this.resolveName(username);
+
+        if (await this._isUnnecessary({ user, author, parentAuthor, app })) {
+            return;
+        }
+
+        const { post, comment, actor } = await this._getMeta({ author, permlink, app });
+
+        if (await this._isMentionAgain({ user, permlink, actor })) {
+            return;
+        }
+
+        const model = new Event({
+            blockNum,
+            user,
+            eventType: 'mention',
+            permlink,
+            parentPermlink,
+            fromUsers: [actor],
+            post,
+            comment,
+            actor,
+            author,
+            app,
+        });
+
+        await model.save();
+
+        this.emit('registerEvent', user, model.toObject());
     }
 
     _extractMention(title, body) {
@@ -90,10 +80,22 @@ class Mention extends Abstract {
         return new Set(total);
     }
 
-    async _populatePrismResponse({ author, permlink, contractName }) {
-        let post, comment, actor;
-        const response = await this.getEntityMetaData(
-            // TODO -
+    async _isUnnecessary({ user, author, parentAuthor, app }) {
+        if (user === author || user === parentAuthor) {
+            return true;
+        }
+
+        return await this._isInBlackList(author, user, app);
+    }
+
+    async _getMeta({ author, permlink, app }) {
+        let post, comment;
+
+        const {
+            comment: originalComment,
+            post: originalPost,
+            user: actor,
+        } = await this.getEntityMetaData(
             {
                 userId: author,
                 contentId: {
@@ -104,19 +106,23 @@ class Mention extends Abstract {
             app
         );
 
-        if (!response) {
-            return;
-        }
-
-        if (response.comment && response.comment.parentPost) {
-            post = response.comment.parentPost;
-            comment = response.comment;
+        if (originalComment && originalComment.parentPost) {
+            post = originalComment.parentPost;
+            comment = originalComment;
         } else {
-            post = response.post;
+            post = originalPost;
         }
-        actor = response.user;
 
         return { post, comment, actor };
+    }
+
+    async _isMentionAgain({ user, permlink, actor }) {
+        return await Event.findOne({
+            eventType: 'mention',
+            permlink,
+            actor,
+            user,
+        });
     }
 }
 
