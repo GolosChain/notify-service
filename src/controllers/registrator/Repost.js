@@ -1,51 +1,26 @@
 const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
-const core = require('gls-core-service');
-const Logger = core.utils.Logger;
 
 class Repost extends Abstract {
-    async handle(
-        { author, permlink, rebloger: reposterName, contractName },
-        blockNum,
-        transactionId
+    async handleEvent(
+        { author: user, permlink, rebloger: reposter },
+        { blockNum, transactionId, app }
     ) {
+        if (await this._isUnnecessary({ user, reposter, app })) {
+            return;
+        }
+
         await this.waitForTransaction(transactionId);
 
-        let actor, post, comment;
-
-        if (!author || author === reposterName) {
-            return;
-        }
-
-        try {
-            const prismResponse = await this._populatePrismResponse({
-                permlink,
-                contractName,
-                author,
-                reposterName,
-            });
-
-            actor = prismResponse.actor;
-            post = prismResponse.post;
-            comment = prismResponse.comment;
-        } catch (error) {
-            return;
-        }
-
-        if (await this._isInBlackList(actor, author, app)) {
-            // TODO -
-            return;
-        }
-
-        const type = 'repost';
+        const { post, comment, actor } = await this._getMeta({ user, permlink, reposter, app });
 
         const model = new Event({
             blockNum,
-            user: author,
+            user,
             post,
             actor,
             comment,
-            eventType: type,
+            eventType: 'repost',
             permlink,
             fromUsers: [actor],
             app,
@@ -53,31 +28,30 @@ class Repost extends Abstract {
 
         await model.save();
 
-        this.emit('registerEvent', author, model.toObject());
+        this.emit('registerEvent', user, model.toObject());
     }
 
-    async _populatePrismResponse({ permlink, author, reposterName, contractName }) {
-        const response = await this.getEntityMetaData(
-            // TODO -
+    async _isUnnecessary({ user, reposter, app }) {
+        if (user === reposter) {
+            return true;
+        }
+
+        return await this._isInBlackList(reposter, user, app);
+    }
+
+    async _getMeta({ user, permlink, reposter, app }) {
+        const { user: actor, post, comment } = await this.getEntityMetaData(
             {
                 contentId: {
-                    userId: author,
+                    userId: user,
                     permlink,
                 },
-                userId: reposterName,
+                userId: reposter,
             },
             app
         );
 
-        if (!response) {
-            return;
-        }
-
-        return {
-            actor: response.user,
-            post: response.post,
-            comment: response.comment,
-        };
+        return { post, comment, actor };
     }
 }
 

@@ -127,7 +127,7 @@ class Registrator extends BasicService {
                     break;
 
                 case 'gls.publish->reblog':
-                    await this._repost.handle(body, context);
+                    await this._repost.handleEvent(body, context);
                     break;
 
                 case 'gls.ctrl->votewitness':
