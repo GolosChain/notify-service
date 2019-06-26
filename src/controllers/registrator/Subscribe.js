@@ -2,11 +2,11 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Subscribe extends Abstract {
-    async handleSubscribe({ user, follower }, context) {
+    async handleSubscribe({ pinning: user, pinner: follower }, context) {
         await this._handle({ user, follower, eventType: 'subscribe' }, context);
     }
 
-    async handleUnsubscribe({ user, follower }, context) {
+    async handleUnsubscribe({ pinning: user, pinner: follower }, context) {
         await this._handle({ user, follower, eventType: 'unsubscribe' }, context);
     }
 

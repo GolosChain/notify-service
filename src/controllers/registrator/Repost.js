@@ -3,7 +3,10 @@ const Event = require('../../models/Event');
 
 class Repost extends Abstract {
     async handleEvent(
-        { author: user, permlink, rebloger: reposter },
+        {
+            message_id: { author: user, permlink },
+            rebloger: reposter,
+        },
         { blockNum, transactionId, app }
     ) {
         if (await this._isUnnecessary({ user, reposter, app })) {

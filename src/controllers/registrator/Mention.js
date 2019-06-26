@@ -4,13 +4,10 @@ const Event = require('../../models/Event');
 class Mention extends Abstract {
     async handleEvent(
         {
-            author,
-            title,
-            body,
-            permlink,
-            parent_permlink: parentPermlink,
-            parent_author: parentAuthor,
-            parentPost,
+            message_id: { author },
+            headermssg: title,
+            bodymssg: body,
+            parent_id: { author: parentAuthor, permlink: parentPermlink },
         },
         { blockNum, transactionId, app }
     ) {

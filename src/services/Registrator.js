@@ -11,7 +11,7 @@ const Transfer = require('../controllers/registrator/Transfer');
 const Reward = require('../controllers/registrator/Reward');
 const Vote = require('../controllers/registrator/Vote');
 const WitnessVote = require('../controllers/registrator/WitnessVote');
-const DeleteComment = require('../controllers/registrator/DeleteComment');
+const DeleteContent = require('../controllers/registrator/DeleteContent');
 
 class Registrator extends BasicService {
     constructor(connector) {
@@ -25,7 +25,7 @@ class Registrator extends BasicService {
         this._reward = new Reward({ connector });
         this._vote = new Vote({ connector });
         this._witnessVote = new WitnessVote({ connector });
-        this._deleteComment = new DeleteComment({ connector });
+        this._deleteContent = new DeleteContent({ connector });
 
         this.translateEmit(
             [
@@ -95,51 +95,50 @@ class Registrator extends BasicService {
         }
     }
 
-    // TODO Change WaitForTransaction
+    // TODO Add allowed contract names
     async _routeEventHandlers({ type, ...body }, blockNum, transactionId) {
         try {
             const app = this._getAppType(type);
             const context = { blockNum, transactionId, app };
-
-            body = this._mapAction(body);
+            const args = body.args;
 
             switch (type) {
                 case 'gls.social->pin':
-                    await this._subscribe.handleSubscribe(body, context);
+                    await this._subscribe.handleSubscribe(args, context);
                     break;
                 case 'gls.social->unpin':
-                    await this._subscribe.handleUnsubscribe(body, context);
+                    await this._subscribe.handleUnsubscribe(args, context);
                     break;
                 case 'gls.publish->upvote':
-                    await this._vote.handleUpVote(body, context);
+                    await this._vote.handleUpVote(args, context);
                     break;
                 case 'gls.publish->downvote':
-                    await this._vote.handleDownVote(body, context);
+                    await this._vote.handleDownVote(args, context);
                     break;
                 case 'cyber.token->transfer':
-                    await this._transfer.handleEvent(body, context);
-                    await this._reward.handleEvent(body, context);
+                    await this._transfer.handleEvent(args, context);
+                    await this._reward.handleEvent(args, context);
                     break;
 
                 case 'gls.publish->createmssg':
-                    await this._reply.handleEvent(body, context);
-                    await this._mention.handleEvent(body, context);
+                    await this._reply.handleEvent(args, context);
+                    await this._mention.handleEvent(args, context);
                     break;
 
                 case 'gls.publish->reblog':
-                    await this._repost.handleEvent(body, context);
+                    await this._repost.handleEvent(args, context);
                     break;
 
                 case 'gls.ctrl->votewitness':
-                    await this._witnessVote.handleVote(body, context);
+                    await this._witnessVote.handleVote(args, context);
                     break;
 
                 case 'gls.ctrl->unvotewitn':
-                    await this._witnessVote.handleUnvote(body, context);
+                    await this._witnessVote.handleUnvote(args, context);
                     break;
 
                 case 'gls.publish->deletemssg':
-                    await this._deleteComment.handleEvent(body);
+                    await this._deleteContent.handleEvent(args);
                     break;
 
                 default:
@@ -158,36 +157,6 @@ class Registrator extends BasicService {
 
             throw error;
         }
-    }
-
-    _mapAction(data) {
-        data.args = data.args || {};
-
-        if (data.args.message_id) {
-            data.args.refBlockNum = data.args.message_id.ref_block_num;
-        }
-
-        const post = data.args.message_id;
-        const parentPost = data.args.parent_id;
-
-        data.args.message_id = data.args.message_id || {};
-        data.args.parent_id = data.args.parent_id || {};
-
-        return {
-            author: data.args.message_id.author,
-            title: data.args.headermssg,
-            body: data.args.bodymssg,
-            permlink: data.args.message_id.permlink,
-            parent_permlink: data.args.parent_id.permlink,
-            parent_author: data.args.parent_id.author,
-            user: data.args.pinning,
-            follower: data.args.pinner,
-            receiver: data.receiver,
-            post,
-            parentPost,
-            ...data.args,
-            ...data,
-        };
     }
 
     _getAppType(type) {

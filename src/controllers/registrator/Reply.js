@@ -4,9 +4,8 @@ const Event = require('../../models/Event');
 class Reply extends Abstract {
     async handleEvent(
         {
-            author,
-            permlink,
-            parentPost: { author: user, permlink: parentPermlink },
+            message_id: { author, permlink },
+            parent_id: { author: user, permlink: parentPermlink },
         },
         { blockNum, transactionId, app }
     ) {

@@ -11,7 +11,11 @@ class Vote extends Abstract {
     }
 
     async _handle(
-        { voter, author: userId, permlink, weight },
+        {
+            voter,
+            weight,
+            message_id: { author: userId, permlink },
+        },
         { app, blockNum, transactionId },
         eventType
     ) {
