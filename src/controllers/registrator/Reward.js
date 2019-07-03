@@ -3,8 +3,8 @@ const Event = require('../../models/Event');
 
 class Reward extends Abstract {
     async handleEvent(
-        { to: target, from, quantity, receiver, memo },
-        { blockNum, transactionId, app }
+        { to: target, from, quantity, memo },
+        { blockNum, transactionId, app, receiver }
     ) {
         if (await this._isUnnecessary({ from, receiver, target, app })) {
             return;

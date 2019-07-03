@@ -3,8 +3,8 @@ const Event = require('../../models/Event');
 
 class Transfer extends Abstract {
     async handleEvent(
-        { to: user, from, quantity, receiver, memo },
-        { blockNum, transactionId, app }
+        { to: user, from, quantity, memo },
+        { blockNum, transactionId, app, receiver }
     ) {
         if (from === `${app}.publish` && user === `${app}.vesting`) {
             return;

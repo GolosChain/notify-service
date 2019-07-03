@@ -96,10 +96,10 @@ class Registrator extends BasicService {
     }
 
     // TODO Add allowed contract names
-    async _routeEventHandlers({ type, ...body }, blockNum, transactionId) {
+    async _routeEventHandlers({ type, receiver, ...body }, blockNum, transactionId) {
         try {
             const app = this._getAppType(type);
-            const context = { blockNum, transactionId, app };
+            const context = { blockNum, transactionId, app, receiver };
             const args = body.args;
 
             switch (type) {
@@ -152,6 +152,7 @@ class Registrator extends BasicService {
 
             error.identity = {
                 type,
+                receiver,
                 body,
             };
 
