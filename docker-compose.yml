@@ -35,8 +35,8 @@ services:
     container_name: notify-node
     restart: always
     depends_on:
-      - notify-mongo:
-          condition: service_healthy
+      notify-mongo:
+        condition: service_healthy
     build:
       context: .
       dockerfile: Dockerfile
