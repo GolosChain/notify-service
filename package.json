@@ -37,7 +37,7 @@
   "dependencies": {
     "cyber-client": "^1.1.27",
     "cyberwayjs": "^20.0.0-beta5",
-    "gls-core-service": "^3.18.0",
+    "gls-core-service": "^3.31.1",
     "node-fetch": "^2.3.0",
     "node-rsa": "^1.0.3"
   },

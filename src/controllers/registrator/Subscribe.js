@@ -2,37 +2,33 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Subscribe extends Abstract {
-    async handle({ user, follower, contractName }, eventType, blockNum, transactionId) {
+    async handleSubscribe({ pinning: user, pinner: follower }, context) {
+        await this._handle({ user, follower, eventType: 'subscribe' }, context);
+    }
+
+    async handleUnsubscribe({ pinning: user, pinner: follower }, context) {
+        await this._handle({ user, follower, eventType: 'unsubscribe' }, context);
+    }
+
+    async _handle({ user, follower, eventType }, { app, blockNum, transactionId }) {
         await this.waitForTransaction(transactionId);
 
         if (!user || user === follower) {
             return;
         }
 
-        if (await this._isInBlackList(follower, user)) {
-            return;
-        }
-        let actor;
-        // TODO: check if it is a community or a user
-        try {
-            const response = await this.callPrismService(
-                {
-                    userId: follower,
-                },
-                contractName
-            );
-
-            actor = response.user;
-        } catch (error) {
+        if (await this._isInBlackList(follower, user, app)) {
             return;
         }
 
+        const { user: actor } = await this.getEntityMetaData({ userId: follower }, app);
         const model = new Event({
             blockNum,
             user,
             eventType,
             fromUsers: [follower],
             actor,
+            app,
         });
 
         await model.save();

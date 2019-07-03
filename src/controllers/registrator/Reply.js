@@ -2,91 +2,89 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Reply extends Abstract {
-    async handle({ author, permlink, parentPost, contractName }, blockNum, transactionId) {
+    async handleEvent(
+        {
+            message_id: { author, permlink },
+            parent_id: { author: user, permlink: parentPermlink },
+        },
+        { blockNum, transactionId, app }
+    ) {
+        if (await this._isUnnecessary({ user, author, permlink, app })) {
+            return;
+        }
+
         await this.waitForTransaction(transactionId);
 
-        if (!parentPost.author || parentPost.author === author) {
-            return;
-        }
-
-        if (await Event.findOne({ eventType: 'reply', permlink, fromUsers: author })) {
-            return;
-        }
-
-        if (await this._isInBlackList(author, parentPost.author)) {
-            return;
-        }
-
-        let comment, post, actor, parentComment;
-
-        try {
-            const prismResponse = await this._populatePrismResponse({
-                parentPost,
-                permlink,
-                author,
-                contractName,
-            });
-            comment = prismResponse.comment;
-            post = prismResponse.post;
-            actor = prismResponse.actor;
-            parentComment = prismResponse.parentComment;
-        } catch (error) {
-            return;
-        }
-
-        const type = 'reply';
+        const metaParams = { permlink, author, user, parentPermlink, app };
+        const { comment, post, actor, parentComment } = await this._getMeta(metaParams);
 
         const model = new Event({
             blockNum,
-            user: parentPost.author,
-            eventType: type,
+            user,
+            eventType: 'reply',
             permlink,
-            parentPermlink: parentPost.permlink,
+            parentPermlink,
             fromUsers: [author],
             actor,
             post,
             comment,
             parentComment,
+            app,
         });
 
         await model.save();
 
-        this.emit('registerEvent', parentPost.author, model.toObject());
+        this.emit('registerEvent', user, model.toObject());
     }
 
-    async _populatePrismResponse({ permlink, author, contractName, parentPost }) {
-        let comment, post, actor, parentComment;
-        const response = await this.callPrismService(
+    async _getMeta({ permlink, author, user, parentPermlink, app }) {
+        const {
+            post: originalPost,
+            comment: originalComment,
+            user: actor,
+        } = await this.getEntityMetaData(
             {
                 contentId: {
-                    userId: parentPost.author,
-                    permlink: parentPost.permlink,
+                    userId: user,
+                    permlink: parentPermlink,
                 },
                 userId: author,
             },
-            contractName
+            app
         );
 
-        actor = response.user;
-        if (response.comment && response.comment.parentPost) {
-            post = response.comment.parentPost;
-            parentComment = response.comment;
+        let parentComment, post;
+
+        if (originalComment && originalComment.parentPost) {
+            post = originalComment.parentPost;
+            parentComment = originalComment;
         } else {
-            post = response.post;
+            post = originalPost;
         }
 
-        const contentResponse = await this.callPrismService(
+        const { comment } = await this.getEntityMetaData(
             {
                 contentId: {
                     userId: author,
                     permlink,
                 },
             },
-            contractName
+            app
         );
-        comment = contentResponse.comment;
 
-        return { comment, post, actor, parentComment };
+        return { parentComment, comment, post, actor };
+    }
+
+    async _isUnnecessary({ user, author, permlink, app }) {
+        if (user === author) {
+            return true;
+        }
+
+        if (await Event.findOne({ eventType: 'reply', permlink, fromUsers: author })) {
+            return true;
+        }
+
+        return await this._isInBlackList(author, user, app);
     }
 }
 

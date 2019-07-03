@@ -4,7 +4,6 @@ const BasicService = core.services.Basic;
 const BlockSubscribe = core.services.BlockSubscribe;
 
 const Mention = require('../controllers/registrator/Mention');
-const Message = require('../controllers/registrator/Message');
 const Reply = require('../controllers/registrator/Reply');
 const Repost = require('../controllers/registrator/Repost');
 const Subscribe = require('../controllers/registrator/Subscribe');
@@ -12,14 +11,13 @@ const Transfer = require('../controllers/registrator/Transfer');
 const Reward = require('../controllers/registrator/Reward');
 const Vote = require('../controllers/registrator/Vote');
 const WitnessVote = require('../controllers/registrator/WitnessVote');
-const DeleteComment = require('../controllers/registrator/DeleteComment');
+const DeleteContent = require('../controllers/registrator/DeleteContent');
 
 class Registrator extends BasicService {
     constructor(connector) {
         super();
 
         this._mention = new Mention({ connector });
-        this._message = new Message({ connector });
         this._reply = new Reply({ connector });
         this._repost = new Repost({ connector });
         this._subscribe = new Subscribe({ connector });
@@ -27,12 +25,11 @@ class Registrator extends BasicService {
         this._reward = new Reward({ connector });
         this._vote = new Vote({ connector });
         this._witnessVote = new WitnessVote({ connector });
-        this._deleteComment = new DeleteComment({ connector });
+        this._deleteContent = new DeleteContent({ connector });
 
         this.translateEmit(
             [
                 this._mention,
-                this._message,
                 this._reply,
                 this._repost,
                 this._subscribe,
@@ -98,60 +95,61 @@ class Registrator extends BasicService {
         }
     }
 
+    // TODO Add allowed contract names
     async _routeEventHandlers({ type, ...body }, blockNum, transactionId) {
         try {
-            body = this._mapAction(body, type);
+            const app = this._getAppType(type);
+            const context = { blockNum, transactionId, app };
+            const args = body.args;
+
             switch (type) {
                 case 'gls.social->pin':
-                    await this._subscribe.handle(body, 'subscribe', blockNum, transactionId);
+                    await this._subscribe.handleSubscribe(args, context);
                     break;
                 case 'gls.social->unpin':
-                    await this._subscribe.handle(body, 'unsubscribe', blockNum, transactionId);
+                    await this._subscribe.handleUnsubscribe(args, context);
                     break;
                 case 'gls.publish->upvote':
-                    await this._vote.handle(body, blockNum, transactionId, 'upvote');
+                    await this._vote.handleUpVote(args, context);
                     break;
                 case 'gls.publish->downvote':
-                    await this._vote.handle(body, blockNum, transactionId, 'downvote');
+                    await this._vote.handleDownVote(args, context);
                     break;
                 case 'cyber.token->transfer':
-                    await this._transfer.handle(body, blockNum, transactionId);
-                    await this._reward.handle(body, blockNum, transactionId);
+                    await this._transfer.handleEvent(args, context);
+                    await this._reward.handleEvent(args, context);
                     break;
 
                 case 'gls.publish->createmssg':
-                    await this._reply.handle(body, blockNum, transactionId);
-                    await this._mention.handle(body, blockNum, transactionId);
+                    await this._reply.handleEvent(args, context);
+                    await this._mention.handleEvent(args, context);
                     break;
 
                 case 'gls.publish->reblog':
-                    await this._repost.handle(body, blockNum, transactionId);
+                    await this._repost.handleEvent(args, context);
                     break;
 
                 case 'gls.ctrl->votewitness':
-                    await this._witnessVote.handle(
-                        { ...body, type: 'vote' },
-                        blockNum,
-                        transactionId
-                    );
+                    await this._witnessVote.handleVote(args, context);
                     break;
 
                 case 'gls.ctrl->unvotewitn':
-                    await this._witnessVote.handle(
-                        { ...body, type: 'unvote' },
-                        blockNum,
-                        transactionId
-                    );
+                    await this._witnessVote.handleUnvote(args, context);
                     break;
 
                 case 'gls.publish->deletemssg':
-                    await this._deleteComment.handle(body);
+                    await this._deleteContent.handleEvent(args);
                     break;
 
                 default:
                     break;
             }
         } catch (error) {
+            if (error.prismError) {
+                Logger.warn('Prism error!', error);
+                return;
+            }
+
             error.identity = {
                 type,
                 body,
@@ -161,36 +159,14 @@ class Registrator extends BasicService {
         }
     }
 
-    _mapAction(data, type) {
-        const contractName = type.split('->')[0].split('.')[0];
-        data.args = data.args || {};
+    _getAppType(type) {
+        const contractPrefix = type.split('.')[0];
 
-        if (data.args.message_id) {
-            data.args.refBlockNum = data.args.message_id.ref_block_num;
+        if (contractPrefix === 'gls') {
+            return 'gls';
+        } else {
+            return 'cyber';
         }
-
-        const post = data.args.message_id;
-        const parentPost = data.args.parent_id;
-
-        data.args.message_id = data.args.message_id || {};
-        data.args.parent_id = data.args.parent_id || {};
-
-        return {
-            author: data.args.message_id.author,
-            title: data.args.headermssg,
-            body: data.args.bodymssg,
-            permlink: data.args.message_id.permlink,
-            parent_permlink: data.args.parent_id.permlink,
-            parent_author: data.args.parent_id.author,
-            user: data.args.pinning,
-            follower: data.args.pinner,
-            receiver: data.receiver,
-            post,
-            parentPost,
-            contractName,
-            ...data.args,
-            ...data,
-        };
     }
 }
 

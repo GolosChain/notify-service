@@ -27,7 +27,6 @@ history:                                      // Получение истори
          | repost             // репост
          | reward             // награда пользователю
          | curatorReward      // награда куратору
-         | message            // личное сообщение     (не реализованно в данной версии)
          | witnessVote        // голос за делегата
          | witnessCancelVote  // отмена голоса за делегата
          ]
@@ -127,9 +126,6 @@ curatorReward:                    // награда куратору
     permlink <string>             // ссылка на целевой пост/коммент
     curatorReward <number>        // награда в силе голоса
     curatorTargetAuthor <string>  // автор поста/коммента, за который получена награда
-
-message:                     // личное сообщение
-    fromUsers <[string]>     // юзеры-источники эвента
 
 witnessVote:                 // голос за делегата
     fromUsers <[string]>     // юзеры-источники эвента

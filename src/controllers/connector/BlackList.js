@@ -1,28 +1,28 @@
 const User = require('../../models/User');
 
 class BlackList {
-    async get({ owner }) {
-        await this._initUser(owner);
+    async get({ owner, app }) {
+        await this._initUser(owner, app);
 
-        const model = await User.findOne({ name: owner }, { blackList: true });
+        const model = await User.findOne({ name: owner, app }, { blackList: true });
 
         return { blackList: model.blackList || [] };
     }
 
-    async add({ owner, banned }) {
-        await this._initUser(owner);
+    async add({ owner, app, banned }) {
+        await this._initUser(owner, app);
 
-        await User.updateOne({ name: owner }, { $addToSet: { blackList: banned } });
+        await User.updateOne({ name: owner, app }, { $addToSet: { blackList: banned } });
     }
 
-    async remove({ owner, banned }) {
-        await this._initUser(owner);
+    async remove({ owner, app, banned }) {
+        await this._initUser(owner, app);
 
-        await User.updateOne({ name: owner }, { $pull: { blackList: banned } });
+        await User.updateOne({ name: owner, app }, { $pull: { blackList: banned } });
     }
 
-    async _initUser(name) {
-        await User.updateOne({ name }, { $set: { name } }, { upsert: true });
+    async _initUser(name, app) {
+        await User.updateOne({ name, app }, { $set: { name } }, { upsert: true });
     }
 }
 

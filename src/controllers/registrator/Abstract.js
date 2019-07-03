@@ -14,22 +14,26 @@ class Abstract extends BasicController {
         this._emitter = new EventEmitter();
     }
 
-    async handle(data, blockNum) {
-        throw 'Handler not implemented';
-    }
-
     async resolveName(user) {
         let name = user;
+
         if (!user.includes('@')) {
             name += '@golos';
         }
+
         try {
-            const resolved = await RPC.fetch('/v1/chain/resolve_names', [user]);
-            return resolved[0].resolved_username;
+            return await this._getUserNameFromBlockChain(user);
         } catch (error) {
             Logger.warn(`Cannot get such an account -- ${name}`);
         }
+
         return user;
+    }
+
+    async _getUserNameFromBlockChain(user) {
+        const data = await RPC.fetch('/v1/chain/resolve_names', [user]);
+
+        return data[0].resolved_username;
     }
 
     _populatePrismRequestData(data, { userId, communityId, postId, commentId, contentId }) {
@@ -66,11 +70,9 @@ class Abstract extends BasicController {
         }
     }
 
-    async callPrismService(
-        { userId, communityId, postId, commentId, contentId },
-        contractName = 'cyber'
-    ) {
-        const data = { app: contractName };
+    async getEntityMetaData({ userId, communityId, postId, commentId, contentId }, app) {
+        const data = { app };
+
         this._populatePrismRequestData(data, { userId, communityId, postId, commentId, contentId });
 
         try {
@@ -83,23 +85,28 @@ class Abstract extends BasicController {
                 error
             );
 
+            error.prismError = true;
+
             throw error;
         }
     }
 
     async waitForTransaction(transactionId, maxRetries = 5, retryNum = 0) {
+        const params = { transactionId };
+
         try {
-            return await this.callService('prism', 'waitForTransaction', {
-                transactionId,
-            });
+            return await this.callService('prism', 'waitForTransaction', params);
         } catch (error) {
-            if (
-                (error.code === 408 || error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') &&
-                retryNum <= maxRetries
-            ) {
+            const code = error.code;
+            const isTimeOut = code === 408 || code === 'ECONNRESET' || code === 'ETIMEDOUT';
+
+            if (isTimeOut && retryNum <= maxRetries) {
                 return await this.waitForTransaction(transactionId, maxRetries, retryNum++);
             }
+
             Logger.error(`Error calling prism.waitForTransaction`, error);
+
+            error.prismError = true;
 
             throw error;
         }
@@ -113,15 +120,16 @@ class Abstract extends BasicController {
         this._emitter.on(name, callback);
     }
 
-    async _isInBlackList(nameFrom, nameTo) {
-        await this._initUser(nameTo);
+    async _isInBlackList(nameFrom, nameTo, app) {
+        await this._initUser(nameTo, app);
 
-        const count = await User.countDocuments({ name: nameTo, blackList: nameFrom });
+        const count = await User.countDocuments({ name: nameTo, app, blackList: nameFrom });
+
         return count !== 0;
     }
 
-    async _initUser(name) {
-        return await User.updateOne({ name }, { $set: { name } }, { upsert: true });
+    async _initUser(name, app) {
+        return await User.updateOne({ name, app }, { $set: { name, app } }, { upsert: true });
     }
 }
 

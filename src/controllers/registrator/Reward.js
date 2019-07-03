@@ -2,32 +2,19 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Reward extends Abstract {
-    async handle(
-        { to: user, from, quantity, receiver, memo, contractName },
-        blockNum,
-        transactionId
+    async handleEvent(
+        { to: target, from, quantity, receiver, memo },
+        { blockNum, transactionId, app }
     ) {
-        if (!(await this._shouldBeProcessed({ from, receiver, user }))) {
+        if (await this._isUnnecessary({ from, receiver, target, app })) {
             return;
         }
+
+        await this.waitForTransaction(transactionId);
 
         const { amount, currency } = this._parseQuantity(quantity);
-
-        const parsedMemo = this._parseMemo(memo);
-        const contentId = parsedMemo.contentId;
-        const type = parsedMemo.type;
-        user = parsedMemo.user;
-
-        let post;
-        let comment;
-        try {
-            await this.waitForTransaction(transactionId);
-            const response = await this.callPrismService({ contentId }, contractName);
-            comment = response.comment;
-            post = response.post || response.comment.parentPost;
-        } catch (error) {
-            return;
-        }
+        const { contentId, user, type } = this._parseMemo(memo);
+        const { comment, post } = await this._getMeta(contentId, app);
 
         const model = new Event({
             blockNum,
@@ -36,11 +23,11 @@ class Reward extends Abstract {
             comment,
             eventType: type,
             fromUsers: [from],
-            actor: { id: from },
             value: {
                 amount,
                 currency,
             },
+            app,
         });
 
         await model.save();
@@ -49,20 +36,19 @@ class Reward extends Abstract {
     }
 
     _parseMemo(memo) {
-        const regexp = new RegExp(
-            /send to: (?<user>.*); *(?<type>[\S]*).*(post|comment) (?<author>.*):(?<permlink>.*)/
-        );
-
-        const groups = memo.match(regexp).groups;
-
+        const pattern = /send to: (?<user>.*); *(?<rawType>[\S]*).*(post|comment) (?<author>.*):(?<permlink>.*)/;
+        const { author, rawType, userId, permlink } = memo.match(pattern).groups;
         let type;
-        switch (groups.type) {
+
+        switch (rawType) {
             case 'author':
                 type = 'reward';
                 break;
+
             case 'curators':
                 type = 'curatorReward';
                 break;
+
             case 'benefeciary':
                 type = 'benefeciaryReward';
                 break;
@@ -70,32 +56,36 @@ class Reward extends Abstract {
 
         return {
             type,
-            user: groups.user,
-            contentId: {
-                userId: groups.author,
-                permlink: groups.permlink,
-            },
+            author,
+            contentId: { userId, permlink },
         };
     }
 
     _parseQuantity(quantity) {
         const [amount, currency] = quantity.split(' ');
 
-        return {
-            amount,
-            currency,
-        };
+        return { amount, currency };
     }
 
-    async _shouldBeProcessed({ from, user, receiver }) {
-        if (
-            from.endsWith('.publish') &&
-            user.endsWith('.vesting') &&
-            receiver.endsWith('.vesting')
-        ) {
-            return !(await this._isInBlackList(from, user));
+    async _isUnnecessary({ from, target, receiver, app }) {
+        const isPublishContract = from.endsWith('.publish');
+        const isVestingIsReceiver = receiver.endsWith('.vesting');
+        const isVestingIsTarget = target.endsWith('.vesting');
+
+        if (!(isPublishContract && isVestingIsReceiver && isVestingIsTarget)) {
+            return true;
         }
-        return false;
+
+        return await this._isInBlackList(from, target, app);
+    }
+
+    async _getMeta(contentId, app) {
+        const meta = await this.getEntityMetaData({ contentId }, app);
+
+        return {
+            comment: meta.comment,
+            post: meta.post || meta.comment.parentPost,
+        };
     }
 }
 

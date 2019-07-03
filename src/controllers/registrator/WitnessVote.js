@@ -2,48 +2,29 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class WitnessVote extends Abstract {
-    async handle(
-        { voter: from, witness: user, type = 'unvote', contractName },
-        blockNum,
-        transactionId
-    ) {
-        if (await this._isInBlackList(from, user)) {
+    async handleVote({ voter: from, witness: user }, context) {
+        await this._handle({ from, user, eventType: 'witnessVote' }, context);
+    }
+
+    async handleUnvote({ voter: from, witness: user }, context) {
+        await this._handle({ from, user, eventType: 'witnessCancelVote' }, context);
+    }
+
+    async _handle({ from, user, eventType }, { blockNum, transactionId, app }) {
+        if (await this._isInBlackList(from, user, app)) {
             return;
         }
 
         await this.waitForTransaction(transactionId, 1);
 
-        let eventType;
-
-        if (type === 'vote') {
-            eventType = 'witnessVote';
-        } else {
-            eventType = 'witnessCancelVote';
-        }
-
-        let actor;
-
-        try {
-            const response = await this.callPrismService(
-                {
-                    userId: from,
-                },
-                contractName
-            );
-            actor = response.user;
-        } catch (error) {
-            return;
-        }
-
-        const model = new Event({
+        const meta = await this.getEntityMetaData({ userId: from }, app);
+        const model = await Event.create({
             blockNum,
             user,
             eventType,
-            actor,
+            actor: meta.user,
             fromUsers: [from],
         });
-
-        await model.save();
 
         this.emit('registerEvent', user, model.toObject());
     }

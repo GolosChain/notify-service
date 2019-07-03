@@ -4,17 +4,10 @@ const eventTypes = require('../../data/eventTypes');
 const MAX_HISTORY_LIMIT = 100;
 
 class History {
-    async getHistory({
-        user,
-        fromId = null,
-        limit = 10,
-        types = ['all'],
-        markAsViewed = true,
-        freshOnly = false,
-    }) {
+    async getHistory({ user, app, fromId, limit, types, markAsViewed, freshOnly }) {
         this._validateHistoryRequest(limit, types);
 
-        const query = { user };
+        const query = { user, app };
 
         if (!types.includes('all')) {
             query.eventType = types;
@@ -37,12 +30,12 @@ class History {
         }
 
         return {
-            total: await this._getTotal(user),
-            totalByTypes: await this._getTotalByTypes(user, types),
-            fresh: await this._getFresh(user),
-            freshByTypes: await this._getFreshByTypes(user, types),
-            unread: await this._getUnread(user),
-            unreadByTypes: await this._getUnreadByTypes(user, types),
+            total: await this._getTotal(user, app),
+            totalByTypes: await this._getTotalByTypes(user, app, types),
+            fresh: await this._getFresh(user, app),
+            freshByTypes: await this._getFreshByTypes(user, app, types),
+            unread: await this._getUnread(user, app),
+            unreadByTypes: await this._getUnreadByTypes(user, app, types),
             data,
         };
     }
@@ -65,54 +58,54 @@ class History {
         );
     }
 
-    async getHistoryFresh({ user, types = ['all'] }) {
+    async getHistoryFresh({ user, app, types }) {
         this._validateTypes(types);
 
         return {
-            fresh: await this._getFresh(user),
-            freshByTypes: await this._getFreshByTypes(user, types),
+            fresh: await this._getFresh(user, app),
+            freshByTypes: await this._getFreshByTypes(user, app, types),
         };
     }
 
-    async _getTotal(user) {
-        return await this._getCountBy({ user });
+    async _getTotal(user, app) {
+        return await this._getCountBy({ user, app });
     }
 
-    async _getTotalByTypes(user, types) {
+    async _getTotalByTypes(user, app, types) {
         const result = { summary: 0 };
 
         for (let eventType of this._eachType(types)) {
-            result[eventType] = await this._getCountBy({ user, eventType });
+            result[eventType] = await this._getCountBy({ user, app, eventType });
             result.summary += result[eventType];
         }
 
         return result;
     }
 
-    async _getFresh(user) {
-        return await this._getCountBy({ user, fresh: true });
+    async _getFresh(user, app) {
+        return await this._getCountBy({ user, app, fresh: true });
     }
 
-    async _getFreshByTypes(user, types) {
+    async _getFreshByTypes(user, app, types) {
         const result = { summary: 0 };
 
         for (let eventType of this._eachType(types)) {
-            result[eventType] = await this._getCountBy({ user, eventType, fresh: true });
+            result[eventType] = await this._getCountBy({ user, app, eventType, fresh: true });
             result.summary += result[eventType];
         }
 
         return result;
     }
 
-    async _getUnread(user) {
-        return await this._getCountBy({ user, unread: true });
+    async _getUnread(user, app) {
+        return await this._getCountBy({ user, app, unread: true });
     }
 
-    async _getUnreadByTypes(user, types) {
+    async _getUnreadByTypes(user, app, types) {
         const result = { summary: 0 };
 
         for (const eventType of this._eachType(types)) {
-            result[eventType] = await this._getCountBy({ user, eventType, unread: true });
+            result[eventType] = await this._getCountBy({ user, app, eventType, unread: true });
             result.summary += result[eventType];
         }
 
@@ -133,7 +126,7 @@ class History {
         return await Event.find(query).countDocuments();
     }
 
-    async markAsViewed({ ids = [], user }) {
+    async markAsViewed({ ids, user, app }) {
         const freshOffPromises = [];
         for (let id of ids) {
             freshOffPromises.push(this._freshOffWithUser(id, user));
@@ -141,16 +134,16 @@ class History {
         await Promise.all(freshOffPromises);
     }
 
-    async markAllAsViewed({ user }) {
-        await this._allFreshOffForUser(user);
+    async markAllAsViewed({ user, app }) {
+        await this._allFreshOffForUser(user, app);
     }
 
-    async markAsRead({ ids = [], user }) {
-        await Promise.all(ids.map(id => this._markReadWithUser(id, user)));
+    async markAsRead({ ids, user, app }) {
+        await Promise.all(ids.map(id => this._markReadWithUser(id, user, app)));
     }
 
-    async markAllAsRead({ user }) {
-        await this._allMarkReadForUser(user);
+    async markAllAsRead({ user, app }) {
+        await this._allMarkReadForUser(user, app);
     }
 
     _validateHistoryRequest(limit, types) {
@@ -193,23 +186,23 @@ class History {
         await Event.update(query, { $set: { fresh: false } });
     }
 
-    async _allFreshOffForUser(user) {
-        await Event.updateMany({ user }, { $set: { fresh: false } });
+    async _allFreshOffForUser(user, app) {
+        await Event.updateMany({ user, app }, { $set: { fresh: false } });
     }
     async _markRead(_id) {
         await this._markReadByQuery({ _id });
     }
 
-    async _markReadWithUser(_id, user) {
-        await this._markReadByQuery({ _id, user });
+    async _markReadWithUser(_id, user, app) {
+        await this._markReadByQuery({ _id, user, app });
     }
 
     async _markReadByQuery(query) {
         await Event.update(query, { $set: { unread: false } });
     }
 
-    async _allMarkReadForUser(user) {
-        await Event.updateMany({ user }, { $set: { unread: false } });
+    async _allMarkReadForUser(user, app) {
+        await Event.updateMany({ user, app }, { $set: { unread: false } });
     }
 }
 

@@ -2,74 +2,83 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Vote extends Abstract {
-    async handle(
+    async handleUpVote(params, context) {
+        await this._handle(params, context, 'upvote');
+    }
+
+    async handleDownVote(params, context) {
+        await this._handle(params, context, 'downvote');
+    }
+
+    async _handle(
         {
             voter,
-            author: user,
-            permlink,
             weight,
-            parentPost,
-            parent_permlink: parentPermlink,
-            parent_author: parentAuthor,
-            contractName,
+            message_id: { author: userId, permlink },
         },
-        blockNum,
-        transactionId,
-        type
+        { app, blockNum, transactionId },
+        eventType
     ) {
-        if (weight === 0) {
-            return;
-        }
-
-        if (voter === user) {
-            return;
-        }
-
-        if (await this._isInBlackList(voter, user)) {
+        if (await this._isUnnecessary({ weight, voter, userId, app })) {
             return;
         }
 
         await this.waitForTransaction(transactionId);
 
-        let post, comment, actor;
-
-        try {
-            const response = await this.callPrismService(
-                {
-                    contentId: {
-                        userId: user,
-                        permlink,
-                    },
-                    userId: voter,
-                },
-                contractName
-            );
-
-            post = response.post;
-            comment = response.comment;
-
-            if (comment) {
-                post = comment.parentPost;
-            }
-
-            actor = response.user;
-        } catch (error) {
-            return;
-        }
-
+        const { post, comment, actor } = await this._getMeta({ userId, permlink, voter, app });
         const model = new Event({
             blockNum,
-            user,
-            eventType: type,
+            user: userId,
+            eventType,
             permlink,
             fromUsers: [voter],
             post,
             comment,
             actor,
+            app,
         });
         await model.save();
 
-        this.emit('registerEvent', user, model.toObject());
+        this.emit('registerEvent', userId, model.toObject());
+    }
+
+    async _isUnnecessary({ weight, voter, userId, app }) {
+        if (weight === 0) {
+            return true;
+        }
+
+        if (voter === userId) {
+            return true;
+        }
+
+        if (await this._isInBlackList(voter, userId, app)) {
+            return true;
+        }
+    }
+
+    async _getMeta({ userId, permlink, voter, app }) {
+        const meta = await this.getEntityMetaData(
+            {
+                contentId: {
+                    userId,
+                    permlink,
+                },
+                userId: voter,
+            },
+            app
+        );
+
+        let post;
+        const comment = meta.comment;
+        const actor = meta.user;
+
+        if (comment) {
+            post = comment.parentPost;
+        } else {
+            post = meta.post;
+        }
+
+        return { post, comment, actor };
     }
 }
 

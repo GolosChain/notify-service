@@ -13,6 +13,11 @@ module.exports = MongoDB.makeModel(
             type: String,
             required: true,
         },
+        app: {
+            type: String,
+            enum: ['gls', 'cyber'],
+            default: 'cyber',
+        },
         eventType: {
             type: String,
             required: true,
@@ -32,47 +37,82 @@ module.exports = MongoDB.makeModel(
         post: {
             // 3 parts which can identify any post/comment
             contentId: {
-                userId: { type: String },
-                permlink: { type: String },
+                userId: {
+                    type: String,
+                },
+                permlink: {
+                    type: String,
+                },
             },
-            title: String,
+            title: {
+                type: String,
+            },
         },
 
         comment: {
             contentId: {
-                userId: { type: String },
-                permlink: { type: String },
+                userId: {
+                    type: String,
+                },
+                permlink: {
+                    type: String,
+                },
             },
-            body: String,
+            body: {
+                type: String,
+            },
         },
         community: {
             // TODO: wait for blockchain
-            id: { type: String, default: 'gls' },
+            id: {
+                type: String,
+                default: 'gls',
+            },
             name: {
                 type: String,
                 default: 'Golos',
             },
         },
         actor: {
-            userId: { type: String },
-            username: { type: String },
-            avatarUrl: { type: String },
+            userId: {
+                type: String,
+            },
+            username: {
+                type: String,
+            },
+            avatarUrl: {
+                type: String,
+            },
         },
         parentComment: {
             contentId: {
-                userId: { type: String },
-                permlink: { type: String },
+                userId: {
+                    type: String,
+                },
+                permlink: {
+                    type: String,
+                },
             },
-            body: String,
+            body: {
+                type: String,
+            },
         },
 
         value: {
-            amount: { type: String },
-            currency: { type: String },
+            amount: {
+                type: String,
+            },
+            currency: {
+                type: String,
+            },
         },
         payout: {
-            amount: { type: String },
-            currency: { type: String },
+            amount: {
+                type: String,
+            },
+            currency: {
+                type: String,
+            },
         },
     },
     {
@@ -82,6 +122,7 @@ module.exports = MongoDB.makeModel(
                 fields: {
                     eventType: 1,
                     user: 1,
+                    app: 1,
                 },
             },
             // History request
@@ -89,13 +130,14 @@ module.exports = MongoDB.makeModel(
                 fields: {
                     user: 1,
                     eventType: 1,
+                    app: 1,
                     _id: -1,
                 },
             },
             // Cleaner
             {
                 fields: {
-                    createdAt: -1,
+                    timestamp: -1,
                 },
             },
             // Restorer
