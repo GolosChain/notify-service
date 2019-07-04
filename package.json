@@ -35,13 +35,13 @@
   },
   "homepage": "https://github.com/GolosChain/golos-notifications#readme",
   "dependencies": {
-    "cyber-client": "^1.1.27",
+    "cyber-client": "^1.1.29",
     "cyberwayjs": "^20.0.0-beta5",
-    "gls-core-service": "^3.31.1",
+    "gls-core-service": "^3.42.0",
     "node-fetch": "^2.3.0",
     "node-rsa": "^1.0.3"
   },
   "devDependencies": {
-    "prettier": "^1.17.0"
+    "prettier": "^1.18.2"
   }
 }

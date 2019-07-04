@@ -24,11 +24,15 @@ class Notifier extends BasicService {
     async _accumulateEvent(user, data) {
         data = Object.assign({}, data);
 
+        const app = data.app;
+
         delete data.__v;
         delete data.user;
+        delete data.app;
 
-        this._accumulator[user] = this._accumulator[user] || [];
-        this._accumulator[user].push(data);
+        this._accumulator[app] = this._accumulator[app] || {};
+        this._accumulator[app][user] = this._accumulator[user] || [];
+        this._accumulator[app][user].push(data);
     }
 
     async _broadcast() {

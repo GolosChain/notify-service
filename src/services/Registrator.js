@@ -46,13 +46,13 @@ class Registrator extends BasicService {
     async start() {
         await this.restore();
 
-        const subscribe = new BlockSubscribe();
+        const subscribe = new BlockSubscribe({
+            blockHandler: data => {
+                this._handleBlock(data, data.blockNum);
+            },
+        });
 
         this.addNested(subscribe);
-
-        subscribe.on('block', data => {
-            this._handleBlock(data, data.blockNum);
-        });
 
         await subscribe.start();
     }
