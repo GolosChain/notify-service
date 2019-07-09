@@ -36,7 +36,7 @@ class Reward extends Abstract {
     }
 
     _parseMemo(memo) {
-        const pattern = /send to: (?<user>.*); *(?<rawType>[\S]*).*(post|comment) (?<author>.*):(?<permlink>.*)/;
+        const pattern = /((send to: )(?<user>.*);|.*?) *(?<rawType>[\S]*).*(post|comment) (?<author>.*):(?<permlink>.*)/;
         const { author, rawType, userId, permlink } = memo.match(pattern).groups;
         let type;
 
@@ -69,7 +69,7 @@ class Reward extends Abstract {
 
     async _isUnnecessary({ from, target, receiver, app }) {
         const isPublishContract = from.endsWith('.publish');
-        const isVestingIsReceiver = receiver.endsWith('.vesting');
+        const isVestingIsReceiver = receiver.endsWith('.token');
         const isVestingIsTarget = target.endsWith('.vesting');
 
         if (!(isPublishContract && isVestingIsReceiver && isVestingIsTarget)) {
