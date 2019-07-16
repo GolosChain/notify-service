@@ -116,8 +116,21 @@ class Registrator extends BasicService {
                     await this._vote.handleDownVote(args, context);
                     break;
                 case 'cyber.token->transfer':
+                case 'cyber.token->payment':
                     await this._transfer.handleEvent(args, context);
                     await this._reward.handleEvent(args, context);
+                    break;
+
+                case 'cyber.token->bulktransfer':
+                case 'cyber.token->bulkpayment':
+                    for (const recipient of args.recipients) {
+                        const data = {
+                            ...args,
+                            ...recipient,
+                        };
+                        await this._transfer.handleEvent(data, context);
+                        await this._reward.handleEvent(data, context);
+                    }
                     break;
 
                 case 'gls.publish->createmssg':

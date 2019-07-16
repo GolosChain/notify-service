@@ -101,7 +101,7 @@ class Abstract extends BasicController {
             const isTimeOut = code === 408 || code === 'ECONNRESET' || code === 'ETIMEDOUT';
 
             if (isTimeOut && retryNum <= maxRetries) {
-                return await this.waitForTransaction(transactionId, maxRetries, retryNum++);
+                return await this.waitForTransaction(transactionId, maxRetries, ++retryNum);
             }
 
             Logger.error(`Error calling prism.waitForTransaction`, error);
