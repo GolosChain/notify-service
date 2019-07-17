@@ -47,8 +47,10 @@ class Registrator extends BasicService {
         await this.restore();
 
         const subscribe = new BlockSubscribe({
-            blockHandler: data => {
-                this._handleBlock(data, data.blockNum);
+            handler: ({ type, data }) => {
+                if (type === BlockSubscribe.EVENT_TYPES.BLOCK) {
+                    this._handleBlock(data, data.blockNum);
+                }
             },
         });
 
