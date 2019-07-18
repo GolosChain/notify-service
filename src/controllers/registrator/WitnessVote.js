@@ -10,28 +10,24 @@ class WitnessVote extends Abstract {
         await this._handle({ from, user, eventType: 'witnessCancelVote' }, context);
     }
 
-    async _handle({ from, user, eventType }, { blockNum, transactionId }) {
+    async _handle({ from, user, eventType }, { blockNum, transactionId, app }) {
+        if (await this._isInBlackList(from, user, app)) {
+            return;
+        }
+
         await this.waitForTransaction(transactionId, 1);
 
-        const apps = ['cyber', 'gls'];
+        const meta = await this.getEntityMetaData({ userId: from }, app);
+        const model = await Event.create({
+            blockNum,
+            user,
+            eventType,
+            actor: meta.user,
+            fromUsers: [from],
+            app,
+        });
 
-        for (const app of apps) {
-            if (await this._isInBlackList(from, user, app)) {
-                continue;
-            }
-
-            const meta = await this.getEntityMetaData({ userId: from }, app);
-            const model = await Event.create({
-                blockNum,
-                user,
-                eventType,
-                actor: meta.user,
-                fromUsers: [from],
-                app,
-            });
-
-            this.emit('registerEvent', user, model.toObject());
-        }
+        this.emit('registerEvent', user, model.toObject());
     }
 }
 
