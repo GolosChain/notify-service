@@ -76,15 +76,27 @@ class Reply extends Abstract {
     }
 
     async _isUnnecessary({ user, author, permlink, app }) {
+        if (!user) {
+            // This is a post
+            return;
+        }
+
         if (user === author) {
+            // Self-reply
             return true;
         }
 
-        if (await Event.findOne({ eventType: 'reply', permlink, fromUsers: author })) {
+        if (await Event.findOne({ eventType: 'reply', permlink, 'actor.userId': author })) {
+            // Reply duplicate
             return true;
         }
 
-        return await this._isInBlackList(author, user, app);
+        if (await this._isInBlackList(author, user, app)) {
+            // Ignored
+            return true;
+        }
+
+        return false;
     }
 }
 
