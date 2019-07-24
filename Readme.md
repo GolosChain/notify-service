@@ -17,8 +17,8 @@ history:                                      // Получение истори
     markAsViewed <boolean>(true)              // Пометить полученные эвенты как уже просмотренные.
     types <'all'|[string(eventType)]>('all')  // Массив типов необходимых событий или строка 'all' для всех сразу
          [
-           upvote               // лайк (голос)
-         | downvote             // дизлайк
+           upvote             // лайк (голос)
+         | downvote           // дизлайк
          | transfer           // перевод средств
          | reply              // ответ на пост или комментарий
          | subscribe          // подписка на блог
@@ -27,6 +27,7 @@ history:                                      // Получение истори
          | repost             // репост
          | reward             // награда пользователю
          | curatorReward      // награда куратору
+         | benefeciaryReward  // награда бенефициару 
          | witnessVote        // голос за делегата
          | witnessCancelVote  // отмена голоса за делегата
          ]
@@ -54,85 +55,7 @@ removeFromBlackList:  // Исключает пользователя из чер
 
 ##### Формат данных
 
-// TODO: изменится после окончательного принятия нового [формата](https://gist.github.com/Bacher/af03ae0f0e2b3f42263f9c758022c90b) фронтендом
-
-```
-// Общий вид ответа
-
-total <number>                         // Общее число хранимых эвентов
-totalByTypes <{string(type): number}>  // Число хранимых эвентов по типу
-                                       // Также содержит summary - сумму всех полей
-fresh <number>                         // Общее число непросмотренных эвентов
-freshByTypes <{string(type): number}>  // Число непросмотренных эвентов по типу
-                                       // Также содержит summary - сумму всех полей
-data: <[object]>                       // Данные эвентов в виде массива объектов
-
-// Общий вид данных эвента
-
-eventType <string>  // Тип эвента
-fresh <boolean>     // Пометка того является ли эвент не просмотренным
-counter <number>    // Значение группировки, указывает на сквошинг эвентов в один эвент
-(concrete data)     // Данные, относящиеся к конкретному эвенту (смотри ниже)
-
-// Формат каждого конкретного типа эвента
-
-upvote:                        // лайк (голос)
-    permlink <string>        // ссылка на целевой пост/комментарий
-    fromUsers <[string]>     // юзеры-источники эвента
-    refBlockNum <number>  // номер ref-блока
-
-downvote:                        // флаг (дизлайк, жалоба)
-    permlink <string>        // ссылка на целевой пост/комментарий
-    fromUsers <[string]>     // юзеры-источники эвента
-    refBlockNum <number>  // номер ref-блока
-
-transfer:                    // перевод средств
-    fromUsers <[string]>     // юзеры-источники эвента
-    amount <string>          // количество и тип токенов через пробел
-
-reply:                       // ответ на пост или комментарий
-    permlink <string>        // ссылка на целевой пост/комментарий
-    parentPermlink <string>  // родительский пост/комментарий целевого поста/комментария
-    fromUsers <[string]>     // юзеры-источники эвента
-    refBlockNum <number>  // номер ref-блока
-
-subscribe:                   // подписка на блог
-    fromUsers <[string]>     // юзеры-источники эвента
-
-unsubscribe:                 // отписка от блога
-    fromUsers <[string]>     // юзеры-источники эвента
-
-mention:                     // упоминание в посте, заголовке поста или в комменте (через @)
-    permlink <string>        // ссылка на целевой пост/комментарий
-    parentPermlink <string>  // родительский пост целевого поста/комментария
-    fromUsers <[string]>     // юзеры-источники эвента
-    refBlockNum <number>  // номер ref-блока
-
-
-repost:                      // репост
-    permlink <string>        // ссылка на целевой пост
-    fromUsers <[string]>     // юзеры-источники эвента
-    refBlockNum <number>  // номер ref-блока
-
-
-reward:                      // награда пользователю
-    permlink <string>        // ссылка на целевой пост/коммент
-    reward: <object>         // награда
-        golos <number>       // в голосах
-        golosPower <number>  // в силе голоса
-        gbg <number>         // в голос/золоте
-
-curatorReward:                    // награда куратору
-    permlink <string>             // ссылка на целевой пост/коммент
-    curatorReward <number>        // награда в силе голоса
-    curatorTargetAuthor <string>  // автор поста/коммента, за который получена награда
-
-witnessVote:                 // голос за делегата
-    fromUsers <[string]>     // юзеры-источники эвента
-
-witnessCancelVote:           // отмена голоса за делегата
-    fromUsers <[string]>     // юзеры-источники эвента
-```
+Необходима актуализация...
 
 ##### Возможные переменные окружения `ENV`
 
