@@ -4,9 +4,9 @@ const Event = require('../../models/Event');
 class Transfer extends Abstract {
     async handleEvent(
         { to: user, from, quantity, memo },
-        { blockNum, transactionId, app, receiver }
+        { blockNum, transactionId, app: contractName, receiver }
     ) {
-        if (from === `${app}.publish` && user === `${app}.vesting`) {
+        if (from === `${contractName}.publish` && user === `${contractName}.vesting`) {
             return;
         }
 
@@ -14,28 +14,35 @@ class Transfer extends Abstract {
             return;
         }
 
+        const { amount, currency } = this._parseQuantity(quantity);
+        const apps = ['cyber'];
+
         await this.waitForTransaction(transactionId);
 
-        const { amount, currency } = this._parseQuantity(quantity);
-
-        if (await this._isInBlackList(from, user, app)) {
-            return;
+        if (currency === 'GOLOS') {
+            apps.push('gls');
         }
 
-        const { user: actor } = await this.getEntityMetaData({ userId: from }, app);
-        const model = new Event({
-            blockNum,
-            user,
-            eventType: 'transfer',
-            fromUsers: [from],
-            actor,
-            value: { amount, currency },
-            app,
-        });
+        for (const app of apps) {
+            if (await this._isInBlackList(from, user, app)) {
+                continue;
+            }
 
-        await model.save();
+            const { user: actor } = await this.getEntityMetaData({ userId: from }, app);
+            const model = new Event({
+                blockNum,
+                user,
+                eventType: 'transfer',
+                fromUsers: [from],
+                actor,
+                value: { amount, currency },
+                app,
+            });
 
-        this.emit('registerEvent', user, model.toObject());
+            await model.save();
+
+            this.emit('registerEvent', user, model.toObject());
+        }
     }
 
     _parseQuantity(quantity) {

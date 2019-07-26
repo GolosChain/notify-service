@@ -24,6 +24,7 @@ class WitnessVote extends Abstract {
             eventType,
             actor: meta.user,
             fromUsers: [from],
+            app,
         });
 
         this.emit('registerEvent', user, model.toObject());

@@ -36,7 +36,7 @@
   "homepage": "https://github.com/GolosChain/golos-notifications#readme",
   "dependencies": {
     "cyberwayjs": "^20.0.0-beta5",
-    "gls-core-service": "^3.50.0",
+    "gls-core-service": "^3.50.1",
     "node-fetch": "^2.3.0",
     "node-rsa": "^1.0.3"
   },
