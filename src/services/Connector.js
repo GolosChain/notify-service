@@ -1,6 +1,7 @@
 const core = require('gls-core-service');
 const BasicConnector = core.services.Connector;
 const env = require('../data/env');
+const eventTypes = require('../data/eventTypes');
 const History = require('../controllers/connector/History');
 const BlackList = require('../controllers/connector/BlackList');
 
@@ -165,21 +166,7 @@ class Connector extends BasicConnector {
                                     type: 'array',
                                     items: {
                                         type: 'string',
-                                        enum: [
-                                            'all',
-                                            'upvote',
-                                            'downvote',
-                                            'transfer',
-                                            'reply',
-                                            'subscribe',
-                                            'unsubscribe',
-                                            'mention',
-                                            'repost',
-                                            'reward',
-                                            'curatorReward',
-                                            'witnessVote',
-                                            'witnessCancelVote',
-                                        ],
+                                        enum: ['all', ...eventTypes],
                                         default: ['all'],
                                     },
                                 },
