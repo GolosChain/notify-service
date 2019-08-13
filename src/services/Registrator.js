@@ -176,13 +176,9 @@ class Registrator extends BasicService {
     }
 
     _getAppType(type) {
-        const contractPrefix = type.split('.')[0];
+        return 'gls';
 
-        if (contractPrefix === 'gls') {
-            return 'gls';
-        } else {
-            return 'cyber';
-        }
+        // TODO: rework when multiple apps support is required
     }
 }
 
