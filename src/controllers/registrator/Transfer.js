@@ -4,8 +4,10 @@ const Event = require('../../models/Event');
 class Transfer extends Abstract {
     async handleEvent(
         { to: user, from, quantity, memo },
-        { blockNum, transactionId, app: contractName, receiver }
+        { blockNum, app: contractName, receiver }
     ) {
+        await super._handle({}, blockNum);
+
         if (from === `${contractName}.publish` && user === `${contractName}.vesting`) {
             return;
         }
@@ -16,8 +18,6 @@ class Transfer extends Abstract {
 
         const { amount, currency } = this._parseQuantity(quantity);
         const apps = ['cyber'];
-
-        await this.waitForTransaction(transactionId);
 
         if (currency === 'GOLOS') {
             apps.push('gls');

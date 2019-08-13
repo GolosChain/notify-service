@@ -16,14 +16,14 @@ class Vote extends Abstract {
             weight,
             message_id: { author: userId, permlink },
         },
-        { app, blockNum, transactionId },
+        { app, blockNum },
         eventType
     ) {
+        await super._handle({}, blockNum);
+
         if (await this._isUnnecessary({ weight, voter, userId, app })) {
             return;
         }
-
-        await this.waitForTransaction(transactionId);
 
         const { post, comment, actor } = await this._getMeta({ userId, permlink, voter, app });
         const model = new Event({

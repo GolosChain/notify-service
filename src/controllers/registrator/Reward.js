@@ -2,15 +2,12 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Reward extends Abstract {
-    async handleEvent(
-        { to: target, from, quantity, memo },
-        { blockNum, transactionId, app, receiver }
-    ) {
+    async handleEvent({ to: target, from, quantity, memo }, { blockNum, app, receiver }) {
+        await super._handle({}, blockNum);
+
         if (await this._isUnnecessary({ from, receiver, target, app })) {
             return;
         }
-
-        await this.waitForTransaction(transactionId);
 
         const { amount, currency } = this._parseQuantity(quantity);
         const { contentId, user, type } = this._parseMemo(memo);
@@ -36,7 +33,7 @@ class Reward extends Abstract {
     }
 
     _parseMemo(memo) {
-        const pattern = /((send to: )(?<user>.*);|.*?) *(?<rawType>[\S]*).*(post|comment) (?<author>.*):(?<permlink>.*)/;
+        const pattern = /((send to: )(?<userId>.*);|.*?) *(?<rawType>[\S]*).*(post|comment) (?<author>.*):(?<permlink>.*)/;
         const { author, rawType, userId, permlink } = memo.match(pattern).groups;
         let type;
 
@@ -58,6 +55,7 @@ class Reward extends Abstract {
             type,
             author,
             contentId: { userId, permlink },
+            user: userId,
         };
     }
 

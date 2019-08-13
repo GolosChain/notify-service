@@ -7,13 +7,13 @@ class Repost extends Abstract {
             message_id: { author: user, permlink },
             rebloger: reposter,
         },
-        { blockNum, transactionId, app }
+        { blockNum, app }
     ) {
+        await super._handle({}, blockNum);
+
         if (await this._isUnnecessary({ user, reposter, app })) {
             return;
         }
-
-        await this.waitForTransaction(transactionId);
 
         const { post, comment, actor } = await this._getMeta({ user, permlink, reposter, app });
 

@@ -9,9 +9,9 @@ class Mention extends Abstract {
             bodymssg: body,
             parent_id: { author: parentAuthor, permlink: parentPermlink },
         },
-        { blockNum, transactionId, app }
+        { blockNum, app }
     ) {
-        await this.waitForTransaction(transactionId);
+        await super._handle({}, blockNum);
 
         const users = this._extractMention(title, body);
 

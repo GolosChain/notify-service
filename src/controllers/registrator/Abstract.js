@@ -14,6 +14,10 @@ class Abstract extends BasicController {
         this._emitter = new EventEmitter();
     }
 
+    async _handle(params, blockNum) {
+        await this.waitForBlockNum(blockNum);
+    }
+
     async resolveName(user) {
         let name = user;
 
@@ -91,20 +95,20 @@ class Abstract extends BasicController {
         }
     }
 
-    async waitForTransaction(transactionId, maxRetries = 5, retryNum = 0) {
-        const params = { transactionId };
+    async waitForBlockNum(blockNum, maxRetries = 5, retryNum = 0) {
+        const params = { blockNum };
 
         try {
-            return await this.callService('prism', 'waitForTransaction', params);
+            return await this.callService('prism', 'waitForBlock', params);
         } catch (error) {
             const code = error.code;
             const isTimeOut = code === 408 || code === 'ECONNRESET' || code === 'ETIMEDOUT';
 
             if (isTimeOut && retryNum <= maxRetries) {
-                return await this.waitForTransaction(transactionId, maxRetries, ++retryNum);
+                return await this.waitForBlockNum(blockNum, maxRetries, ++retryNum);
             }
 
-            Logger.error(`Error calling prism.waitForTransaction`, error);
+            Logger.error(`Error calling prism.waitForBlock`, error);
 
             error.prismError = true;
 

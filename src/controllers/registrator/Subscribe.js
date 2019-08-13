@@ -10,8 +10,8 @@ class Subscribe extends Abstract {
         await this._handle({ user, follower, eventType: 'unsubscribe' }, context);
     }
 
-    async _handle({ user, follower, eventType }, { app, blockNum, transactionId }) {
-        await this.waitForTransaction(transactionId);
+    async _handle({ user, follower, eventType }, { app, blockNum }) {
+        await super._handle({}, blockNum);
 
         if (!user || user === follower) {
             return;
