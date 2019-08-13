@@ -54,7 +54,7 @@ class Reward extends Abstract {
         return {
             type,
             author,
-            contentId: { author, permlink },
+            contentId: { userId: author, permlink },
             user: userId,
         };
     }
