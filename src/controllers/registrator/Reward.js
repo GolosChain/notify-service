@@ -1,3 +1,5 @@
+const core = require('gls-core-service');
+const Logger = core.utils.Logger;
 const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
