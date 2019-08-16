@@ -11,6 +11,9 @@ class Reward extends Abstract {
 
         const { amount, currency } = this._parseQuantity(quantity);
         const { contentId, user, type } = this._parseMemo(memo);
+        if (!type) {
+            return;
+        }
         const { comment, post } = await this._getMeta(contentId, app);
 
         const model = new Event({
@@ -48,6 +51,9 @@ class Reward extends Abstract {
 
             case 'benefeciary':
                 type = 'benefeciaryReward';
+                break;
+            default:
+                Logger.info(`Unknown reward type: ${rawType}, skipping`);
                 break;
         }
 
