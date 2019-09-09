@@ -98,10 +98,10 @@ class Registrator extends BasicService {
     }
 
     // TODO Add allowed contract names
-    async _routeEventHandlers({ type, receiver, ...body }, blockNum, transactionId) {
+    async _routeEventHandlers({ type, receiver, ...body }, blockNum, blockTime, transactionId) {
         try {
             const app = this._getAppType(type);
-            const context = { blockNum, transactionId, app, receiver };
+            const context = { blockNum, blockTime, transactionId, app, receiver };
             const args = body.args;
 
             switch (type) {

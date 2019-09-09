@@ -7,7 +7,7 @@ class Repost extends Abstract {
             message_id: { author: user, permlink },
             rebloger: reposter,
         },
-        { blockNum, app }
+        { blockNum, blockTime, app }
     ) {
         await super._handle({}, blockNum);
 
@@ -19,6 +19,7 @@ class Repost extends Abstract {
 
         const model = new Event({
             blockNum,
+            blockTime,
             user,
             post,
             actor,

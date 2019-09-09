@@ -10,7 +10,7 @@ class Subscribe extends Abstract {
         await this._handle({ user, follower, eventType: 'unsubscribe' }, context);
     }
 
-    async _handle({ user, follower, eventType }, { app, blockNum }) {
+    async _handle({ user, follower, eventType }, { app, blockNum, blockTime }) {
         await super._handle({}, blockNum);
 
         if (!user || user === follower) {
@@ -24,6 +24,7 @@ class Subscribe extends Abstract {
         const { user: actor } = await this.getEntityMetaData({ userId: follower }, app);
         const model = new Event({
             blockNum,
+            blockTime,
             user,
             eventType,
             fromUsers: [follower],
