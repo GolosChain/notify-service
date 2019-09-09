@@ -43,7 +43,10 @@ class Notifier extends BasicService {
             this._accumulator = {};
 
             await this._sendToOnlineNotify(accumulator);
-            await this._sendToPush(accumulator);
+
+            if (!env.GLS_DISABLE_PUSH) {
+                await this._sendToPush(accumulator);
+            }
 
             end();
         }
