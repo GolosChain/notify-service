@@ -9,6 +9,10 @@ module.exports = MongoDB.makeModel(
             type: Number,
             required: true,
         },
+        blockTime: {
+            type: Date,
+            required: true,
+        },
         user: {
             type: String,
             required: true,

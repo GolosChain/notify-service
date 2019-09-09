@@ -9,7 +9,7 @@ class Mention extends Abstract {
             bodymssg: body,
             parent_id: { author: parentAuthor, permlink: parentPermlink },
         },
-        { blockNum, app }
+        { blockNum, blockTime, app }
     ) {
         await super._handle({}, blockNum);
 
@@ -23,6 +23,7 @@ class Mention extends Abstract {
                 parentAuthor,
                 parentPermlink,
                 blockNum,
+                blockTime,
                 app,
             });
         }
@@ -35,6 +36,7 @@ class Mention extends Abstract {
         parentAuthor,
         parentPermlink,
         blockNum,
+        blockTime,
         app,
     }) {
         const user = await this.resolveName(username);
@@ -51,6 +53,7 @@ class Mention extends Abstract {
 
         const model = new Event({
             blockNum,
+            blockTime,
             user,
             eventType: 'mention',
             permlink,

@@ -4,7 +4,10 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Reward extends Abstract {
-    async handleEvent({ to: target, from, quantity, memo }, { blockNum, app, receiver }) {
+    async handleEvent(
+        { to: target, from, quantity, memo },
+        { blockNum, blockTime, app, receiver }
+    ) {
         await super._handle({}, blockNum);
 
         if (await this._isUnnecessary({ from, receiver, target, app })) {
@@ -20,6 +23,7 @@ class Reward extends Abstract {
 
         const model = new Event({
             blockNum,
+            blockTime,
             user,
             post,
             comment,

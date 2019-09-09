@@ -7,7 +7,7 @@ class Reply extends Abstract {
             message_id: { author, permlink },
             parent_id: { author: user, permlink: parentPermlink },
         },
-        { blockNum, app }
+        { blockNum, blockTime, app }
     ) {
         if (!user || !parentPermlink) {
             return;
@@ -24,6 +24,7 @@ class Reply extends Abstract {
 
         const model = new Event({
             blockNum,
+            blockTime,
             user,
             eventType: 'reply',
             permlink,
