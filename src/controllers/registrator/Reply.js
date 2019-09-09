@@ -9,6 +9,10 @@ class Reply extends Abstract {
         },
         { blockNum, app }
     ) {
+        if (!user || !parentPermlink) {
+            return;
+        }
+
         await super._handle({}, blockNum);
 
         if (await this._isUnnecessary({ user, author, permlink, app })) {
