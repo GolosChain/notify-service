@@ -80,7 +80,7 @@ class Abstract extends BasicController {
         this._populatePrismRequestData(data, { userId, communityId, postId, commentId, contentId });
 
         try {
-            return await this.callService('prism', 'getNotifyMeta', data);
+            return await this.callService('prismApi', 'getNotifyMeta', data);
         } catch (error) {
             Logger.error(
                 `Error calling prism.getNotifyMeta in ${
