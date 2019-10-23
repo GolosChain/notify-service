@@ -20,24 +20,17 @@ class Abstract extends BasicController {
 
     async resolveName(user) {
         let name = user;
-
-        if (!user.includes('@')) {
-            name += '@golos';
+        if (user.includes('@')) {
+            try {
+                const resolved = await RPC.fetch('/v1/chain/resolve_names', [user]);
+                name = resolved[0].resolved_username;
+            } catch (error) {
+                Logger.warn('Error resolve account name -- ', JSON.stringify(error, null, 4));
+                name = user.split('@')[0];
+            }
         }
-
-        try {
-            return await this._getUserNameFromBlockChain(user);
-        } catch (error) {
-            Logger.warn(`Cannot get such an account -- ${name}`);
-        }
-
-        return user;
-    }
-
-    async _getUserNameFromBlockChain(user) {
-        const data = await RPC.fetch('/v1/chain/resolve_names', [user]);
-
-        return data[0].resolved_username;
+        Logger.info(`Resolving name -- ${name}`);
+        return name;
     }
 
     _populatePrismRequestData(data, { userId, communityId, postId, commentId, contentId }) {

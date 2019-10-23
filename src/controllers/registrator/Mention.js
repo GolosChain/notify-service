@@ -43,7 +43,7 @@ class Mention extends Abstract {
         try {
             user = await this.resolveName(username);
         } catch {
-            user = username;
+            user = await this.resolveName(`${username}@golos`);
         }
 
         if (await this._isUnnecessary({ user, author, parentAuthor, app })) {
@@ -87,7 +87,7 @@ class Mention extends Abstract {
     }
 
     async _isUnnecessary({ user, author, parentAuthor, app }) {
-        if (user === author || user === parentAuthor) {
+        if (user === author || user === parentAuthor || !user) {
             return true;
         }
 
