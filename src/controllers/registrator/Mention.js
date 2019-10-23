@@ -39,7 +39,12 @@ class Mention extends Abstract {
         blockTime,
         app,
     }) {
-        const user = await this.resolveName(username);
+        let user;
+        try {
+            user = await this.resolveName(username);
+        } catch {
+            user = username;
+        }
 
         if (await this._isUnnecessary({ user, author, parentAuthor, app })) {
             return;
