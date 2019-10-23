@@ -1,7 +1,8 @@
-const core = require('gls-core-service');
+const core = require('cyberway-core-service');
 const BasicService = core.services.Basic;
 const Logger = core.utils.Logger;
 const metrics = core.utils.metrics;
+const env = require('../data/env');
 
 class Notifier extends BasicService {
     constructor(registrator, connector) {
@@ -22,6 +23,14 @@ class Notifier extends BasicService {
     }
 
     async _accumulateEvent(user, data) {
+        const threshold = new Date(Date.now() - env.GLS_MAX_NOTIFICATION_DELAY);
+
+        // Если событие произошло больше чем GLS_MAX_NOTIFICATION_DELAY ms назад,
+        // то не отправляем нотификации.
+        if (data.blockTime < threshold) {
+            return;
+        }
+
         data = Object.assign({}, data);
 
         const app = data.app;
@@ -43,7 +52,10 @@ class Notifier extends BasicService {
             this._accumulator = {};
 
             await this._sendToOnlineNotify(accumulator);
-            await this._sendToPush(accumulator);
+
+            if (!env.GLS_DISABLE_PUSH) {
+                await this._sendToPush(accumulator);
+            }
 
             end();
         }

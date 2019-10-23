@@ -4,7 +4,7 @@ const Event = require('../../models/Event');
 class Transfer extends Abstract {
     async handleEvent(
         { to: user, from, quantity, memo },
-        { blockNum, app: contractName, receiver }
+        { blockNum, blockTime, app: contractName, receiver }
     ) {
         await super._handle({}, blockNum);
 
@@ -31,6 +31,7 @@ class Transfer extends Abstract {
             const { user: actor } = await this.getEntityMetaData({ userId: from }, app);
             const model = new Event({
                 blockNum,
+                blockTime,
                 user,
                 eventType: 'transfer',
                 fromUsers: [from],

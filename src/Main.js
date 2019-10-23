@@ -1,4 +1,4 @@
-const core = require('gls-core-service');
+const core = require('cyberway-core-service');
 const BasicMain = core.services.BasicMain;
 const MongoDB = core.services.MongoDB;
 const env = require('./data/env');

@@ -1,4 +1,4 @@
-const core = require('gls-core-service');
+const core = require('cyberway-core-service');
 const Logger = core.utils.Logger;
 const BasicService = core.services.Basic;
 const BlockSubscribe = core.services.BlockSubscribe;
@@ -49,7 +49,7 @@ class Registrator extends BasicService {
         const subscribe = new BlockSubscribe({
             handler: ({ type, data }) => {
                 if (type === BlockSubscribe.EVENT_TYPES.BLOCK) {
-                    this._handleBlock(data, data.blockNum);
+                    this._handleBlock(data);
                 }
             },
         });
@@ -63,10 +63,10 @@ class Registrator extends BasicService {
         await this.stopNested();
     }
 
-    _handleBlock(data, blockNum) {
-        this._eachBlock(data, async operation => {
+    _handleBlock(block) {
+        this._eachBlock(block, async operation => {
             try {
-                await this._routeEventHandlers(operation, blockNum, operation.transaction.id);
+                await this._routeEventHandlers(operation, block, operation.transaction.id);
             } catch (error) {
                 Logger.error('Operation routing error -- ', error);
                 process.exit(1);
@@ -98,10 +98,16 @@ class Registrator extends BasicService {
     }
 
     // TODO Add allowed contract names
-    async _routeEventHandlers({ type, receiver, ...body }, blockNum, transactionId) {
+    async _routeEventHandlers({ type, receiver, ...body }, { blockNum, blockTime }, transactionId) {
         try {
             const app = this._getAppType(type);
-            const context = { blockNum, transactionId, app, receiver };
+            const context = {
+                blockNum,
+                blockTime,
+                transactionId,
+                app,
+                receiver,
+            };
             const args = body.args;
 
             switch (type) {

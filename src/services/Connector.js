@@ -1,4 +1,4 @@
-const core = require('gls-core-service');
+const core = require('cyberway-core-service');
 const BasicConnector = core.services.Connector;
 const env = require('../data/env');
 const eventTypes = require('../data/eventTypes');
@@ -179,6 +179,7 @@ class Connector extends BasicConnector {
                 onlineNotify: env.GLS_ONLINE_NOTIFY_CONNECT,
                 push: env.GLS_PUSH_CONNECT,
                 prism: env.GLS_PRISM_CONNECT,
+                prismApi: env.GLS_PRISM_API_CONNECT,
             },
         });
     }

@@ -1,4 +1,4 @@
-const core = require('gls-core-service');
+const core = require('cyberway-core-service');
 const MongoDB = core.services.MongoDB;
 const eventTypes = require('../data/eventTypes');
 
@@ -7,6 +7,10 @@ module.exports = MongoDB.makeModel(
     {
         blockNum: {
             type: Number,
+            required: true,
+        },
+        blockTime: {
+            type: Date,
             required: true,
         },
         user: {
