@@ -1,49 +1,40 @@
-const Event = require('../models/Event');
-const core = require('gls-core-service');
+const core = require('cyberway-core-service');
 const Logger = core.utils.Logger;
-const stats = core.utils.statsClient;
 const BasicService = core.services.Basic;
-const BlockSubscribe = core.services.BlockSubscribeDirect;
-const BlockSubscribeRestore = core.services.BlockSubscribeRestore;
+const BlockSubscribe = core.services.BlockSubscribe;
 
-const Reward = require('../controllers/registrator/Reward');
-const CuratorReward = require('../controllers/registrator/CuratorReward');
 const Mention = require('../controllers/registrator/Mention');
-const Message = require('../controllers/registrator/Message');
 const Reply = require('../controllers/registrator/Reply');
 const Repost = require('../controllers/registrator/Repost');
 const Subscribe = require('../controllers/registrator/Subscribe');
 const Transfer = require('../controllers/registrator/Transfer');
+const Reward = require('../controllers/registrator/Reward');
 const Vote = require('../controllers/registrator/Vote');
 const WitnessVote = require('../controllers/registrator/WitnessVote');
-const DeleteComment = require('../controllers/registrator/DeleteComment');
+const DeleteContent = require('../controllers/registrator/DeleteContent');
 
 class Registrator extends BasicService {
-    constructor() {
+    constructor(connector) {
         super();
 
-        this._reward = new Reward();
-        this._curatorReward = new CuratorReward();
-        this._mention = new Mention();
-        this._message = new Message();
-        this._reply = new Reply();
-        this._repost = new Repost();
-        this._subscribe = new Subscribe();
-        this._transfer = new Transfer();
-        this._vote = new Vote();
-        this._witnessVote = new WitnessVote();
-        this._deleteComment = new DeleteComment();
+        this._mention = new Mention({ connector });
+        this._reply = new Reply({ connector });
+        this._repost = new Repost({ connector });
+        this._subscribe = new Subscribe({ connector });
+        this._transfer = new Transfer({ connector });
+        this._reward = new Reward({ connector });
+        this._vote = new Vote({ connector });
+        this._witnessVote = new WitnessVote({ connector });
+        this._deleteContent = new DeleteContent({ connector });
 
         this.translateEmit(
             [
-                this._reward,
-                this._curatorReward,
                 this._mention,
-                this._message,
                 this._reply,
                 this._repost,
                 this._subscribe,
                 this._transfer,
+                this._reward,
                 this._vote,
                 this._witnessVote,
             ],
@@ -55,123 +46,145 @@ class Registrator extends BasicService {
     async start() {
         await this.restore();
 
-        const subscribe = new BlockSubscribe();
+        const subscribe = new BlockSubscribe({
+            handler: ({ type, data }) => {
+                if (type === BlockSubscribe.EVENT_TYPES.BLOCK) {
+                    this._handleBlock(data);
+                }
+            },
+        });
 
         this.addNested(subscribe);
 
-        await subscribe.start((data, blockNum) => {
-            this._restorer.trySync(data, blockNum);
-            this._handleBlock(data, blockNum);
-        });
+        await subscribe.start();
     }
 
     async stop() {
         await this.stopNested();
     }
 
-    async restore() {
-        this._restorer = new BlockSubscribeRestore(
-            Event,
-            this._handleBlock.bind(this),
-            this._handleBlockError.bind(this)
-        );
-
-        this.addNested(this._restorer);
-
-        await this._restorer.start();
-    }
-
-    _handleBlockError(error) {
-        stats.increment('block_registration_error');
-        Logger.error(`Load block error - ${error}`);
-        process.exit(1);
-    }
-
-    _handleBlock(data, blockNum) {
-        this._eachRealOperation(data, operation => {
-            this._routeRealEventHandlers(operation, blockNum).catch(error => {
-                Logger.error(`Event handler error - ${error}`);
+    _handleBlock(block) {
+        this._eachBlock(block, async operation => {
+            try {
+                await this._routeEventHandlers(operation, block, operation.transaction.id);
+            } catch (error) {
+                Logger.error('Operation routing error -- ', error);
                 process.exit(1);
-            });
-        });
-
-        this._eachVirtualOperation(data, operation => {
-            this._routeVirtualEventHandlers(operation, blockNum).catch(error => {
-                Logger.error(`Virtual event handler error - ${error}`);
-                process.exit(1);
-            });
+            }
         });
 
         this.emit('blockDone');
     }
 
-    _eachRealOperation(data, fn) {
-        for (let transaction of data.transactions) {
-            for (let operation of transaction.operations) {
-                fn(operation);
+    _eachBlock(data, fn) {
+        for (const transaction of data.transactions) {
+            if (!transaction) {
+                continue;
             }
-        }
-    }
 
-    _eachVirtualOperation(data, fn) {
-        if (!data._virtual_operations) {
-            return;
-        }
+            if (!transaction.actions) {
+                Logger.info('No actions', transaction);
+                continue;
+            }
 
-        for (let virtual of data._virtual_operations) {
-            const operations = virtual.op;
-            let type = null;
-
-            for (let i = 0; i < operations.length; i++) {
-                if (i % 2) {
-                    fn([type, operations[i]]);
+            for (const action of transaction.actions) {
+                if (action) {
+                    fn({ type: `${action.code}->${action.action}`, ...action, transaction });
                 } else {
-                    type = operations[i];
+                    Logger.info('No actions', JSON.stringify(transaction, null, 4));
                 }
             }
         }
     }
 
-    async _routeRealEventHandlers([type, body], blockNum) {
-        switch (type) {
-            case 'vote':
-                await this._vote.handle(body, blockNum);
-                break;
+    // TODO Add allowed contract names
+    async _routeEventHandlers({ type, receiver, ...body }, { blockNum, blockTime }, transactionId) {
+        try {
+            const app = this._getAppType(type);
+            const context = {
+                blockNum,
+                blockTime,
+                transactionId,
+                app,
+                receiver,
+            };
+            const args = body.args;
 
-            case 'transfer':
-                await this._transfer.handle(body, blockNum);
-                break;
+            switch (type) {
+                case 'gls.social->pin':
+                    await this._subscribe.handleSubscribe(args, context);
+                    break;
+                case 'gls.social->unpin':
+                    await this._subscribe.handleUnsubscribe(args, context);
+                    break;
+                case 'gls.publish->upvote':
+                    await this._vote.handleUpVote(args, context);
+                    break;
+                case 'gls.publish->downvote':
+                    await this._vote.handleDownVote(args, context);
+                    break;
+                case 'cyber.token->transfer':
+                case 'cyber.token->payment':
+                    await this._transfer.handleEvent(args, context);
+                    await this._reward.handleEvent(args, context);
+                    break;
 
-            case 'comment':
-                await this._reply.handle(body, blockNum);
-                await this._mention.handle(body, blockNum);
-                break;
+                case 'cyber.token->bulktransfer':
+                case 'cyber.token->bulkpayment':
+                    for (const recipient of args.recipients) {
+                        const data = {
+                            ...args,
+                            ...recipient,
+                        };
+                        await this._transfer.handleEvent(data, context);
+                        await this._reward.handleEvent(data, context);
+                    }
+                    break;
 
-            case 'custom_json':
-                await this._subscribe.handle(body, blockNum);
-                await this._repost.handle(body, blockNum);
-                break;
+                case 'gls.publish->createmssg':
+                    await this._reply.handleEvent(args, context);
+                    await this._mention.handleEvent(args, context);
+                    break;
 
-            case 'account_witness_vote':
-                await this._witnessVote.handle(body, blockNum);
-                break;
+                case 'gls.publish->reblog':
+                    await this._repost.handleEvent(args, context);
+                    break;
 
-            case 'delete_comment':
-                await this._deleteComment.handle(body);
-                break;
+                case 'gls.ctrl->votewitness':
+                    await this._witnessVote.handleVote(args, context);
+                    break;
+
+                case 'gls.ctrl->unvotewitn':
+                    await this._witnessVote.handleUnvote(args, context);
+                    break;
+
+                case 'gls.publish->deletemssg':
+                    await this._deleteContent.handleEvent(args);
+                    break;
+
+                default:
+                    break;
+            }
+        } catch (error) {
+            if (error.prismError) {
+                Logger.warn('Prism error!', error);
+                return;
+            }
+
+            error.identity = {
+                type,
+                receiver,
+                body,
+            };
+
+            throw error;
         }
     }
 
-    async _routeVirtualEventHandlers([type, body], blockNum) {
-        switch (type) {
-            case 'author_reward':
-                await this._reward.handle(body, blockNum);
-                break;
+    _getAppType(type) {
+        return 'gls';
 
-            case 'curation_reward':
-                await this._curatorReward.handle(body, blockNum);
-                break;
-        }
+        // TODO: rework when multiple apps support is required
     }
 }
 

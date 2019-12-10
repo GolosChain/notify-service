@@ -2,22 +2,54 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class Transfer extends Abstract {
-    async handle({ to: user, from, amount }, blockNum) {
-        if (await this._isInBlackList(from, user)) {
+    async handleEvent(
+        { to: user, from, quantity, memo },
+        { blockNum, blockTime, app: contractName, receiver }
+    ) {
+        await super._handle({}, blockNum);
+
+        if (from === `${contractName}.publish` && user === `${contractName}.vesting`) {
             return;
         }
 
-        const model = new Event({
-            blockNum,
-            user,
-            eventType: 'transfer',
-            fromUsers: [from],
-            amount,
-        });
+        if (user !== receiver) {
+            return;
+        }
 
-        await model.save();
+        const { amount, currency } = this._parseQuantity(quantity);
+        const apps = ['cyber'];
 
-        this.emit('registerEvent', user, model.toObject());
+        if (currency === 'GOLOS') {
+            apps.push('gls');
+        }
+
+        for (const app of apps) {
+            if (await this._isInBlackList(from, user, app)) {
+                continue;
+            }
+
+            const { user: actor } = await this.getEntityMetaData({ userId: from }, app);
+            const model = new Event({
+                blockNum,
+                blockTime,
+                user,
+                eventType: 'transfer',
+                fromUsers: [from],
+                actor,
+                value: { amount, currency },
+                app,
+            });
+
+            await model.save();
+
+            this.emit('registerEvent', user, model.toObject());
+        }
+    }
+
+    _parseQuantity(quantity) {
+        const [amount, currency] = quantity.split(' ');
+
+        return { amount, currency };
     }
 }
 

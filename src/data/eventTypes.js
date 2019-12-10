@@ -1,6 +1,6 @@
 module.exports = [
-    'vote',
-    'flag',
+    'upvote',
+    'downvote',
     'transfer',
     'reply',
     'subscribe',
@@ -9,7 +9,7 @@ module.exports = [
     'repost',
     'reward',
     'curatorReward',
-    'message',
+    'benefeciaryReward',
     'witnessVote',
     'witnessCancelVote',
 ];

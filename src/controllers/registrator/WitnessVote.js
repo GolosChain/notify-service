@@ -2,27 +2,31 @@ const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
 
 class WitnessVote extends Abstract {
-    async handle({ account: from, witness: user, approve }, blockNum) {
-        if (await this._isInBlackList(from, user)) {
+    async handleVote({ voter: from, witness: user }, context) {
+        await this._handle({ from, user, eventType: 'witnessVote' }, context);
+    }
+
+    async handleUnvote({ voter: from, witness: user }, context) {
+        await this._handle({ from, user, eventType: 'witnessCancelVote' }, context);
+    }
+
+    async _handle({ from, user, eventType }, { blockNum, blockTime, app }) {
+        await super._handle({}, blockNum);
+
+        if (await this._isInBlackList(from, user, app)) {
             return;
         }
 
-        let eventType;
-
-        if (approve) {
-            eventType = 'witnessVote';
-        } else {
-            eventType = 'witnessCancelVote';
-        }
-
-        const model = new Event({
+        const meta = await this.getEntityMetaData({ userId: from }, app);
+        const model = await Event.create({
             blockNum,
+            blockTime,
             user,
             eventType,
+            actor: meta.user,
             fromUsers: [from],
+            app,
         });
-
-        await model.save();
 
         this.emit('registerEvent', user, model.toObject());
     }

@@ -1,5 +1,4 @@
-const core = require('gls-core-service');
-const stats = core.utils.statsClient;
+const core = require('cyberway-core-service');
 const BasicMain = core.services.BasicMain;
 const MongoDB = core.services.MongoDB;
 const env = require('./data/env');
@@ -10,16 +9,16 @@ const Connector = require('./services/Connector');
 
 class Main extends BasicMain {
     constructor() {
-        super(stats);
+        super(env);
 
         const mongo = new MongoDB();
-        const registrator = new Registrator();
         const connector = new Connector();
+        const registrator = new Registrator(connector);
         const notifier = new Notifier(registrator, connector);
         const cleaner = new Cleaner();
 
         this.printEnvBasedConfig(env);
-        this.addNested(mongo, registrator, notifier, connector, cleaner);
+        this.addNested(mongo, connector, registrator, notifier, cleaner);
     }
 }
 

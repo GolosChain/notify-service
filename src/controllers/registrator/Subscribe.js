@@ -1,65 +1,40 @@
 const Abstract = require('./Abstract');
 const Event = require('../../models/Event');
-const core = require('gls-core-service');
-const Logger = core.utils.Logger;
 
 class Subscribe extends Abstract {
-    async handle(rawData, blockNum) {
-        const { eventType, user, follower } = this._tryExtractSubscribe(rawData);
+    async handleSubscribe({ pinning: user, pinner: follower }, context) {
+        await this._handle({ user, follower, eventType: 'subscribe' }, context);
+    }
+
+    async handleUnsubscribe({ pinning: user, pinner: follower }, context) {
+        await this._handle({ user, follower, eventType: 'unsubscribe' }, context);
+    }
+
+    async _handle({ user, follower, eventType }, { app, blockNum, blockTime }) {
+        await super._handle({}, blockNum);
 
         if (!user || user === follower) {
             return;
         }
 
-        if (await this._isInBlackList(follower, user)) {
+        if (await this._isInBlackList(follower, user, app)) {
             return;
         }
 
-        const model = await this._saveSubscribe({ eventType, user, follower }, blockNum);
-
-        this.emit('registerEvent', user, model.toObject());
-    }
-
-    _tryExtractSubscribe(rawData) {
-        const { type, user: follower, data } = this._parseCustomJson(rawData);
-
-        if (type !== 'follow') {
-            return {};
-        }
-
-        try {
-            if (data[0] !== 'follow') {
-                return {};
-            }
-
-            const actionTypes = data[1].what;
-            const user = data[1].following;
-            let eventType;
-
-            if (~actionTypes.indexOf('blog')) {
-                eventType = 'subscribe';
-            } else {
-                eventType = 'unsubscribe';
-            }
-
-            return { eventType, user, follower };
-        } catch (error) {
-            Logger.log(`Bad follow from - ${follower}`);
-            return {};
-        }
-    }
-
-    async _saveSubscribe({ eventType, user, follower }, blockNum) {
+        const { user: actor } = await this.getEntityMetaData({ userId: follower }, app);
         const model = new Event({
             blockNum,
+            blockTime,
             user,
             eventType,
             fromUsers: [follower],
+            actor,
+            app,
         });
 
         await model.save();
 
-        return model;
+        this.emit('registerEvent', user, model.toObject());
     }
 }
 
